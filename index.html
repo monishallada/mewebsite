@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Aurelo Data — Dashboard</title>
+  <meta name="description" content="Aurelo Data Dashboard — single‑file demo app with login, charts, data packets, history, and contacts." />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128'%3E%3Cpath fill='%2300b894' d='M64 8C33.1 8 8 33.1 8 64s25.1 56 56 56 56-25.1 56-56S94.9 8 64 8zm0 16c22.1 0 40 17.9 40 40S86.1 104 64 104 24 86.1 24 64 41.9 24 64 24z'/%3E%3Cpath fill='%2300b894' d='M40 68c0-13.3 10.7-24 24-24s24 10.7 24 24-10.7 24-24 24S40 81.3 40 68z' opacity='.3'/%3E%3C/svg%3E"/>
+  <!-- Charts & PDF -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    :root{
+      --bg:#0b1220; --card:#121a2b; --muted:#a6b3cc; --text:#e6edf7; --accent:#09b581; --accent-2:#4573ff; --danger:#ff6b6b; --warn:#ffb020;
+      --ring: 0 0 0 2px rgba(9,181,129,.35);
+    }
+    [data-theme="light"]{
+      --bg:#f5f7fb; --card:#ffffff; --muted:#55607a; --text:#0b1220; --accent:#0ea574; --accent-2:#2f5bff; --danger:#e74c3c; --warn:#d98700;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);} 
+    .app{display:grid;grid-template-columns:280px 1fr;min-height:100dvh}
+    aside{background:linear-gradient(180deg, rgba(18,26,43,.9), rgba(18,26,43,.65)), radial-gradient(1200px 500px at -10% -10%, rgba(69,115,255,.25), transparent 70%); border-right:1px solid rgba(255,255,255,.06); position:sticky; top:0; height:100dvh;}
+    .brand{display:flex;align-items:center;gap:.75rem;padding:1.25rem 1.25rem 1rem;border-bottom:1px dashed rgba(255,255,255,.06)}
+    .logo{width:34px;height:34px;border-radius:10px;background:conic-gradient(from 180deg, var(--accent), var(--accent-2));display:grid;place-items:center;box-shadow:0 6px 18px rgba(69,115,255,.25)}
+    .brand h1{font-size:1.05rem;letter-spacing:.4px;margin:0}
+    nav{padding:.5rem}
+    .nav-item{display:flex;align-items:center;gap:.75rem;padding:.7rem .9rem;margin:.25rem .5rem;border-radius:12px;color:var(--text);text-decoration:none;opacity:.75}
+    .nav-item:hover{background:rgba(255,255,255,.06);opacity:1}
+    .nav-item[aria-current="page"]{background:linear-gradient(90deg, rgba(69,115,255,.18), transparent 70%);opacity:1}
+    .nav-item svg{opacity:.9}
+    .spacer{height:1px;background:rgba(255,255,255,.06);margin:.75rem 1rem}
+
+    header{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.25rem;border-bottom:1px solid rgba(255,255,255,.06);backdrop-filter:saturate(140%) blur(8px);position:sticky;top:0;background:linear-gradient(180deg, rgba(11,18,32,.9), rgba(11,18,32,.6));z-index:10}
+    .search{display:flex;align-items:center;gap:.6rem;background:var(--card);border:1px solid rgba(255,255,255,.08);padding:.6rem .75rem;border-radius:12px;min-width:260px}
+    .search input{background:transparent;border:0;outline:0;color:var(--text);width:220px}
+    .chip{font-size:.8rem;color:var(--muted);background:rgba(255,255,255,.06);padding:.35rem .55rem;border-radius:999px;border:1px solid rgba(255,255,255,.08)}
+    .toolbar{display:flex;align-items:center;gap:.6rem}
+    .btn{display:inline-flex;align-items:center;gap:.5rem;background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));border:1px solid rgba(255,255,255,.12);color:var(--text);padding:.55rem .8rem;border-radius:12px;cursor:pointer}
+    .btn:hover{box-shadow:var(--ring)}
+    .btn.primary{background:linear-gradient(180deg, var(--accent), #089267);border-color:rgba(0,0,0,.15)}
+
+    main{padding:1.25rem;}
+    .grid{display:grid;gap:1rem}
+    .grid.cols-4{grid-template-columns:repeat(4, minmax(0,1fr))}
+    .grid.cols-3{grid-template-columns:repeat(3, minmax(0,1fr))}
+    .grid.cols-2{grid-template-columns:repeat(2, minmax(0,1fr))}
+    @media (max-width:1200px){.grid.cols-4{grid-template-columns:repeat(2, minmax(0,1fr))}}
+    @media (max-width:800px){.app{grid-template-columns:1fr}aside{position:fixed;inset:auto 0 0 0;height:auto;z-index:30;transform:translateY(calc(100% - 54px));transition:.25s ease} aside.open{transform:translateY(0)} .brand{display:none}}
+
+    .card{background:var(--card);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:1rem}
+    .card h3{margin:.2rem 0 .8rem;font-size:1.05rem}
+    .kpi{display:flex;align-items:center;justify-content:space-between}
+    .kpi .value{font-size:1.6rem;font-weight:700}
+    .muted{color:var(--muted)}
+    .trend.up{color:var(--accent)}
+    .trend.down{color:var(--danger)}
+
+    .table{width:100%;border-collapse:separate;border-spacing:0 .5rem}
+    .table th,.table td{padding:.6rem .75rem;text-align:left}
+    .table thead th{font-size:.82rem;color:var(--muted);text-transform:uppercase;letter-spacing:.6px}
+    .row{background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));border:1px solid rgba(255,255,255,.1);border-radius:12px}
+    .row td:first-child{border-top-left-radius:12px;border-bottom-left-radius:12px}
+    .row td:last-child{border-top-right-radius:12px;border-bottom-right-radius:12px}
+    .row .tag{font-size:.75rem;padding:.2rem .45rem;border-radius:999px;border:1px solid rgba(255,255,255,.14)}
+
+    .tabs{display:flex;gap:.35rem;margin:.25rem 0 1rem}
+    .tab{padding:.45rem .75rem;border:1px solid rgba(255,255,255,.14);border-radius:999px;background:rgba(255,255,255,.04);cursor:pointer}
+    .tab.active{background:linear-gradient(180deg, rgba(69,115,255,.24), rgba(69,115,255,.08));border-color:rgba(69,115,255,.35)}
+
+    .footer-note{margin-top:.75rem;color:var(--muted);font-size:.85rem}
+
+    /* Login overlay */
+    .login-wrap{position:fixed;inset:0;background:radial-gradient(1000px 500px at 20% -10%, rgba(69,115,255,.35), transparent 55%), radial-gradient(800px 600px at 120% 110%, rgba(9,181,129,.25), transparent 60%), var(--bg);display:grid;place-items:center;z-index:100}
+    .login-card{width:min(860px, 94vw);display:grid;grid-template-columns:1.2fr 1fr;gap:1rem}
+    @media (max-width:900px){.login-card{grid-template-columns:1fr}}
+    .panel{background:var(--card);border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:1.25rem}
+    .panel h2{margin:.25rem 0 1rem}
+    .input{display:flex;gap:.5rem;align-items:center;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);padding:.6rem .75rem;border-radius:12px}
+    .input input{flex:1;border:0;outline:0;background:transparent;color:var(--text)}
+    .stack{display:grid;gap:.7rem}
+    .hint{color:var(--muted);font-size:.9rem}
+    .notice{background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));border:1px dashed rgba(255,255,255,.14);padding:.6rem .75rem;border-radius:12px;color:var(--muted)}
+
+    /* Toast */
+    .toast{position:fixed;right:18px;bottom:18px;background:var(--card);border:1px solid rgba(255,255,255,.12);padding:.75rem 1rem;border-radius:12px;box-shadow:0 10px 24px rgba(0,0,0,.28);display:flex;align-items:center;gap:.6rem;opacity:0;transform:translateY(10px);pointer-events:none}
+    .toast.show{opacity:1;transform:translateY(0);pointer-events:auto}
+
+    .hide{display:none !important}
+  </style>
+</head>
+<body>
+  <!-- Login Overlay -->
+  <div id="login" class="login-wrap" role="dialog" aria-modal="true" aria-label="Login to Aurelo Data">
+    <div class="login-card">
+      <section class="panel">
+        <div class="brand" style="border:0;padding:0 0 .5rem">
+          <div class="logo" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M12 2a10 10 0 100 20 10 10 0 000-20Zm0 4a6 6 0 110 12A6 6 0 0112 6Z"/></svg>
+          </div>
+          <h1 style="margin-left:.6rem">Aurelo Data</h1>
+        </div>
+        <h2>Welcome back</h2>
+        <p class="hint">Sign in with your store account or use the demo to explore the full dashboard.</p>
+        <div class="stack" style="margin-top:1rem">
+          <label class="input" aria-label="Email"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M2 6a2 2 0 012-2h16a2 2 0 012 2v.5l-10 6-10-6V6z"/><path d="M2 8.75V18a2 2 0 002 2h16a2 2 0 002-2V8.75l-9.4 5.64a2 2 0 01-2.2 0L2 8.75z"/></svg><input id="email" type="email" placeholder="you@store.com" autocomplete="username"></label>
+          <label class="input" aria-label="Password"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17 11V8a5 5 0 10-10 0v3H5a1 1 0 00-1 1v8a1 1 0 001 1h14a1 1 0 001-1v-8a1 1 0 00-1-1h-2zm-8 0V8a3 3 0 016 0v3H9z"/></svg><input id="password" type="password" placeholder="Password" autocomplete="current-password"></label>
+          <div style="display:flex;gap:.6rem;align-items:center">
+            <button class="btn primary" id="loginBtn">Sign in</button>
+            <button class="btn" id="demoBtn" title="Sign in as demo user">Use demo</button>
+          </div>
+          <div class="notice">Demo credentials: <strong>demo@aurelo.app</strong> / <strong>demo123</strong></div>
+        </div>
+      </section>
+      <section class="panel" aria-label="What you can do">
+        <h2>What’s inside</h2>
+        <ul class="hint" style="line-height:1.6">
+          <li>KPIs: last‑month revenue, margins, best/worst performers</li>
+          <li>Interactive charts & competitor benchmarks</li>
+          <li>Data Packets marketplace (Store / Economy / Supply Chain)</li>
+          <li>One‑click CSV export & PDF summary</li>
+          <li>Send packets to Microknots (65% / 35% split)</li>
+          <li>History timeline & activity log</li>
+          <li>Contacts rollup with quick add</li>
+        </ul>
+        <div class="footer-note">This is a single‑file demo with client‑side storage (localStorage). Replace auth & data with your backend when ready.</div>
+      </section>
+    </div>
+  </div>
+
+  <div class="app" id="app" aria-hidden="true">
+    <aside id="sidebar">
+      <div class="brand">
+        <div class="logo" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M12 2a10 10 0 100 20 10 10 0 000-20Zm0 4a6 6 0 110 12A6 6 0 0112 6Z"/></svg></div>
+        <h1>Aurelo Data</h1>
+      </div>
+      <nav aria-label="Primary">
+        <a class="nav-item" data-route="#home" aria-current="page"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3l9 7v11a1 1 0 01-1 1h-6v-6H10v6H4a1 1 0 01-1-1V10l9-7z"/></svg> Home</a>
+        <a class="nav-item" data-route="#packets"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M3 6a2 2 0 012-2h5l2 2h7a2 2 0 012 2v1H3V6zm0 4h20v8a2 2 0 01-2 2H5a2 2 0 01-2-2v-8z"/></svg> Data Packets</a>
+        <a class="nav-item" data-route="#history"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 8a4 4 0 100 8 4 4 0 000-8zm-1 4.41V9h2v3.41l2.3 2.3-1.4 1.4L11 13.4l-2.9 2.7-1.4-1.4 3.7-3.7z"/></svg> History</a>
+        <a class="nav-item" data-route="#contacts"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12a5 5 0 100-10 5 5 0 000 10zm-7 9a7 7 0 0114 0v1H5v-1z"/></svg> Contacts</a>
+        <div class="spacer"></div>
+        <a class="nav-item" data-route="#settings"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19.14 12.94a7.48 7.48 0 000-1.88l2.03-1.58a.5.5 0 00.12-.64l-1.92-3.32a.5.5 0 00-.6-.22l-2.39.96a7.6 7.6 0 00-1.63-.94l-.36-2.54a.5.5 0 00-.5-.42h-3.84a.5.5 0 00-.5.42l-.36 2.54c-.57.23-1.12.54-1.63.94l-2.39-.96a.5.5 0 00-.6.22L2.7 8.84a.5.5 0 00.12.64l2.03 1.58a7.48 7.48 0 000 1.88L2.82 14.5a.5.5 0 00-.12.64l1.92 3.32c.13.23.4.32.64.22l2.39-.96c.51.4 1.06.71 1.63.94l.36 2.54c.05.25.26.42.5.42h3.84c.24 0 .45-.17.5-.42l.36-2.54c.57-.23 1.12-.54 1.63-.94l2.39.96c.24.1.51 0 .64-.22l1.92-3.32a.5.5 0 00-.12-.64l-2.03-1.56zM12 15.5A3.5 3.5 0 1115.5 12 3.5 3.5 0 0112 15.5z"/></svg> Settings</a>
+      </nav>
+    </aside>
+
+    <section>
+      <header>
+        <div class="search" role="search">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M10 2a8 8 0 105.29 14.29l4.21 4.21 1.5-1.5-4.21-4.21A8 8 0 0010 2zm0 2a6 6 0 110 12A6 6 0 0110 4z"/></svg>
+          <input id="globalSearch" placeholder="Search packets, contacts, activity…" />
+          <span class="chip" id="dateRange">Last 30 days</span>
+        </div>
+        <div class="toolbar">
+          <button class="btn" id="pdfBtn" title="Export PDF summary"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M6 2h7l5 5v13a2 2 0 01-2 2H6a2 2 0 01-2-2V4a2 2 0 012-2zm7 1v4h4"/></svg> PDF</button>
+          <button class="btn" id="themeBtn" title="Toggle theme"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a1 1 0 00-1 1v2a1 1 0 002 0V3a1 1 0 00-1-1zm0 16a1 1 0 00-1 1v2a1 1 0 002 0v-2a1 1 0 00-1-1zM4.22 5.64a1 1 0 011.41 0l1.41 1.41a1 1 0 01-1.41 1.41L4.22 7.05a1 1 0 010-1.41zM16.95 18.36a1 1 0 010-1.41l1.41-1.41a1 1 0 111.41 1.41l-1.41 1.41a1 1 0 01-1.41 0zM2 13a1 1 0 100-2h-2a1 1 0 100 2h2zm22 0a1 1 0 100-2h-2a1 1 0 100 2h2zM4.22 18.36a1 1 0 011.41 0l1.41-1.41a1 1 0 00-1.41-1.41L4.22 16.95a1 1 0 000 1.41zM18.36 5.64a1 1 0 010 1.41l-1.41 1.41a1 1 0 11-1.41-1.41l1.41-1.41a1 1 0 011.41 0z"/></svg></button>
+          <div class="btn" id="userBtn" title="Account"> <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12a5 5 0 100-10 5 5 0 000 10zm-7 9a7 7 0 0114 0v1H5v-1z"/></svg><span id="userName">—</span></div>
+        </div>
+      </header>
+
+      <main id="view-home" class="view">
+        <div class="grid cols-4">
+          <div class="card">
+            <div class="kpi"><div><h3>Revenue (Last 30d)</h3><div class="muted">vs previous 30d</div></div><div class="value" id="kpiRevenue">$—</div></div>
+            <div class="trend" id="kpiRevenueTrend"></div>
+          </div>
+          <div class="card">
+            <div class="kpi"><div><h3>Gross Margin</h3><div class="muted">avg last 30d</div></div><div class="value" id="kpiMargin">—%</div></div>
+            <div class="trend" id="kpiMarginTrend"></div>
+          </div>
+          <div class="card">
+            <div class="kpi"><div><h3>Best Performer</h3><div class="muted">by profit</div></div><div class="value" id="kpiBest">—</div></div>
+            <div class="trend" id="kpiBestDetail"></div>
+          </div>
+          <div class="card">
+            <div class="kpi"><div><h3>Lowest Revenue Day</h3><div class="muted">last 30d</div></div><div class="value" id="kpiLow">—</div></div>
+            <div class="trend muted" id="kpiLowDetail"></div>
+          </div>
+        </div>
+
+        <div class="grid cols-2" style="margin-top:1rem">
+          <div class="card">
+            <h3>Sales & Benchmarks</h3>
+            <canvas id="salesChart" height="120"></canvas>
+          </div>
+          <div class="card">
+            <h3>Margins & Split</h3>
+            <div class="grid cols-2">
+              <div>
+                <canvas id="marginChart" height="120"></canvas>
+              </div>
+              <div>
+                <canvas id="splitChart" height="120"></canvas>
+                <div class="footer-note">Microknots 65% / Aurelo 35% on packet sales.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:1rem">
+          <h3>Top Products (last 30d)</h3>
+          <table class="table" id="topProducts">
+            <thead><tr><th data-sort="name">Product</th><th data-sort="revenue">Revenue</th><th data-sort="profit">Profit</th><th data-sort="margin">Margin %</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </main>
+
+      <main id="view-packets" class="view hide">
+        <div class="card">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem">
+            <h3>Data Packets</h3>
+            <div>
+              <button class="btn" id="genCsvBtn"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M5 20h14v-2H5v2zM5 4v6h4v4h6V4H5z"/></svg> Export CSV</button>
+              <button class="btn primary" id="sendSelectedBtn"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg> Send to Microknots</button>
+            </div>
+          </div>
+          <div class="tabs" role="tablist">
+            <button class="tab active" data-cat="Store" role="tab" aria-selected="true">Store</button>
+            <button class="tab" data-cat="Economy" role="tab">Economy</button>
+            <button class="tab" data-cat="Supply" role="tab">Supply Chain</button>
+          </div>
+          <table class="table" id="packetTable">
+            <thead>
+            <tr><th><input type="checkbox" id="checkAll" title="Select all"/></th><th>ID</th><th>Title</th><th>Category</th><th>Size</th><th>Records</th><th>Price</th><th>Split</th><th>Action</th></tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+          <div class="footer-note">Tip: Use the checkboxes to select multiple packets for CSV export or to send to Microknots.</div>
+        </div>
+      </main>
+
+      <main id="view-history" class="view hide">
+        <div class="card">
+          <h3>Recent Activity</h3>
+          <table class="table" id="historyTable">
+            <thead><tr><th>When</th><th>Action</th><th>Detail</th><th>Amount</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </main>
+
+      <main id="view-contacts" class="view hide">
+        <div class="grid cols-2">
+          <div class="card">
+            <h3>Add Contact</h3>
+            <div class="stack">
+              <label class="input"><input id="cName" placeholder="Full name"/></label>
+              <label class="input"><input id="cEmail" placeholder="Email"/></label>
+              <label class="input"><input id="cRole" placeholder="Role"/></label>
+              <label class="input"><input id="cCompany" placeholder="Company"/></label>
+              <button class="btn primary" id="addContactBtn">Add</button>
+            </div>
+          </div>
+          <div class="card">
+            <h3>Contacts</h3>
+            <table class="table" id="contactsTable">
+              <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Company</th><th></th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </main>
+
+      <main id="view-settings" class="view hide">
+        <div class="card">
+          <h3>Revenue Split Calculator</h3>
+          <div class="grid cols-3">
+            <div>
+              <label class="hint">Microknots Corporate Contracts (annual)</label>
+              <div class="input"><input id="mkContracts" type="number" value="10700000"/></div>
+            </div>
+            <div>
+              <label class="hint">Aurelo cut of Microknots (10–15%)</label>
+              <div class="input"><input id="aureloCut" type="number" value="12.5"/></div>
+            </div>
+            <div>
+              <label class="hint">Active Stores selling packets</label>
+              <div class="input"><input id="storeCount" type="number" value="20"/></div>
+            </div>
+          </div>
+          <div class="grid cols-3" style="margin-top:.75rem">
+            <div>
+              <label class="hint">Avg monthly packet revenue per store ($)</label>
+              <div class="input"><input id="revPerStore" type="number" value="40000"/></div>
+            </div>
+            <div>
+              <label class="hint">Aurelo split on packet sales (%)</label>
+              <div class="input"><input id="aureloSplit" type="number" value="35"/></div>
+            </div>
+            <div style="display:flex;align-items:end">
+              <button class="btn primary" id="calcBtn">Recalculate</button>
+            </div>
+          </div>
+          <div class="grid cols-3" style="margin-top:1rem">
+            <div class="card"><div class="kpi"><div><div class="muted">Aurelo from Corporate</div><div class="value" id="kpiACorp">$—</div></div></div></div>
+            <div class="card"><div class="kpi"><div><div class="muted">Aurelo from Packets (annual)</div><div class="value" id="kpiAPackets">$—</div></div></div></div>
+            <div class="card"><div class="kpi"><div><div class="muted">Total Forecast (annual)</div><div class="value" id="kpiATotal">$—</div></div></div></div>
+          </div>
+        </div>
+      </main>
+    </section>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M10 15.6l-3.3-3.3 1.4-1.4L10 12.8l5.9-5.9 1.4 1.4L10 15.6z"/></svg>
+    <span id="toastMsg">Done</span>
+  </div>
+
+<script>
+(function(){
+  const $ = s => document.querySelector(s);
+  const $$ = s => Array.from(document.querySelectorAll(s));
+  const fmt = new Intl.NumberFormat(undefined,{style:'currency',currency:'USD',maximumFractionDigits:0});
+  const pct = n => `${(n*100).toFixed(1)}%`;
+  const state = {
+    user:null,
+    theme: localStorage.getItem('theme') || 'dark',
+    sales: [],
+    products: [],
+    packets: [],
+    history: JSON.parse(localStorage.getItem('ad_history')||'[]'),
+    contacts: JSON.parse(localStorage.getItem('ad_contacts')||'[]')
+  };
+
+  // THEME
+  function applyTheme(){
+    document.body.setAttribute('data-theme', state.theme==='light'?'light':'');
+  }
+  applyTheme();
+
+  // DEMO DATA GENERATORS
+  function rand(n,m){return Math.random()*(m-n)+n}
+  function pick(a){return a[Math.floor(Math.random()*a.length)]}
+
+  function seedData(){
+    // 90 days of sales for 8 products
+    const products = ['Fuel Gallon','Snack Pack','Coffee','Lottery','Car Wash','Cigarettes','Energy Drink','Groceries'];
+    state.products = products.map(n=>({name:n, revenue:0, profit:0, margin:0}));
+
+    const today = new Date();
+    for(let i=89;i>=0;i--){
+      const d = new Date(today); d.setDate(d.getDate()-i);
+      const day = {date: d, revenue:0, cost:0, competitorA:0, competitorB:0};
+      products.forEach((p,idx)=>{
+        const base = [3500, 1200, 800, 600, 900, 2000, 1000, 5000][idx];
+        const rev = Math.max(200, base * (0.7+Math.random()*0.8));
+        const margin = [0.08,0.45,0.75,0.3,0.6,0.12,0.5,0.28][idx] + rand(-0.03,0.03);
+        const cst = rev * (1 - margin);
+        day.revenue += rev; day.cost += cst;
+        state.products[idx].revenue += rev; state.products[idx].profit += (rev - cst);
+      });
+      day.competitorA = day.revenue * (0.92+rand(-.03,.03));
+      day.competitorB = day.revenue * (0.86+rand(-.04,.04));
+      state.sales.push(day);
+    }
+    state.products.forEach(p=> p.margin = p.profit / p.revenue);
+
+    // Packets inventory
+    const basePackets = [
+      {id:'SDP-001',title:'Q2 POS Transactions',cat:'Store',size:124.5,records:250000,price:1200},
+      {id:'SDP-002',title:'Loyalty Program Cohorts',cat:'Store',size:42.9,records:52000,price:650},
+      {id:'SDP-003',title:'Hourly Footfall + Heatmap',cat:'Store',size:88.2,records:91000,price:900},
+      {id:'EDP-101',title:'Regional CPI Trends',cat:'Economy',size:12.4,records:1800,price:300},
+      {id:'EDP-102',title:'Gas Price Index (County)',cat:'Economy',size:16.2,records:3200,price:380},
+      {id:'SUP-220',title:'Supplier Lead‑Times',cat:'Supply',size:38.1,records:12500,price:520},
+      {id:'SUP-221',title:'SKU‑Level Fill‑Rates',cat:'Supply',size:54.7,records:22100,price:750},
+    ];
+    state.packets = basePackets;
+  }
+  seedData();
+
+  // AUTH (demo only)
+  function signIn(email){
+    state.user = {name: email.split('@')[0], email};
+    localStorage.setItem('ad_user', JSON.stringify(state.user));
+    $('#userName').textContent = state.user.name;
+    $('#login').classList.add('hide');
+    $('#app').removeAttribute('aria-hidden');
+    routeTo(location.hash||'#home');
+    refreshAll();
+  }
+
+  $('#loginBtn').addEventListener('click', ()=>{
+    const email = $('#email').value||'demo@aurelo.app';
+    const pwd = $('#password').value||'demo123';
+    if(!/\S+@\S+\.\S+/.test(email) || !pwd){ return toast('Enter email & password'); }
+    signIn(email);
+    toast('Signed in');
+  });
+  $('#demoBtn').addEventListener('click', ()=> signIn('demo@aurelo.app'));
+
+  // ROUTING
+  function routeTo(hash){
+    if(!hash) hash = '#home';
+    $$('.view').forEach(v=>v.classList.add('hide'));
+    const v = document.querySelector(`#view-${hash.replace('#','')}`);
+    if(v) v.classList.remove('hide');
+    $$('.nav-item').forEach(a=>{
+      a.setAttribute('aria-current', a.getAttribute('data-route')===hash ? 'page' : 'false');
+    });
+  }
+  window.addEventListener('hashchange', ()=> routeTo(location.hash));
+  $$('.nav-item').forEach(a=> a.addEventListener('click', e=>{ e.preventDefault(); location.hash = a.getAttribute('data-route'); }));
+
+  // SEARCH (global filter for tables)
+  $('#globalSearch').addEventListener('input', ()=>{
+    const q = $('#globalSearch').value.toLowerCase();
+    filterTable('#packetTable', q);
+    filterTable('#historyTable', q);
+    filterTable('#contactsTable', q);
+    filterTable('#topProducts', q);
+  });
+
+  function filterTable(sel, q){
+    const tbody = document.querySelector(`${sel} tbody`); if(!tbody) return;
+    Array.from(tbody.children).forEach(tr=>{
+      tr.style.display = tr.textContent.toLowerCase().includes(q) ? '' : 'none';
+    });
+  }
+
+  // TOAST
+  let toastTimer = null;
+  function toast(msg){
+    const t = $('#toast'); $('#toastMsg').textContent = msg; t.classList.add('show');
+    clearTimeout(toastTimer); toastTimer = setTimeout(()=> t.classList.remove('show'), 2200);
+  }
+
+  // CHARTS
+  let salesChart, marginChart, splitChart;
+  function renderCharts(){
+    const last30 = state.sales.slice(-30);
+    const labels = last30.map(d=> d.date.toLocaleDateString());
+    const sales = last30.map(d=> Math.round(d.revenue));
+    const compA = last30.map(d=> Math.round(d.competitorA));
+    const compB = last30.map(d=> Math.round(d.competitorB));
+
+    salesChart && salesChart.destroy();
+    salesChart = new Chart($('#salesChart'), {
+      type:'line', data:{labels, datasets:[
+        {label:'Aurelo Store', data:sales, tension:.35},
+        {label:'Competitor A', data:compA, tension:.35},
+        {label:'Competitor B', data:compB, tension:.35}
+      ]}, options:{responsive:true, maintainAspectRatio:false, interaction:{mode:'index', intersect:false}, plugins:{legend:{position:'bottom'}}, scales:{y:{ticks:{callback:v=>'$'+(v/1000)+'k'}}}}
+    });
+
+    const prod = [...state.products].sort((a,b)=> b.margin-a.margin).slice(0,5);
+    marginChart && marginChart.destroy();
+    marginChart = new Chart($('#marginChart'), {
+      type:'bar', data:{labels: prod.map(p=>p.name), datasets:[{label:'Margin %', data: prod.map(p=> (p.margin*100).toFixed(1))}]}, options:{plugins:{legend:{display:false}}, scales:{y:{min:0,max:100}}}
+    });
+
+    splitChart && splitChart.destroy();
+    splitChart = new Chart($('#splitChart'), {
+      type:'doughnut', data:{labels:['Microknots (65%)','Aurelo (35%)'], datasets:[{data:[65,35]}]}, options:{plugins:{legend:{position:'bottom'}}}
+    });
+  }
+
+  // KPIs + Top products
+  function refreshKPIs(){
+    const last30 = state.sales.slice(-30);
+    const prev30 = state.sales.slice(-60,-30);
+    const sum = a => a.reduce((s,d)=> s+d,0);
+
+    const rev30 = sum(last30.map(d=> d.revenue));
+    const revPrev = sum(prev30.map(d=> d.revenue));
+    const revDelta = (rev30-revPrev)/Math.max(1,revPrev);
+    $('#kpiRevenue').textContent = fmt.format(rev30);
+    $('#kpiRevenueTrend').textContent = `${revDelta>=0?'+':''}${(revDelta*100).toFixed(1)}% ${revDelta>=0?'vs up':'vs down'}`;
+    $('#kpiRevenueTrend').className = 'trend ' + (revDelta>=0?'up':'down');
+
+    const gm = last30.reduce((s,d)=> s + (d.revenue-d.cost)/d.revenue, 0) / last30.length;
+    $('#kpiMargin').textContent = (gm*100).toFixed(1)+'%';
+    $('#kpiMarginTrend').textContent = gm>0.3? 'Healthy' : 'Tight';
+    $('#kpiMarginTrend').className = 'trend ' + (gm>0.3?'up':'down');
+
+    const best = [...state.products].sort((a,b)=> b.profit-a.profit)[0];
+    $('#kpiBest').textContent = best.name;
+    $('#kpiBestDetail').textContent = `${fmt.format(best.profit)} profit @ ${pct(best.margin)}`;
+
+    const lowDay = last30.reduce((min,d)=> d.revenue < min.revenue ? d : min, last30[0]);
+    $('#kpiLow').textContent = lowDay.date.toLocaleDateString();
+    $('#kpiLowDetail').textContent = `Revenue ${fmt.format(lowDay.revenue)}`;
+
+    // Table: Top products
+    const tp = [...state.products].sort((a,b)=> b.profit-a.profit).slice(0,8);
+    const tbody = $('#topProducts tbody'); tbody.innerHTML = '';
+    tp.forEach(p=>{
+      const tr = document.createElement('tr'); tr.className='row';
+      tr.innerHTML = `<td>${p.name}</td><td>${fmt.format(p.revenue)}</td><td>${fmt.format(p.profit)}</td><td>${(p.margin*100).toFixed(1)}%</td>`;
+      tbody.appendChild(tr);
+    });
+  }
+
+  // PACKETS TABLE
+  let currentCat = 'Store';
+  function renderPackets(){
+    const tbody = $('#packetTable tbody'); tbody.innerHTML='';
+    state.packets.filter(p=> p.cat===currentCat).forEach(p=>{
+      const tr = document.createElement('tr'); tr.className='row';
+      tr.innerHTML = `
+        <td><input type="checkbox" data-id="${p.id}"/></td>
+        <td>${p.id}</td>
+        <td>${p.title}</td>
+        <td><span class="tag">${p.cat}</span></td>
+        <td>${p.size.toFixed(1)} MB</td>
+        <td>${p.records.toLocaleString()}</td>
+        <td>${fmt.format(p.price)}</td>
+        <td>65% / 35%</td>
+        <td><button class="btn" data-dl="${p.id}">Download</button></td>`;
+      tbody.appendChild(tr);
+    });
+  }
+
+  // HISTORY
+  function pushHistory(action, detail, amount=0){
+    const item = {ts: Date.now(), action, detail, amount};
+    state.history.unshift(item);
+    state.history = state.history.slice(0,250);
+    localStorage.setItem('ad_history', JSON.stringify(state.history));
+    renderHistory();
+  }
+  function renderHistory(){
+    const tbody = $('#historyTable tbody'); tbody.innerHTML='';
+    state.history.slice(0,50).forEach(h=>{
+      const tr = document.createElement('tr'); tr.className='row';
+      tr.innerHTML = `<td>${new Date(h.ts).toLocaleString()}</td><td>${h.action}</td><td>${h.detail}</td><td>${h.amount?fmt.format(h.amount):''}</td>`;
+      tbody.appendChild(tr);
+    });
+  }
+
+  // CONTACTS
+  function renderContacts(){
+    const tbody = $('#contactsTable tbody'); tbody.innerHTML='';
+    state.contacts.forEach((c,i)=>{
+      const tr = document.createElement('tr'); tr.className='row';
+      tr.innerHTML = `<td>${c.name}</td><td>${c.email}</td><td>${c.role||''}</td><td>${c.company||''}</td><td><button class="btn" data-delc="${i}">Remove</button></td>`;
+      tbody.appendChild(tr);
+    });
+  }
+
+  // SETTINGS CALC
+  function calculateForecast(){
+    const mk = +$('#mkContracts').value || 0;
+    const cut = (+$('#aureloCut').value||0)/100;
+    const stores = +$('#storeCount').value || 0;
+    const per = +$('#revPerStore').value || 0;
+    const aCorp = mk * cut;
+    const aPackets = stores * per * 12 * ((+$('#aureloSplit').value||35)/100);
+    $('#kpiACorp').textContent = fmt.format(aCorp);
+    $('#kpiAPackets').textContent = fmt.format(aPackets);
+    $('#kpiATotal').textContent = fmt.format(aCorp + aPackets);
+  }
+
+  // PDF SUMMARY
+  $('#pdfBtn').addEventListener('click', async ()=>{
+    const { jsPDF } = window.jspdf; const doc = new jsPDF();
+    doc.setFontSize(16); doc.text('Aurelo Data — 30‑Day Summary', 14, 18);
+    doc.setFontSize(11);
+    const last30 = state.sales.slice(-30);
+    const sum = a=>a.reduce((s,d)=>s+d,0);
+    const rev30 = sum(last30.map(d=>d.revenue));
+    const gm = (last30.reduce((s,d)=> s + (d.revenue-d.cost)/d.revenue, 0) / last30.length);
+    const best = [...state.products].sort((a,b)=> b.profit-a.profit)[0];
+    doc.text(`Revenue: ${fmt.format(rev30)}`, 14, 30);
+    doc.text(`Avg Gross Margin: ${(gm*100).toFixed(1)}%`, 14, 38);
+    doc.text(`Best Performer: ${best.name} — Profit ${fmt.format(best.profit)} @ ${(best.margin*100).toFixed(1)}%`, 14, 46);
+    doc.text('Split (packet sales): Microknots 65% / Aurelo 35%', 14, 54);
+    doc.text('Generated by Aurelo Dashboard (demo)', 14, 70);
+    doc.save('aurelo-summary.pdf');
+    pushHistory('Export', 'PDF summary');
+    toast('PDF downloaded');
+  });
+
+  // EVENTS
+  $('#themeBtn').addEventListener('click', ()=>{
+    state.theme = state.theme==='light'?'dark':'light';
+    localStorage.setItem('theme', state.theme);
+    applyTheme();
+  });
+
+  $$('.tab').forEach(t=> t.addEventListener('click', ()=>{
+    $$('.tab').forEach(x=> x.classList.remove('active'));
+    t.classList.add('active'); currentCat = t.getAttribute('data-cat'); renderPackets();
+  }));
+
+  $('#packetTable').addEventListener('click', e=>{
+    const dl = e.target.closest('[data-dl]');
+    const delc = e.target.closest('[data-delc]');
+    if(dl){
+      const id = dl.getAttribute('data-dl');
+      const p = state.packets.find(x=>x.id===id);
+      const csv = `id,title,category,size_mb,records,price\n${p.id},${p.title},${p.cat},${p.size},${p.records},${p.price}`;
+      const blob = new Blob([csv],{type:'text/csv'});
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `${p.id}.csv`; a.click();
+      URL.revokeObjectURL(a.href);
+      pushHistory('Download','Packet '+p.id);
+      toast('CSV downloaded');
+    }
+  });
+
+  $('#checkAll').addEventListener('change', e=>{
+    $$('#packetTable tbody input[type="checkbox"]').forEach(cb=> cb.checked = e.target.checked);
+  });
+
+  $('#genCsvBtn').addEventListener('click', ()=>{
+    const rows = [['id','title','category','size_mb','records','price']];
+    $$('#packetTable tbody input[type="checkbox"]:checked').forEach(cb=>{
+      const p = state.packets.find(x=> x.id===cb.getAttribute('data-id'));
+      rows.push([p.id,p.title,p.cat,p.size,p.records,p.price]);
+    });
+    if(rows.length===1){ toast('Select packets first'); return; }
+    const csv = rows.map(r=> r.join(',')).join('\n');
+    const blob = new Blob([csv],{type:'text/csv'});
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `packets_export_${Date.now()}.csv`; a.click(); URL.revokeObjectURL(a.href);
+    pushHistory('Export','Bulk CSV ('+(rows.length-1)+' packets)');
+    toast('Bulk CSV exported');
+  });
+
+  $('#sendSelectedBtn').addEventListener('click', ()=>{
+    const sel = $$('#packetTable tbody input[type="checkbox"]:checked');
+    if(!sel.length){ toast('Select packets to send'); return; }
+    let total = 0; sel.forEach(cb=>{ const p = state.packets.find(x=> x.id===cb.getAttribute('data-id')); total += p.price; });
+    const mk = total * 0.65, au = total * 0.35;
+    pushHistory('Sent to Microknots', sel.length+` packet(s)`, au);
+    toast(`Sent • Aurelo share ${fmt.format(au)}`);
+  });
+
+  // CONTACTS add/remove
+  $('#addContactBtn').addEventListener('click', ()=>{
+    const c = {name:$('#cName').value.trim(), email:$('#cEmail').value.trim(), role:$('#cRole').value.trim(), company:$('#cCompany').value.trim()};
+    if(!c.name || !/\S+@\S+\.\S+/.test(c.email)){ toast('Enter name & valid email'); return; }
+    state.contacts.push(c); localStorage.setItem('ad_contacts', JSON.stringify(state.contacts)); renderContacts();
+    $('#cName').value=$('#cEmail').value=$('#cRole').value=$('#cCompany').value='';
+    toast('Contact added');
+  });
+  $('#contactsTable').addEventListener('click', e=>{
+    const btn = e.target.closest('[data-delc]'); if(!btn) return; const i = +btn.getAttribute('data-delc');
+    state.contacts.splice(i,1); localStorage.setItem('ad_contacts', JSON.stringify(state.contacts)); renderContacts(); toast('Contact removed');
+  });
+
+  // SETTINGS
+  $('#calcBtn').addEventListener('click', calculateForecast);
+
+  // SORTABLE headers for Top Products
+  $('#topProducts thead').addEventListener('click', e=>{
+    const th = e.target.closest('[data-sort]'); if(!th) return; const key = th.getAttribute('data-sort');
+    const map = {name:'name', revenue:'revenue', profit:'profit', margin:'margin'};
+    const tp = [...state.products].sort((a,b)=> (b[map[key]]-a[map[key]]));
+    const tbody = $('#topProducts tbody'); tbody.innerHTML='';
+    tp.slice(0,8).forEach(p=>{
+      const tr = document.createElement('tr'); tr.className='row';
+      tr.innerHTML = `<td>${p.name}</td><td>${fmt.format(p.revenue)}</td><td>${fmt.format(p.profit)}</td><td>${(p.margin*100).toFixed(1)}%</td>`;
+      tbody.appendChild(tr);
+    });
+  });
+
+  // INITIALIZE
+  function refreshAll(){
+    refreshKPIs(); renderCharts(); renderPackets(); renderHistory(); renderContacts(); calculateForecast();
+  }
+
+  // Restore session if any
+  try{ const u = JSON.parse(localStorage.getItem('ad_user')||'null'); if(u){ state.user=u; $('#userName').textContent=u.name; $('#login').classList.add('hide'); $('#app').removeAttribute('aria-hidden'); refreshAll(); } }catch{}
+})();
+</script>
+</body>
+</html>
