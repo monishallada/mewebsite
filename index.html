@@ -21,30 +21,176 @@
 
     <div class="table-box">
       <div class="table-wrap">
-        <table class="table table-dark align-middle mb-0">
-          <thead>
-            <tr>
-              <th>Company</th>
-              <th class="text-end">Market Cap</th>
-              <th class="text-end">Employees</th>
-              <th class="text-end">Revenue</th>
-              <th>Headquarters</th>
-              <th>Industry</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr><td>Apple</td><td class="text-end">$3.5T</td><td class="text-end">161k</td><td class="text-end">$383B</td><td>Cupertino</td><td>Tech</td></tr>
-            <tr><td>Microsoft</td><td class="text-end">$3.2T</td><td class="text-end">221k</td><td class="text-end">$212B</td><td>Redmond</td><td>Tech</td></tr>
-            <tr><td>Saudi Aramco</td><td class="text-end">$2.1T</td><td class="text-end">70k</td><td class="text-end">$500B</td><td>Dhahran</td><td>Energy</td></tr>
-            <tr><td>Alphabet</td><td class="text-end">$2.1T</td><td class="text-end">180k</td><td class="text-end">$307B</td><td>Mountain View</td><td>Internet</td></tr>
-            <tr><td>Amazon</td><td class="text-end">$2.0T</td><td class="text-end">1.5M</td><td class="text-end">$575B</td><td>Seattle</td><td>E‑commerce</td></tr>
-            <tr><td>NVIDIA</td><td class="text-end">$2.8T</td><td class="text-end">29k</td><td class="text-end">$80B</td><td>Santa Clara</td><td>Semiconductors</td></tr>
-            <tr><td>Meta</td><td class="text-end">$1.2T</td><td class="text-end">86k</td><td class="text-end">$135B</td><td>Menlo Park</td><td>Social Media</td></tr>
-            <tr><td>Berkshire Hathaway</td><td class="text-end">$870B</td><td class="text-end">383k</td><td class="text-end">$364B</td><td>Omaha</td><td>Conglomerate</td></tr>
-            <tr><td>Tesla</td><td class="text-end">$760B</td><td class="text-end">140k</td><td class="text-end">$97B</td><td>Austin</td><td>EVs</td></tr>
-            <tr><td>TSMC</td><td class="text-end">$780B</td><td class="text-end">73k</td><td class="text-end">$78B</td><td>Hsinchu</td><td>Semiconductors</td></tr>
-          </tbody>
-        </table>
+        <div class="row fw-bold py-2 mb-2" style="background:#142a4a; color:#fff; border-radius:8px; border:1px solid #6c5ce7;">
+          <div class="col">Company
+            <select class="form-select form-select-sm mt-1">
+              <option>All</option>
+              <option>Apple</option>
+              <option>Microsoft</option>
+              <option>Saudi Aramco</option>
+              <option>Alphabet</option>
+              <option>Amazon</option>
+              <option>NVIDIA</option>
+              <option>Meta</option>
+              <option>Berkshire Hathaway</option>
+              <option>Tesla</option>
+              <option>TSMC</option>
+            </select>
+          </div>
+          <div class="col text-end">Market Cap
+            <select class="form-select form-select-sm mt-1">
+              <option>All</option>
+              <option>$3.5T</option>
+              <option>$3.2T</option>
+              <option>$2.1T</option>
+              <option>$2.0T</option>
+              <option>$2.8T</option>
+              <option>$1.2T</option>
+              <option>$870B</option>
+              <option>$760B</option>
+              <option>$780B</option>
+            </select>
+          </div>
+          <div class="col text-end">Employees
+            <select class="form-select form-select-sm mt-1">
+              <option>All</option>
+              <option>161k</option>
+              <option>221k</option>
+              <option>70k</option>
+              <option>180k</option>
+              <option>1.5M</option>
+              <option>29k</option>
+              <option>86k</option>
+              <option>383k</option>
+              <option>140k</option>
+              <option>73k</option>
+            </select>
+          </div>
+          <div class="col text-end">Revenue
+            <select class="form-select form-select-sm mt-1">
+              <option>All</option>
+              <option>$383B</option>
+              <option>$212B</option>
+              <option>$500B</option>
+              <option>$307B</option>
+              <option>$575B</option>
+              <option>$80B</option>
+              <option>$135B</option>
+              <option>$364B</option>
+              <option>$97B</option>
+              <option>$78B</option>
+            </select>
+          </div>
+          <div class="col">Headquarters
+            <select class="form-select form-select-sm mt-1">
+              <option>All</option>
+              <option>Cupertino</option>
+              <option>Redmond</option>
+              <option>Dhahran</option>
+              <option>Mountain View</option>
+              <option>Seattle</option>
+              <option>Santa Clara</option>
+              <option>Menlo Park</option>
+              <option>Omaha</option>
+              <option>Austin</option>
+              <option>Hsinchu</option>
+            </select>
+          </div>
+          <div class="col">Industry
+            <select class="form-select form-select-sm mt-1">
+              <option>All</option>
+              <option>Tech</option>
+              <option>Energy</option>
+              <option>Internet</option>
+              <option>E‑commerce</option>
+              <option>Semiconductors</option>
+              <option>Social Media</option>
+              <option>Conglomerate</option>
+              <option>EVs</option>
+            </select>
+          </div>
+        </div>
+        <!-- Data rows, alternating backgrounds -->
+        <div class="row align-items-center py-2" style="background:#e3f2fd;">
+          <div class="col">Apple</div>
+          <div class="col text-end">$3.5T</div>
+          <div class="col text-end">161k</div>
+          <div class="col text-end">$383B</div>
+          <div class="col">Cupertino</div>
+          <div class="col">Tech</div>
+        </div>
+        <div class="row align-items-center py-2" style="background:#fff;">
+          <div class="col">Microsoft</div>
+          <div class="col text-end">$3.2T</div>
+          <div class="col text-end">221k</div>
+          <div class="col text-end">$212B</div>
+          <div class="col">Redmond</div>
+          <div class="col">Tech</div>
+        </div>
+        <div class="row align-items-center py-2" style="background:#e3f2fd;">
+          <div class="col">Saudi Aramco</div>
+          <div class="col text-end">$2.1T</div>
+          <div class="col text-end">70k</div>
+          <div class="col text-end">$500B</div>
+          <div class="col">Dhahran</div>
+          <div class="col">Energy</div>
+        </div>
+        <div class="row align-items-center py-2" style="background:#fff;">
+          <div class="col">Alphabet</div>
+          <div class="col text-end">$2.1T</div>
+          <div class="col text-end">180k</div>
+          <div class="col text-end">$307B</div>
+          <div class="col">Mountain View</div>
+          <div class="col">Internet</div>
+        </div>
+        <div class="row align-items-center py-2" style="background:#e3f2fd;">
+          <div class="col">Amazon</div>
+          <div class="col text-end">$2.0T</div>
+          <div class="col text-end">1.5M</div>
+          <div class="col text-end">$575B</div>
+          <div class="col">Seattle</div>
+          <div class="col">E‑commerce</div>
+        </div>
+        <div class="row align-items-center py-2" style="background:#fff;">
+          <div class="col">NVIDIA</div>
+          <div class="col text-end">$2.8T</div>
+          <div class="col text-end">29k</div>
+          <div class="col text-end">$80B</div>
+          <div class="col">Santa Clara</div>
+          <div class="col">Semiconductors</div>
+        </div>
+        <div class="row align-items-center py-2" style="background:#e3f2fd;">
+          <div class="col">Meta</div>
+          <div class="col text-end">$1.2T</div>
+          <div class="col text-end">86k</div>
+          <div class="col text-end">$135B</div>
+          <div class="col">Menlo Park</div>
+          <div class="col">Social Media</div>
+        </div>
+        <div class="row align-items-center py-2" style="background:#fff;">
+          <div class="col">Berkshire Hathaway</div>
+          <div class="col text-end">$870B</div>
+          <div class="col text-end">383k</div>
+          <div class="col text-end">$364B</div>
+          <div class="col">Omaha</div>
+          <div class="col">Conglomerate</div>
+        </div>
+        <div class="row align-items-center py-2" style="background:#e3f2fd;">
+          <div class="col">Tesla</div>
+          <div class="col text-end">$760B</div>
+          <div class="col text-end">140k</div>
+          <div class="col text-end">$97B</div>
+          <div class="col">Austin</div>
+          <div class="col">EVs</div>
+        </div>
+        <div class="row align-items-center py-2" style="background:#fff;">
+          <div class="col">TSMC</div>
+          <div class="col text-end">$780B</div>
+          <div class="col text-end">73k</div>
+          <div class="col text-end">$78B</div>
+          <div class="col">Hsinchu</div>
+          <div class="col">Semiconductors</div>
+        </div>
       </div>
     </div>
   </div>
