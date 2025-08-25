@@ -1,584 +1,912 @@
-<!doctype html>
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Aurelo Dashboard — HTML Prototype</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <title>Aurelo Data — Dashboard</title>
+
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
-  <title>Largest Companies — Table</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+
   <style>
-    /* Scrollbars */
-    ::-webkit-scrollbar { width: 10px; height: 10px; }
-    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 8px; }
-    ::-webkit-scrollbar-track { background: #f8fafc; }
-    body { background:#0b0c10; color:#e5e7eb; }
-    .table-box { background:rgba(17,18,24,0.9); border-radius:12px; padding:1rem; box-shadow:0 6px 25px rgba(0,0,0,0.5); border:1px solid rgba(255,255,255,0.08); }
-    .table-wrap { max-height:70vh; overflow:auto; border-radius:8px; }
-    table { border-collapse: collapse; }
-    th, td { border:1px solid rgba(255,255,255,0.15); padding:.75rem; }
-    thead th { position:sticky; top:0; background:#1a1c22; z-index:1; border:1px solid #6c5ce7; }
-    tbody tr:hover { background:rgba(108,92,231,0.15); }
+    :root {
+      --bg: #ffffff;
+      --fg: #0b0b0b;
+      --muted: #6c757d;
+      --border: #e6e6e6;
+      --card: #ffffff;
+      --shadow: 0 8px 24px rgba(0,0,0,.06);
+      --radius: 16px;
+    }
+    html, body { height: 100%; }
+    body { background: var(--bg); color: var(--fg); font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; }
+
+    /* Layout */
+    .app-shell { display: grid; grid-template-columns: 280px 1fr; min-height: 100vh; }
+    @media (max-width: 991.98px) { .app-shell { grid-template-columns: 1fr; } }
+
+    /* Sidebar */
+    .sidebar { border-right: 1px solid var(--border); padding: 20px; position: sticky; top: 0; height: 100dvh; }
+    .brand { letter-spacing: .5px; font-weight: 700; font-size: 1.25rem; }
+    .brand .dot { width: 9px; height: 9px; display: inline-block; background: var(--fg); border-radius: 50%; margin-left: 6px; }
+    .nav-link { color: var(--fg); border-radius: 12px; padding: .6rem .9rem; }
+    .nav-link.active, .nav-link:hover { background: #f8f9fa; }
+
+    /* Topbar */
+    .topbar { border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 10; background: var(--bg); }
+
+    /* Cards */
+    .card-modern { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); }
+    .stat-value { font-size: clamp(1.2rem, 2.8vw, 1.75rem); font-weight: 700; }
+    .stat-label { color: var(--muted); font-size: .9rem; }
+
+    /* Chart area */
+    .chart-wrap { height: 300px; }
+
+    /* Table */
+    .table-modern thead th { font-weight: 600; color: var(--muted); border-bottom: 1px solid var(--border) !important; }
+    .table-modern tbody tr + tr td { border-top: 1px dashed var(--border); }
+    .table-scroll { max-height: 380px; overflow: auto; border: 1px solid var(--border); border-radius: var(--radius); }
+    .badge-soft { background: #f2f2f2; color: #111; }
+
+    /* Chips */
+    .chip { border: 1px solid var(--border); border-radius: 999px; padding: .35rem .8rem; background: #fff; }
+
+    /* Agenta chat */
+    .chat { height: 360px; overflow: auto; border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
+    .bubble { border: 1px solid var(--border); border-radius: 16px; padding: .65rem .85rem; max-width: 80%; }
+    .bubble.user { margin-left: auto; background: #f8f9fa; }
+    .bubble.bot { background: #fff; }
+
+    /* Buttons */
+    .btn-ghost { border: 1px solid var(--border); color: var(--fg); background: #fff; }
+    .btn-ghost:hover { background: #f8f9fa; }
+
+    /* Utilities */
+    .icon-btn { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 10px; border: 1px solid var(--border); }
+    .rotate { animation: spin 1.3s linear infinite; }
+    @keyframes spin { from { transform: rotate(0);} to { transform: rotate(360deg);} }
   </style>
 </head>
-<body class="min-h-screen bg-slate-50 text-slate-900">
-  <div class="flex min-h-screen">
-    <!-- Sidebar -->
-    <aside class="hidden md:block w-64 shrink-0 border-r border-slate-200 bg-white/80 backdrop-blur">
-      <div class="sticky top-0 h-screen p-4">
-        <div class="mb-6 flex items-center gap-2">
-          <div class="h-8 w-8 rounded-xl bg-slate-900"></div>
-          <div class="text-lg font-semibold">Aurelo</div>
-        </div>
-        <nav id="nav" class="space-y-1">
-          <!-- Buttons injected by JS to keep one source of truth -->
+<body>
+  <div class="app-shell">
+    <!-- Sidebar (desktop) -->
+    <aside class="sidebar d-none d-lg-flex flex-column gap-3">
+      <div class="d-flex align-items-center justify-content-between">
+        <div class="brand">Aurelo Data<span class="dot" aria-hidden="true"></span></div>
+      </div>
+
+      <div>
+        <div class="text-uppercase small text-muted mb-2">Main</div>
+        <nav class="nav flex-column">
+          <a class="nav-link active" href="#overview"><i class="bi bi-speedometer2 me-2"></i>Overview</a>
+          <a class="nav-link" href="#analytics"><i class="bi bi-graph-up-arrow me-2"></i>Analytics</a>
+          <a class="nav-link" href="#datasets"><i class="bi bi-boxes me-2"></i>Datasets</a>
+          <a class="nav-link" href="#alerts"><i class="bi bi-bell me-2"></i>Alerts</a>
+          <a class="nav-link" href="#agenta"><i class="bi bi-robot me-2"></i>Agenta (AI)</a>
         </nav>
-<body class="p-4">
-  
+      </div>
+
+      <div>
+        <div class="text-uppercase small text-muted mb-2">Admin</div>
+        <nav class="nav flex-column">
+          <a class="nav-link" href="#users"><i class="bi bi-people me-2"></i>Users</a>
+          <a class="nav-link" href="#billing"><i class="bi bi-credit-card me-2"></i>Billing</a>
+          <a class="nav-link" href="#settings"><i class="bi bi-gear me-2"></i>Settings</a>
+        </nav>
+      </div>
+
+      <div class="mt-auto">
+        <div class="small text-muted">© <span id="year"></span> Aurelo</div>
+      </div>
+    </aside>
+
     <!-- Main -->
-    <main class="flex-1">
-      <!-- Mobile Topbar -->
-      <div class="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white/80 px-4 py-3 backdrop-blur md:hidden">
-        <div class="flex items-center gap-2">
-          <div class="h-7 w-7 rounded-lg bg-slate-900"></div>
-          <div id="mobileTitle" class="text-base font-semibold">Aurelo</div>
+    <main class="d-flex flex-column min-vh-100">
+      <!-- Topbar -->
+      <div class="topbar">
+        <div class="container-fluid py-3">
+          <div class="d-flex align-items-center gap-2">
+            <button class="btn btn-ghost d-lg-none" data-bs-toggle="offcanvas" data-bs-target="#mobileNav" aria-label="Open navigation"><i class="bi bi-list"></i></button>
+            <div class="brand d-lg-none">Aurelo Data</div>
+
+            <div class="ms-lg-auto d-flex align-items-center gap-2 flex-wrap flex-grow-1">
+              <div class="input-group" style="max-width: 420px;">
+                <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                <input id="globalSearch" type="text" class="form-control" placeholder="Search datasets, stores, users…" />
+              </div>
+              <button id="refreshBtn" class="icon-btn" data-bs-toggle="tooltip" data-bs-title="Refresh data"><i class="bi bi-arrow-clockwise"></i></button>
+              <button class="icon-btn position-relative" data-bs-toggle="tooltip" data-bs-title="Notifications">
+                <i class="bi bi-bell"></i>
+                <span class="position-absolute top-0 start-100 translate-middle p-1 bg-dark border border-light rounded-circle"></span>
+              </button>
+              <div class="dropdown">
+                <button class="btn btn-ghost dropdown-toggle" data-bs-toggle="dropdown"><i class="bi bi-calendar3 me-1"></i><span id="dateRangeLabel">Last 30 days</span></button>
+                <div class="dropdown-menu p-3" style="width: 320px;">
+                  <label class="form-label">Date range</label>
+                  <div class="row g-2">
+                    <div class="col-6"><input type="date" id="startDate" class="form-control"></div>
+                    <div class="col-6"><input type="date" id="endDate" class="form-control"></div>
+                  </div>
+                  <div class="d-flex gap-2 mt-3">
+                    <button class="btn btn-dark w-100" id="applyDates">Apply</button>
+                    <button class="btn btn-ghost w-100" id="resetDates">Reset</button>
+                  </div>
+                </div>
+              </div>
+              <div class="dropdown ms-auto ms-lg-0">
+                <button class="btn btn-ghost dropdown-toggle" data-bs-toggle="dropdown"><i class="bi bi-person-circle me-1"></i>Monish</button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                  <li><a class="dropdown-item" href="#settings">Settings</a></li>
+                  <li><a class="dropdown-item" href="#users">Team</a></li>
+                  <li><hr class="dropdown-divider" /></li>
+                  <li><a class="dropdown-item" href="#">Sign out</a></li>
+                </ul>
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="h-8 w-8 rounded-full bg-slate-200"></div>
       </div>
 
-      <div class="mx-auto max-w-7xl p-4 md:p-6">
-        <!-- HOME -->
-        <section id="page-home" class="space-y-4">
-          <div class="mb-4 flex items-center justify-between">
-            <h2 class="text-2xl font-semibold">Overview</h2>
-            <div class="flex items-center gap-2">
-              <button class="inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm">Today <i data-lucide="chevron-down" class="h-4 w-4"></i></button>
-              <div class="h-8 w-8 rounded-full bg-slate-200"></div>
+      <!-- Content -->
+      <div class="container-fluid py-4">
+        <!-- Overview -->
+        <section id="overview" class="mb-4">
+          <div class="d-flex align-items-center justify-content-between mb-3">
+            <h1 class="h4 m-0">Overview</h1>
+            <div class="d-flex gap-2">
+              <button class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#addDatasetModal"><i class="bi bi-plus-lg me-1"></i>Add dataset</button>
+              <button id="exportBtn" class="btn btn-ghost"><i class="bi bi-download me-1"></i>Export CSV</button>
             </div>
           </div>
 
-          <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-            <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><div class="flex justify-between text-sm text-slate-500">Revenue <span class="text-slate-400">MTD</span></div><div class="mt-1 text-2xl font-semibold">$14,300</div><div class="mt-1 text-xs text-emerald-600">+8% vs LW</div></div>
-            <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><div class="flex justify-between text-sm text-slate-500">Gross Margin % <span class="text-slate-400">MTD</span></div><div class="mt-1 text-2xl font-semibold">26.4%</div><div class="mt-1 text-xs text-emerald-600">+1.2% vs LW</div></div>
-            <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><div class="flex justify-between text-sm text-slate-500">Net Margin % <span class="text-slate-400">MTD</span></div><div class="mt-1 text-2xl font-semibold">12.1%</div><div class="mt-1 text-xs text-emerald-600">+0.6% vs LW</div></div>
-            <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><div class="flex justify-between text-sm text-slate-500">AOV <span class="text-slate-400">7D</span></div><div class="mt-1 text-2xl font-semibold">$23.10</div><div class="mt-1 text-xs text-rose-600">-3.1% vs LW</div></div>
-            <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><div class="flex justify-between text-sm text-slate-500">Orders <span class="text-slate-400">7D</span></div><div class="mt-1 text-2xl font-semibold">612</div><div class="mt-1 text-xs text-emerald-600">+5.7% vs LW</div></div>
-            <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><div class="flex justify-between text-sm text-slate-500">Units <span class="text-slate-400">7D</span></div><div class="mt-1 text-2xl font-semibold">1,982</div><div class="mt-1 text-xs text-emerald-600">+4.3% vs LW</div></div>
-            <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><div class="flex justify-between text-sm text-slate-500">Refund Rate <span class="text-slate-400">7D</span></div><div class="mt-1 text-2xl font-semibold">0.8%</div><div class="mt-1 text-xs text-rose-600">+0.2% vs LW</div></div>
-            <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><div class="flex justify-between text-sm text-slate-500">Foot Traffic <span class="text-slate-400">7D</span></div><div class="mt-1 text-2xl font-semibold">3.2k</div><div class="mt-1 text-xs text-emerald-600">+7.4% vs LW</div></div>
+          <div class="d-flex gap-2 flex-wrap mb-3">
+            <button class="chip" data-filter="all">All</button>
+            <button class="chip" data-filter="grocery">Grocery</button>
+            <button class="chip" data-filter="apparel">Apparel</button>
+            <button class="chip" data-filter="electronics">Electronics</button>
+            <button class="chip" data-filter="pharmacy">Pharmacy</button>
           </div>
 
-          <section class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-            <div class="mb-3 flex items-center justify-between">
-              <h3 class="text-lg font-semibold">Revenue vs Forecast</h3>
-              <div class="flex flex-wrap items-center gap-2">
-                <button class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm"><i data-lucide="search" class="h-4 w-4"></i>Search</button>
-                <button class="inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm">Date Range <i data-lucide="chevron-down" class="h-4 w-4"></i></button>
-                <button class="inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm">Store <i data-lucide="chevron-down" class="h-4 w-4"></i></button>
-                <button class="inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm">Category <i data-lucide="chevron-down" class="h-4 w-4"></i></button>
+          <div class="row g-3">
+            <div class="col-12 col-md-6 col-xxl-3">
+              <div class="card-modern p-3">
+                <div class="d-flex align-items-center justify-content-between">
+                  <div>
+                    <div class="stat-label">Monthly Revenue</div>
+                    <div class="stat-value" id="statRevenue">$1.24M</div>
+                  </div>
+                  <i class="bi bi-cash-coin fs-3"></i>
+                </div>
+                <div class="small text-success mt-2"><i class="bi bi-arrow-up-right"></i> +8.1% vs last month</div>
               </div>
             </div>
-            <div class="h-64"><canvas id="homeRevForecast"></canvas></div>
-          </section>
-
-          <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
-            <section class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-              <div class="mb-3 flex items-center justify-between"><h3 class="text-lg font-semibold">Category Mix</h3></div>
-              <div class="h-56"><canvas id="homeCategoryMix"></canvas></div>
-            </section>
-            <section class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-              <div class="mb-3 flex items-center justify-between"><h3 class="text-lg font-semibold">Daypart Revenue</h3></div>
-              <div class="h-56"><canvas id="homeDaypart"></canvas></div>
-            </section>
-          </div>
-
-          <section class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-            <h3 class="mb-3 text-lg font-semibold">Recent Alerts</h3>
-            <ul class="divide-y divide-slate-200">
-              <li class="flex items-center justify-between py-3"><div class="flex items-center gap-2"><span class="inline-block h-2.5 w-2.5 rounded-full bg-rose-500"></span><span class="text-sm">Revenue drop &gt;20% vs LW</span></div><span class="text-xs text-slate-500">1h ago</span></li>
-              <li class="flex items-center justify-between py-3"><div class="flex items-center gap-2"><span class="inline-block h-2.5 w-2.5 rounded-full bg-amber-500"></span><span class="text-sm">SKU-092 nearing stockout</span></div><span class="text-xs text-slate-500">3h ago</span></li>
-              <li class="flex items-center justify-between py-3"><div class="flex items-center gap-2"><span class="inline-block h-2.5 w-2.5 rounded-full bg-slate-400"></span><span class="text-sm">New connector available: Toast</span></div><span class="text-xs text-slate-500">1d ago</span></li>
-            </ul>
-          </section>
-        </section>
-
-        <!-- SALES -->
-        <section id="page-sales" class="space-y-4 hidden">
-          <div class="mb-4 flex items-center justify-between"><h2 class="text-2xl font-semibold">Sales Analytics</h2></div>
-          <section class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><h3 class="mb-3 text-lg font-semibold">Filters</h3>
-            <div class="flex flex-wrap items-center gap-2">
-              <button class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm"><i data-lucide="search" class="h-4 w-4"></i>Search</button>
-              <button class="inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm">Date Range <i data-lucide="chevron-down" class="h-4 w-4"></i></button>
-              <button class="inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm">Store <i data-lucide="chevron-down" class="h-4 w-4"></i></button>
-              <button class="inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm">Category <i data-lucide="chevron-down" class="h-4 w-4"></i></button>
-            </div>
-          </section>
-          <section class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-            <div class="mb-3 flex items-center justify-between"><h3 class="text-lg font-semibold">Revenue & Orders</h3></div>
-            <div class="h-72"><canvas id="salesRevOrders"></canvas></div>
-          </section>
-          <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
-            <section class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><div class="mb-3 flex items-center justify-between"><h3 class="text-lg font-semibold">AOV Trend</h3></div><div class="h-56"><canvas id="salesAov"></canvas></div></section>
-            <section class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-              <div class="mb-3 flex items-center justify-between"><h3 class="text-lg font-semibold">Top / Bottom SKUs</h3></div>
-              <div class="overflow-hidden rounded-xl border border-slate-200">
-                <table class="min-w-full divide-y divide-slate-200">
-                  <thead class="bg-slate-50"><tr>
-                    <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">SKU</th>
-                    <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Name</th>
-                    <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Revenue</th>
-                    <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Units</th>
-                    <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Margin %</th>
-                    <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Refund %</th>
-                  </tr></thead>
-                  <tbody id="skuTable" class="divide-y divide-slate-100 bg-white"></tbody>
-                </table>
-              </div>
-            </section>
-          </div>
-        </section>
-
-        <!-- INVENTORY -->
-        <section id="page-inventory" class="space-y-4 hidden">
-          <div class="mb-4 flex items-center justify-between"><h2 class="text-2xl font-semibold">Inventory</h2></div>
-          <div class="grid grid-cols-1 gap-4 md:grid-cols-4">
-            <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><div class="text-sm text-slate-500">Stock‑out %</div><div class="mt-1 text-2xl font-semibold">3.4%</div><div class="mt-1 text-xs text-emerald-600">-0.6% vs LW</div></div>
-            <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><div class="text-sm text-slate-500">Days of Supply</div><div class="mt-1 text-2xl font-semibold">17</div><div class="mt-1 text-xs text-emerald-600">+1.1 vs LW</div></div>
-            <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><div class="text-sm text-slate-500">Sell‑through %</div><div class="mt-1 text-2xl font-semibold">62%</div><div class="mt-1 text-xs text-emerald-600">+2.0% vs LW</div></div>
-            <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><div class="text-sm text-slate-500">At‑risk SKUs</div><div class="mt-1 text-2xl font-semibold">7</div><div class="mt-1 text-xs text-rose-600">+1 vs LW</div></div>
-          </div>
-          <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
-            <section class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><div class="mb-3 flex items-center justify-between"><h3 class="text-lg font-semibold">Forecast vs On‑Hand</h3></div><div class="h-64"><canvas id="invForecastOnhand"></canvas></div></section>
-            <section class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><div class="mb-3 flex items-center justify-between"><h3 class="text-lg font-semibold">Stock Health Heatmap</h3></div><div id="stockHeat" class="grid grid-cols-12 gap-1"></div></section>
-          </div>
-          <section class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-            <h3 class="mb-3 text-lg font-semibold">Reorder Suggestions</h3>
-            <div class="overflow-hidden rounded-xl border border-slate-200">
-              <table class="min-w-full divide-y divide-slate-200">
-                <thead class="bg-slate-50"><tr>
-                  <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">SKU</th>
-                  <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Name</th>
-                  <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">On Hand</th>
-                  <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Reorder Qty</th>
-                  <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Days of Supply</th>
-                </tr></thead>
-                <tbody id="reorderTable" class="divide-y divide-slate-100 bg-white"></tbody>
-              </table>
-            </div>
-          </section>
-        </section>
-
-        <!-- PRICING -->
-        <section id="page-pricing" class="space-y-4 hidden">
-          <div class="mb-4 flex items-center justify-between"><h2 class="text-2xl font-semibold">Pricing</h2></div>
-          <div class="grid grid-cols-1 gap-4 md:grid-cols-4">
-            <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><div class="text-sm text-slate-500">Margin Impact</div><div class="mt-1 text-2xl font-semibold">+$740/wk</div><div class="mt-1 text-xs text-emerald-600">+2.8% vs LW</div></div>
-            <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><div class="text-sm text-slate-500">Elasticity Flags</div><div class="mt-1 text-2xl font-semibold">4 SKUs</div><div class="mt-1 text-xs text-slate-500">—</div></div>
-            <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><div class="text-sm text-slate-500">Promo ROI (MTD)</div><div class="mt-1 text-2xl font-semibold">118%</div><div class="mt-1 text-xs text-emerald-600">+4.2% vs LW</div></div>
-            <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><div class="text-sm text-slate-500">Markdown Cost</div><div class="mt-1 text-2xl font-semibold">$130</div><div class="mt-1 text-xs text-rose-600">-1.1% vs LW</div></div>
-          </div>
-          <section class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><div class="mb-3 flex items-center justify-between"><h3 class="text-lg font-semibold">Price vs Volume</h3></div><div class="h-64"><canvas id="pricingPriceVolume"></canvas></div></section>
-          <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
-            <section class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-              <div class="mb-3 flex items-center justify-between"><h3 class="text-lg font-semibold">Suggested Prices</h3></div>
-              <div class="overflow-hidden rounded-xl border border-slate-200">
-                <table class="min-w-full divide-y divide-slate-200"><thead class="bg-slate-50"><tr>
-                  <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">SKU</th>
-                  <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Current</th>
-                  <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Suggested</th>
-                  <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Elasticity</th>
-                  <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Margin Impact</th>
-                  <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Notes</th>
-                </tr></thead><tbody id="suggestedTable" class="divide-y divide-slate-100 bg-white"></tbody></table>
-              </div>
-            </section>
-            <section class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><div class="mb-3 flex items-center justify-between"><h3 class="text-lg font-semibold">Promo Calendar (Placeholder)</h3></div><div class="grid grid-cols-7 gap-1"> 
-              <!-- 4 weeks -->
-              <template id="promoCell"><div class="h-16 rounded border border-slate-200 bg-slate-50"></div></template>
-            </div>
-            <script>document.currentScript.previousElementSibling.innerHTML = Array.from({length:28}).map(()=>'<div class=\"h-16 rounded border border-slate-200 bg-slate-50\"></div>').join('');</script>
-            </section>
-          </div>
-        </section>
-
-        <!-- CUSTOMERS -->
-        <section id="page-customers" class="space-y-4 hidden">
-          <div class="mb-4 flex items-center justify-between"><h2 class="text-2xl font-semibold">Customers</h2></div>
-          <div class="grid grid-cols-1 gap-4 md:grid-cols-4">
-            <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><div class="text-sm text-slate-500">Active Customers</div><div class="mt-1 text-2xl font-semibold">1,284</div><div class="mt-1 text-xs text-emerald-600">+6.2% vs LW</div></div>
-            <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><div class="text-sm text-slate-500">Returning %</div><div class="mt-1 text-2xl font-semibold">43%</div><div class="mt-1 text-xs text-emerald-600">+1.1% vs LW</div></div>
-            <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><div class="text-sm text-slate-500">CLV (avg)</div><div class="mt-1 text-2xl font-semibold">$186</div><div class="mt-1 text-xs text-emerald-600">+0.9% vs LW</div></div>
-            <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><div class="text-sm text-slate-500">Churn Risk</div><div class="mt-1 text-2xl font-semibold">73</div><div class="mt-1 text-xs text-rose-600">-3.0% vs LW</div></div>
-          </div>
-          <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
-            <section class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><div class="mb-3 flex items-center justify-between"><h3 class="text-lg font-semibold">Segments</h3></div>
-              <div class="overflow-hidden rounded-xl border border-slate-200"><table class="min-w-full divide-y divide-slate-200"><thead class="bg-slate-50"><tr>
-                <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Segment</th>
-                <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Customers</th>
-                <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Avg CLV</th>
-              </tr></thead><tbody id="segmentsTable" class="divide-y divide-slate-100 bg-white"></tbody></table></div>
-            </section>
-            <section class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><div class="mb-3 flex items-center justify-between"><h3 class="text-lg font-semibold">Churn Watchlist</h3></div>
-              <div class="overflow-hidden rounded-xl border border-slate-200"><table class="min-w-full divide-y divide-slate-200"><thead class="bg-slate-50"><tr>
-                <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Customer</th>
-                <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Last Seen</th>
-                <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Risk</th>
-              </tr></thead><tbody id="churnTable" class="divide-y divide-slate-100 bg-white"></tbody></table></div>
-            </section>
-          </div>
-          <section class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><div class="mb-3 flex items-center justify-between"><h3 class="text-lg font-semibold">Cohort Retention</h3></div>
-            <div id="cohortGrid" class="grid grid-cols-9 gap-1"></div>
-          </section>
-        </section>
-
-        <!-- DATA PACKETS -->
-        <section id="page-packets" class="space-y-4 hidden">
-          <div class="mb-4 flex items-center justify-between"><h2 class="text-2xl font-semibold">Data Packets</h2></div>
-          <div class="flex items-center gap-2">
-            <button class="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm">Store</button>
-            <button class="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm">Economy</button>
-            <button class="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm">Supply</button>
-          </div>
-          <div id="packetGrid" class="grid grid-cols-1 gap-4 md:grid-cols-4"></div>
-        </section>
-
-        <!-- ALERTS -->
-        <section id="page-alerts" class="space-y-4 hidden">
-          <div class="mb-4 flex items-center justify-between"><h2 class="text-2xl font-semibold">Alerts</h2></div>
-          <section class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-            <div class="mb-3 flex items-center justify-between"><h3 class="text-lg font-semibold">Open Alerts</h3>
-              <div class="flex flex-wrap items-center gap-2">
-                <button class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm"><i data-lucide="search" class="h-4 w-4"></i>Search</button>
+            <div class="col-12 col-md-6 col-xxl-3">
+              <div class="card-modern p-3">
+                <div class="d-flex align-items-center justify-content-between">
+                  <div>
+                    <div class="stat-label">Active Stores</div>
+                    <div class="stat-value" id="statStores">30</div>
+                  </div>
+                  <i class="bi bi-shop fs-3"></i>
+                </div>
+                <div class="small text-success mt-2"><i class="bi bi-arrow-up-right"></i> +2 added</div>
               </div>
             </div>
-            <ul id="alertsList" class="divide-y divide-slate-200"></ul>
-            <div class="mt-3 flex items-center justify-end gap-2 text-sm">
-              <button id="alertsPrev" class="rounded border border-slate-300 bg-white px-2 py-1 disabled:opacity-50">Prev</button>
-              <span id="alertsPage" class="text-slate-600">1/1</span>
-              <button id="alertsNext" class="rounded border border-slate-300 bg-white px-2 py-1 disabled:opacity-50">Next</button>
+            <div class="col-12 col-md-6 col-xxl-3">
+              <div class="card-modern p-3">
+                <div class="d-flex align-items-center justify-content-between">
+                  <div>
+                    <div class="stat-label">Data Throughput</div>
+                    <div class="stat-value" id="statMB">14.8 GB</div>
+                  </div>
+                  <i class="bi bi-hdd-network fs-3"></i>
+                </div>
+                <div class="small text-muted mt-2">Avg 512 MB/day</div>
+              </div>
             </div>
-          </section>
-          <div class="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-amber-700">
-            <i data-lucide="alert-triangle" class="h-5 w-5"></i> Minimal triage for MVP.
+            <div class="col-12 col-md-6 col-xxl-3">
+              <div class="card-modern p-3">
+                <div class="d-flex align-items-center justify-content-between">
+                  <div>
+                    <div class="stat-label">API Latency (p95)</div>
+                    <div class="stat-value" id="statLatency">212 ms</div>
+                  </div>
+                  <i class="bi bi-speedometer fs-3"></i>
+                </div>
+                <div class="small text-success mt-2"><i class="bi bi-arrow-down-right"></i> -11% this week</div>
+              </div>
+            </div>
           </div>
         </section>
 
-        <!-- REPORTS -->
-        <section id="page-reports" class="space-y-4 hidden">
-          <div class="mb-4 flex items-center justify-between"><h2 class="text-2xl font-semibold">Reports</h2></div>
-          <div id="reportGrid" class="grid grid-cols-1 gap-4 md:grid-cols-4"></div>
-          <section class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><h3 class="mb-3 text-lg font-semibold">Past Runs</h3>
-            <div class="overflow-hidden rounded-xl border border-slate-200"><table class="min-w-full divide-y divide-slate-200"><thead class="bg-slate-50"><tr>
-              <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Time</th>
-              <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Report</th>
-              <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Status</th>
-            </tr></thead><tbody id="pastRuns" class="divide-y divide-slate-100 bg-white"></tbody></table></div>
-          </section>
+        <!-- Analytics -->
+        <section id="analytics" class="mb-4">
+          <div class="d-flex align-items-center justify-content-between mb-3">
+            <h2 class="h5 m-0">Analytics</h2>
+            <div class="d-flex gap-2">
+              <button class="btn btn-ghost" id="addAlertBtn"><i class="bi bi-bell-plus me-1"></i>Create alert</button>
+              <button class="btn btn-ghost" id="recalcBtn"><i class="bi bi-cpu me-1"></i>Recalculate KPIs</button>
+            </div>
+          </div>
+          <div class="row g-3">
+            <div class="col-12 col-xl-8">
+              <div class="card-modern p-3">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                  <div class="fw-semibold">Daily Data Volume</div>
+                  <div class="text-muted small">MB per day</div>
+                </div>
+                <div class="chart-wrap"><canvas id="lineChart"></canvas></div>
+              </div>
+            </div>
+            <div class="col-12 col-xl-4">
+              <div class="card-modern p-3 mb-3">
+                <div class="fw-semibold mb-2">Top Stores by Revenue</div>
+                <div class="chart-wrap" style="height:260px"><canvas id="barChart"></canvas></div>
+              </div>
+              <div class="card-modern p-3">
+                <div class="fw-semibold mb-2">Dataset Mix</div>
+                <div class="chart-wrap" style="height:220px"><canvas id="pieChart"></canvas></div>
+              </div>
+            </div>
+          </div>
         </section>
 
-        <!-- INTEGRATIONS -->
-        <section id="page-integrations" class="space-y-4 hidden">
-          <div class="mb-4 flex items-center justify-between"><h2 class="text-2xl font-semibold">Integrations</h2></div>
-          <div id="integrationsGrid" class="grid grid-cols-1 gap-4 md:grid-cols-4"></div>
+        <!-- Datasets -->
+        <section id="datasets" class="mb-4">
+          <div class="d-flex align-items-center justify-content-between mb-3">
+            <h2 class="h5 m-0">Datasets</h2>
+            <div class="d-flex gap-2">
+              <div class="input-group" style="max-width: 340px;">
+                <span class="input-group-text bg-white"><i class="bi bi-funnel"></i></span>
+                <input id="datasetSearch" type="text" class="form-control" placeholder="Filter datasets…">
+              </div>
+              <button class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#addDatasetModal"><i class="bi bi-upload me-1"></i>Ingest</button>
+            </div>
+          </div>
+
+          <div class="table-scroll">
+            <table class="table table-modern align-middle mb-0" id="datasetTable">
+              <thead class="bg-white position-sticky top-0">
+                <tr>
+                  <th>Name</th>
+                  <th>Category</th>
+                  <th>Size</th>
+                  <th>Updated</th>
+                  <th>Quality</th>
+                  <th>Status</th>
+                  <th class="text-end">Actions</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
         </section>
 
-        <!-- ADMIN -->
-        <section id="page-admin" class="space-y-4 hidden">
-          <div class="mb-4 flex items-center justify-between"><h2 class="text-2xl font-semibold">Admin / Settings</h2></div>
-          <section class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><h3 class="mb-3 text-lg font-semibold">Company Info</h3>
-            <div class="grid grid-cols-1 gap-3 md:grid-cols-3">
-              <input class="rounded-xl border border-slate-300 px-3 py-2 text-sm" placeholder="Company Name" />
-              <input class="rounded-xl border border-slate-300 px-3 py-2 text-sm" placeholder="Timezone" />
-              <input class="rounded-xl border border-slate-300 px-3 py-2 text-sm" placeholder="Currency" />
+        <!-- Alerts -->
+        <section id="alerts" class="mb-4">
+          <div class="d-flex align-items-center justify-content-between mb-3">
+            <h2 class="h5 m-0">Alerts</h2>
+            <button class="btn btn-ghost" data-bs-toggle="modal" data-bs-target="#createAlertModal"><i class="bi bi-bell-plus me-1"></i>New alert</button>
+          </div>
+          <div class="row g-3">
+            <div class="col-12 col-lg-6">
+              <div class="card-modern p-3 h-100">
+                <div class="d-flex align-items-center justify-content-between">
+                  <div class="fw-semibold">Recent Alerts</div>
+                  <span class="badge badge-soft">Auto-resolving</span>
+                </div>
+                <ul class="list-group list-group-flush mt-2">
+                  <li class="list-group-item d-flex justify-content-between align-items-start">
+                    <div>
+                      <div class="fw-semibold">Latency spike (p95)</div>
+                      <div class="small text-muted">Region: Southeast — Triggered 10:42</div>
+                    </div>
+                    <span class="badge text-bg-dark">Investigating</span>
+                  </li>
+                  <li class="list-group-item d-flex justify-content-between align-items-start">
+                    <div>
+                      <div class="fw-semibold">Data drift detected</div>
+                      <div class="small text-muted">Store: RDU-07 — Triggered 09:15</div>
+                    </div>
+                    <span class="badge text-bg-secondary">Resolved</span>
+                  </li>
+                  <li class="list-group-item d-flex justify-content-between align-items-start">
+                    <div>
+                      <div class="fw-semibold">Ingestion backlog</div>
+                      <div class="small text-muted">Queue over 1.5k msgs — Triggered 07:30</div>
+                    </div>
+                    <span class="badge text-bg-dark">Open</span>
+                  </li>
+                </ul>
+              </div>
             </div>
-          </section>
-          <section class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><h3 class="mb-3 text-lg font-semibold">Users & Roles</h3>
-            <div class="overflow-hidden rounded-xl border border-slate-200"><table class="min-w-full divide-y divide-slate-200"><thead class="bg-slate-50"><tr>
-              <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Name</th>
-              <th class="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Role</th>
-            </tr></thead><tbody class="divide-y divide-slate-100 bg-white"><tr><td class="px-3 py-2 text-sm">Owner</td><td class="px-3 py-2 text-sm">Owner</td></tr><tr><td class="px-3 py-2 text-sm">Analyst</td><td class="px-3 py-2 text-sm">Analyst</td></tr><tr><td class="px-3 py-2 text-sm">Manager</td><td class="px-3 py-2 text-sm">Manager</td></tr></tbody></table></div>
-          </section>
-          <section class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><h3 class="mb-3 text-lg font-semibold">Branding</h3>
-            <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
-              <div class="rounded-xl border border-dashed border-slate-300 p-6 text-center text-sm text-slate-500">Upload Logo</div>
-              <div class="flex items-center gap-3 text-sm text-slate-600"><i data-lucide="percent" class="h-4 w-4"></i> Primary Color • Secondary Color</div>
+            <div class="col-12 col-lg-6">
+              <div class="card-modern p-3 h-100">
+                <div class="fw-semibold mb-2">Create Quick Alert</div>
+                <div class="row g-2">
+                  <div class="col-12 col-md-6">
+                    <label class="form-label">Metric</label>
+                    <select id="alertMetric" class="form-select">
+                      <option>Latency (ms)</option>
+                      <option>Data volume (MB)</option>
+                      <option>Error rate (%)</option>
+                      <option>Revenue ($)</option>
+                    </select>
+                  </div>
+                  <div class="col-6 col-md-3">
+                    <label class="form-label">Operator</label>
+                    <select id="alertOp" class="form-select">
+                      <option>&gt;</option>
+                      <option>&lt;</option>
+                      <option>=</option>
+                    </select>
+                  </div>
+                  <div class="col-6 col-md-3">
+                    <label class="form-label">Value</label>
+                    <input id="alertValue" type="number" class="form-control" placeholder="100" />
+                  </div>
+                  <div class="col-12">
+                    <button id="saveQuickAlert" class="btn btn-dark"><i class="bi bi-bell me-1"></i>Save Alert</button>
+                  </div>
+                </div>
+              </div>
             </div>
-          </section>
+          </div>
+        </section>
+
+        <!-- Agenta (AI) -->
+        <section id="agenta" class="mb-4">
+          <div class="d-flex align-items-center justify-content-between mb-3">
+            <h2 class="h5 m-0">Agenta — AI Assistant</h2>
+            <div class="text-muted small">Prototype (local only)</div>
+          </div>
+          <div class="row g-3">
+            <div class="col-12 col-lg-8">
+              <div class="card-modern p-3">
+                <div class="chat" id="chat"></div>
+                <div class="input-group mt-3">
+                  <span class="input-group-text bg-white"><i class="bi bi-robot"></i></span>
+                  <input id="chatInput" type="text" class="form-control" placeholder="Ask Agenta: summarize dataset quality for last week…" />
+                  <button id="chatSend" class="btn btn-dark">Send</button>
+                </div>
+              </div>
+            </div>
+            <div class="col-12 col-lg-4">
+              <div class="card-modern p-3 h-100">
+                <div class="fw-semibold mb-2">Playbooks</div>
+                <div class="list-group list-group-flush">
+                  <button class="list-group-item list-group-item-action" data-play="kpi">Generate KPI summary</button>
+                  <button class="list-group-item list-group-item-action" data-play="anomaly">Explain anomalies</button>
+                  <button class="list-group-item list-group-item-action" data-play="stores">Rank stores by margin</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Users -->
+        <section id="users" class="mb-4">
+          <div class="d-flex align-items-center justify-content-between mb-3">
+            <h2 class="h5 m-0">Users</h2>
+            <button class="btn btn-ghost"><i class="bi bi-person-plus me-1"></i>Invite</button>
+          </div>
+          <div class="row g-3">
+            <div class="col-12 col-md-6 col-xl-3">
+              <div class="card-modern p-3">
+                <div class="d-flex align-items-center gap-3">
+                  <div class="icon-btn"><i class="bi bi-person"></i></div>
+                  <div>
+                    <div class="fw-semibold">Admins</div>
+                    <div class="text-muted small">3 members</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-12 col-md-6 col-xl-3">
+              <div class="card-modern p-3">
+                <div class="d-flex align-items-center gap-3">
+                  <div class="icon-btn"><i class="bi bi-shield-check"></i></div>
+                  <div>
+                    <div class="fw-semibold">Roles</div>
+                    <div class="text-muted small">RBAC enabled</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-12 col-md-6 col-xl-3">
+              <div class="card-modern p-3">
+                <div class="d-flex align-items-center gap-3">
+                  <div class="icon-btn"><i class="bi bi-key"></i></div>
+                  <div>
+                    <div class="fw-semibold">API Keys</div>
+                    <div class="text-muted small">6 active</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-12 col-md-6 col-xl-3">
+              <div class="card-modern p-3">
+                <div class="d-flex align-items-center gap-3">
+                  <div class="icon-btn"><i class="bi bi-clock-history"></i></div>
+                  <div>
+                    <div class="fw-semibold">Audit Log</div>
+                    <div class="text-muted small">Last 90 days</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Billing -->
+        <section id="billing" class="mb-4">
+          <div class="d-flex align-items-center justify-content-between mb-3">
+            <h2 class="h5 m-0">Billing</h2>
+            <button class="btn btn-ghost"><i class="bi bi-receipt me-1"></i>View invoices</button>
+          </div>
+          <div class="row g-3">
+            <div class="col-12 col-xl-4">
+              <div class="card-modern p-3 h-100">
+                <div class="fw-semibold">Plan</div>
+                <div class="d-flex align-items-center justify-content-between mt-2">
+                  <div>
+                    <div class="fw-semibold">Enterprise</div>
+                    <div class="text-muted small">$700/store + data overages</div>
+                  </div>
+                  <span class="badge badge-soft">Active</span>
+                </div>
+                <button class="btn btn-dark mt-3">Update plan</button>
+              </div>
+            </div>
+            <div class="col-12 col-xl-8">
+              <div class="card-modern p-3 h-100">
+                <div class="fw-semibold">Usage (This Month)</div>
+                <div class="row g-2 mt-1">
+                  <div class="col-6 col-md-3">
+                    <div class="text-muted small">Data MB</div>
+                    <div class="fw-bold" id="usageMB">15,360</div>
+                  </div>
+                  <div class="col-6 col-md-3">
+                    <div class="text-muted small">API Calls</div>
+                    <div class="fw-bold" id="usageCalls">1.8M</div>
+                  </div>
+                  <div class="col-6 col-md-3">
+                    <div class="text-muted small">Seats</div>
+                    <div class="fw-bold">18</div>
+                  </div>
+                  <div class="col-6 col-md-3">
+                    <div class="text-muted small">Est. Cost</div>
+                    <div class="fw-bold" id="usageCost">$23,440</div>
+                  </div>
+                </div>
+                <div class="chart-wrap mt-3" style="height:220px"><canvas id="usageChart"></canvas></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Settings -->
+        <section id="settings" class="mb-5">
+          <div class="d-flex align-items-center justify-content-between mb-3">
+            <h2 class="h5 m-0">Settings</h2>
+            <button id="saveSettings" class="btn btn-dark"><i class="bi bi-check2 me-1"></i>Save</button>
+          </div>
+          <div class="row g-3">
+            <div class="col-12 col-lg-6">
+              <div class="card-modern p-3">
+                <div class="fw-semibold mb-2">General</div>
+                <div class="row g-3">
+                  <div class="col-12">
+                    <label class="form-label">Organization name</label>
+                    <input id="orgName" class="form-control" value="Aurelo Data" />
+                  </div>
+                  <div class="col-12 col-md-6">
+                    <label class="form-label">Default region</label>
+                    <select id="region" class="form-select">
+                      <option>Southeast</option>
+                      <option>Midwest</option>
+                      <option>West</option>
+                      <option>North</option>
+                    </select>
+                  </div>
+                  <div class="col-12 col-md-6">
+                    <label class="form-label">Data retention</label>
+                    <select id="retention" class="form-select">
+                      <option>90 days</option>
+                      <option>180 days</option>
+                      <option>365 days</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-12 col-lg-6">
+              <div class="card-modern p-3 h-100">
+                <div class="fw-semibold mb-2">Integrations</div>
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" id="intSnowflake" checked>
+                  <label class="form-check-label" for="intSnowflake">Snowflake</label>
+                </div>
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" id="intS3" checked>
+                  <label class="form-check-label" for="intS3">AWS S3</label>
+                </div>
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" id="intBigQuery">
+                  <label class="form-check-label" for="intBigQuery">BigQuery</label>
+                </div>
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" id="intAzure">
+                  <label class="form-check-label" for="intAzure">Azure Blob</label>
+                </div>
+              </div>
+            </div>
+          </div>
         </section>
       </div>
+
+      <footer class="mt-auto border-top" style="border-color: var(--border) !important;">
+        <div class="container-fluid py-3 d-flex align-items-center justify-content-between">
+          <div class="small text-muted">Built with Bootstrap & Chart.js — sleek, white-on-black design.</div>
+          <div class="small">Last refresh: <span id="lastRefresh">just now</span></div>
+        </div>
+      </footer>
     </main>
+  </div>
+
+  <!-- Offcanvas (mobile nav) -->
+  <div class="offcanvas offcanvas-start" tabindex="-1" id="mobileNav">
+    <div class="offcanvas-header">
+      <div class="brand">Aurelo Data</div>
+      <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body">
+      <nav class="nav flex-column gap-1">
+        <a class="nav-link" data-bs-dismiss="offcanvas" href="#overview"><i class="bi bi-speedometer2 me-2"></i>Overview</a>
+        <a class="nav-link" data-bs-dismiss="offcanvas" href="#analytics"><i class="bi bi-graph-up-arrow me-2"></i>Analytics</a>
+        <a class="nav-link" data-bs-dismiss="offcanvas" href="#datasets"><i class="bi bi-boxes me-2"></i>Datasets</a>
+        <a class="nav-link" data-bs-dismiss="offcanvas" href="#alerts"><i class="bi bi-bell me-2"></i>Alerts</a>
+        <a class="nav-link" data-bs-dismiss="offcanvas" href="#agenta"><i class="bi bi-robot me-2"></i>Agenta (AI)</a>
+        <hr>
+        <a class="nav-link" data-bs-dismiss="offcanvas" href="#users"><i class="bi bi-people me-2"></i>Users</a>
+        <a class="nav-link" data-bs-dismiss="offcanvas" href="#billing"><i class="bi bi-credit-card me-2"></i>Billing</a>
+        <a class="nav-link" data-bs-dismiss="offcanvas" href="#settings"><i class="bi bi-gear me-2"></i>Settings</a>
+      </nav>
     </div>
   </div>
 
-  <script>
-    // --- Pages & Nav ---
-    const PAGES = [
-      { key: 'home', label: 'Home', icon: 'home' },
-      { key: 'sales', label: 'Sales Analytics', icon: 'bar-chart-3' },
-      { key: 'inventory', label: 'Inventory', icon: 'boxes' },
-      { key: 'pricing', label: 'Pricing', icon: 'dollar-sign' },
-      { key: 'customers', label: 'Customers', icon: 'users' },
-      { key: 'packets', label: 'Data Packets', icon: 'database' },
-      { key: 'alerts', label: 'Alerts', icon: 'bell' },
-      { key: 'reports', label: 'Reports', icon: 'file-text' },
-      { key: 'integrations', label: 'Integrations', icon: 'plug' },
-      { key: 'admin', label: 'Admin', icon: 'settings' },
-    ];
+  <!-- Add Dataset Modal -->
+  <div class="modal fade" id="addDatasetModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Add Dataset</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">Name</label>
+            <input id="dsName" class="form-control" placeholder="Transactions — RDU" />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Category</label>
+            <select id="dsCat" class="form-select">
+              <option>grocery</option>
+              <option>apparel</option>
+              <option>electronics</option>
+              <option>pharmacy</option>
+            </select>
+          </div>
+          <div class="row g-2">
+            <div class="col-6">
+              <label class="form-label">Size (MB)</label>
+              <input id="dsSize" type="number" class="form-control" placeholder="256" />
+            </div>
+            <div class="col-6">
+              <label class="form-label">Quality (0–100)</label>
+              <input id="dsQuality" type="number" class="form-control" placeholder="96" />
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-ghost" data-bs-dismiss="modal">Cancel</button>
+          <button id="addDataset" class="btn btn-dark">Add</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
-    const nav = document.getElementById('nav');
-    PAGES.forEach(p => {
-      const btn = document.createElement('button');
-      btn.className = 'flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm transition text-slate-700 hover:bg-slate-100';
-      btn.dataset.page = p.key;
-      btn.innerHTML = `<i data-lucide="${p.icon}" class="h-4 w-4"></i><span>${p.label}</span>`;
-      btn.addEventListener('click', () => showPage(p.key));
-      nav.appendChild(btn);
+  <!-- Create Alert Modal -->
+  <div class="modal fade" id="createAlertModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Create Alert</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row g-2">
+            <div class="col-12 col-md-6">
+              <label class="form-label">Metric</label>
+              <select class="form-select">
+                <option>Latency (ms)</option>
+                <option>Data volume (MB)</option>
+                <option>Error rate (%)</option>
+              </select>
+            </div>
+            <div class="col-6 col-md-3">
+              <label class="form-label">Operator</label>
+              <select class="form-select">
+                <option>&gt;</option>
+                <option>&lt;</option>
+                <option>=</option>
+              </select>
+            </div>
+            <div class="col-6 col-md-3">
+              <label class="form-label">Value</label>
+              <input type="number" class="form-control" placeholder="100" />
+            </div>
+            <div class="col-12">
+              <label class="form-label">Notify</label>
+              <input type="email" class="form-control" placeholder="alerts@aurelo.com" />
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-ghost" data-bs-dismiss="modal">Cancel</button>
+          <button class="btn btn-dark" data-bs-dismiss="modal" id="createAlert">Create</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toasts -->
+  <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1080">
+    <div id="toast" class="toast align-items-center text-bg-dark border-0" role="status" aria-live="polite" aria-atomic="true">
+      <div class="d-flex">
+        <div class="toast-body" id="toastBody">Action done.</div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Utilities
+    const $ = (sel, root=document) => root.querySelector(sel);
+    const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+
+    // Set year
+    $('#year').textContent = new Date().getFullYear();
+
+    // Tooltips
+    $$('[data-bs-toggle="tooltip"]').forEach(el => new bootstrap.Tooltip(el));
+
+    // Toast helper
+    const toastEl = $('#toast');
+    const toast = new bootstrap.Toast(toastEl);
+    function notify(msg) { $('#toastBody').textContent = msg; toast.show(); }
+
+    // Date Range
+    const dateRangeLabel = $('#dateRangeLabel');
+    const startDate = $('#startDate');
+    const endDate = $('#endDate');
+    const todayISO = new Date().toISOString().slice(0,10);
+    const last30 = new Date(Date.now() - 29*86400000).toISOString().slice(0,10);
+    startDate.value = last30; endDate.value = todayISO;
+    $('#applyDates').addEventListener('click', () => {
+      dateRangeLabel.textContent = `${startDate.value} → ${endDate.value}`;
+      notify('Date range applied');
+    });
+    $('#resetDates').addEventListener('click', () => {
+      startDate.value = last30; endDate.value = todayISO;
+      dateRangeLabel.textContent = 'Last 30 days';
+      notify('Date range reset');
     });
 
-    function showPage(key){
-      PAGES.forEach(p => {
-        const s = document.getElementById('page-'+p.key);
-        if(!s) return;
-        if(p.key === key){ s.classList.remove('hidden'); }
-        else { s.classList.add('hidden'); }
-      });
-      // active state
-      [...nav.children].forEach(ch => {
-        if(ch.dataset.page === key){ ch.classList.add('bg-slate-900','text-white'); ch.classList.remove('text-slate-700'); }
-        else { ch.classList.remove('bg-slate-900','text-white'); ch.classList.add('text-slate-700'); }
-      });
-      const current = PAGES.find(p=>p.key===key);
-      document.getElementById('mobileTitle').textContent = current ? current.label : 'Aurelo';
-      // Resize charts if needed
-      Object.values(Charts).forEach(c => { if(c && c.resize) c.resize(); });
-    }
+    // Refresh button
+    const refreshBtn = $('#refreshBtn');
+    refreshBtn.addEventListener('click', () => {
+      const icon = refreshBtn.querySelector('i');
+      icon.classList.add('rotate');
+      setTimeout(() => { icon.classList.remove('rotate'); $('#lastRefresh').textContent = new Date().toLocaleTimeString(); notify('Data refreshed'); }, 1000);
+    });
 
-    // --- Sample Data ---
-    const series = [
-      { date: 'Mon', revenue: 1200, forecast: 1100, margin: 23, aov: 18, orders: 75 },
-      { date: 'Tue', revenue: 2100, forecast: 1900, margin: 24, aov: 22, orders: 96 },
-      { date: 'Wed', revenue: 1800, forecast: 2000, margin: 21, aov: 19, orders: 89 },
-      { date: 'Thu', revenue: 2600, forecast: 2400, margin: 26, aov: 25, orders: 112 },
-      { date: 'Fri', revenue: 3000, forecast: 3100, margin: 27, aov: 28, orders: 119 },
-      { date: 'Sat', revenue: 4200, forecast: 3900, margin: 29, aov: 32, orders: 151 },
-      { date: 'Sun', revenue: 2300, forecast: 2200, margin: 24, aov: 21, orders: 98 },
-    ];
-    const daypart = [ { part:'Morning', revenue:3800 }, { part:'Afternoon', revenue:5400 }, { part:'Evening', revenue:6000 } ];
-    const categoryMix = [ { name:'Beverages', value:36 }, { name:'Snacks', value:27 }, { name:'Grocery', value:22 }, { name:'Fresh', value:15 } ];
-    const topSkus = [
-      { sku:'SKU-001', name:'Coffee Beans', revenue:8200, units:410, margin:34, refund:'0.6%' },
-      { sku:'SKU-017', name:'Protein Bar', revenue:6100, units:580, margin:29, refund:'0.9%' },
-      { sku:'SKU-092', name:'Soda 12pk', revenue:5300, units:220, margin:23, refund:'1.2%' },
-      { sku:'SKU-303', name:'Chips Family', revenue:4700, units:310, margin:19, refund:'0.4%' },
-      { sku:'SKU-454', name:'Bagels 6ct', revenue:3900, units:280, margin:31, refund:'0.3%' },
-    ];
-    const reorderRows = [
-      { sku:'SKU-001', name:'Coffee Beans', onHand:12, reorder:48, dos:4 },
-      { sku:'SKU-017', name:'Protein Bar', onHand:30, reorder:70, dos:6 },
-      { sku:'SKU-092', name:'Soda 12pk', onHand:8, reorder:36, dos:2 },
-      { sku:'SKU-303', name:'Chips Family', onHand:16, reorder:40, dos:5 },
-    ];
-    const suggested = [
-      { sku:'SKU-001', current:12.99, suggested:13.49, elasticity:-1.1, marginImpact:'+$210/mo', note:'+4% demand' },
-      { sku:'SKU-017', current:2.49, suggested:2.39, elasticity:-2.0, marginImpact:'-$95/mo', note:'price sensitive' },
-      { sku:'SKU-092', current:6.99, suggested:7.29, elasticity:-0.8, marginImpact:'+$48/mo', note:'stable' },
-      { sku:'SKU-303', current:3.49, suggested:3.59, elasticity:-0.6, marginImpact:'+$25/mo', note:'stable' },
-    ];
-    const segments = [
-      { name:'Loyal Monthly', customers:382, clv:240 },
-      { name:'New Shoppers', customers:145, clv:90 },
-      { name:'Churn Risk', customers:73, clv:110 },
-      { name:'Deal Hunters', customers:98, clv:130 },
-    ];
-    const churn = [
-      { customer:'#10291', lastSeen:'21d', risk:'High' },
-      { customer:'#10412', lastSeen:'18d', risk:'Med' },
-      { customer:'#09931', lastSeen:'34d', risk:'High' },
-    ];
-    const packets = [
-      { title:'Store Sales (Daily)', type:'Store', price:'$49/mo' },
-      { title:'Local Events Index', type:'Economy', price:'$29/mo' },
-      { title:'Supply Lead Times', type:'Supply', price:'$59/mo' },
-      { title:'Fuel Price Tracker', type:'Economy', price:'$19/mo' },
-    ];
-    const integrations = [
-      { name:'Square', status:'Connected' },
-      { name:'Shopify', status:'Connected' },
-      { name:'Toast', status:'Not Connected' },
-      { name:'Stripe', status:'Connected' },
-    ];
-    const reports = ['Executive Weekly','Inventory Health','Pricing Review','Finance Summary'];
-    const pastRuns = [
-      { time:'Today 9:00', name:'Executive Weekly', status:'Success' },
-      { time:'Yesterday', name:'Inventory Health', status:'Success' },
-      { time:'Tue', name:'Pricing Review', status:'Failed' },
-    ];
-    const alertItems = [
-      { id:101, severity:'high', message:'Revenue drop >20% vs LW', time:'1h' },
-      { id:102, severity:'medium', message:'SKU-092 nearing stockout', time:'3h' },
-      { id:103, severity:'low', message:'New connector available: Toast', time:'1d' },
-      { id:104, severity:'high', message:'Refund rate spike in Snacks', time:'2d' },
-    ];
-
-    // --- Tables/Lists Fillers ---
-    function fillTable(id, rows, cols){
-      const el = document.getElementById(id);
-      el.innerHTML = rows.map(r => `<tr class='hover:bg-slate-50'>${cols.map(c => `<td class='px-3 py-2 text-sm'>${r[c]}</td>`).join('')}</tr>`).join('');
-    }
-    fillTable('skuTable', topSkus, ['sku','name','revenue','units','margin','refund']);
-    fillTable('reorderTable', reorderRows, ['sku','name','onHand','reorder','dos']);
-    fillTable('suggestedTable', suggested, ['sku','current','suggested','elasticity','marginImpact','note']);
-    fillTable('segmentsTable', segments, ['name','customers','clv']);
-    fillTable('churnTable', churn, ['customer','lastSeen','risk']);
-
-    const packetGrid = document.getElementById('packetGrid');
-    packetGrid.innerHTML = packets.map(p => `
-      <div class='rounded-2xl border border-slate-200 bg-white p-4 shadow-sm'>
-        <div class='text-xs uppercase tracking-wide text-slate-500'>${p.type}</div>
-        <div class='mt-1 text-lg font-semibold'>${p.title}</div>
-        <div class='mt-2 text-sm text-slate-600'>Schema preview • sample rows</div>
-        <div class='mt-4 flex items-center justify-between'>
-          <span class='text-sm font-medium'>${p.price}</span>
-          <button class='rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm'>Preview</button>
-        </div>
-      </div>`).join('');
-
-    const integrationsGrid = document.getElementById('integrationsGrid');
-    integrationsGrid.innerHTML = integrations.map(intg => `
-      <div class='rounded-2xl border border-slate-200 bg-white p-4 shadow-sm'>
-        <div class='flex items-center justify-between'>
-          <div class='text-lg font-semibold'>${intg.name}</div>
-          <span class='rounded-full px-2 py-0.5 text-xs ${intg.status==='Connected'?'bg-emerald-100 text-emerald-700':'bg-slate-100 text-slate-700'}'>${intg.status}</span>
-        </div>
-        <div class='mt-3'>
-          <button class='rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm'>${intg.status==='Connected'?'Manage':'Connect'}</button>
-        </div>
-      </div>`).join('');
-
-    const reportGrid = document.getElementById('reportGrid');
-    reportGrid.innerHTML = reports.map(t => `
-      <div class='rounded-2xl border border-slate-200 bg-white p-4 shadow-sm'>
-        <div class='text-lg font-semibold'>${t}</div>
-        <div class='mt-2 text-sm text-slate-600'>Export to PDF/CSV.</div>
-        <div class='mt-3'><button class='rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm'>View</button></div>
-      </div>`).join('');
-
-    const pastRunsBody = document.getElementById('pastRuns');
-    pastRunsBody.innerHTML = pastRuns.map(r => `<tr class='hover:bg-slate-50'><td class='px-3 py-2 text-sm'>${r.time}</td><td class='px-3 py-2 text-sm'>${r.name}</td><td class='px-3 py-2 text-sm'>${r.status}</td></tr>`).join('');
-
-    // Alerts pagination
-    const alertsList = document.getElementById('alertsList');
-    const alertsPrev = document.getElementById('alertsPrev');
-    const alertsNext = document.getElementById('alertsNext');
-    const alertsPage = document.getElementById('alertsPage');
-    let aPage = 1; const aSize = 3; const aPages = Math.ceil(alertItems.length/aSize);
-    function renderAlerts(){
-      const start = (aPage-1)*aSize; const pageRows = alertItems.slice(start,start+aSize);
-      alertsList.innerHTML = pageRows.map(a => `
-        <li class='flex items-center justify-between py-3'>
-          <div class='flex items-center gap-2'>
-            <span class='inline-block h-2.5 w-2.5 rounded-full ${a.severity==='high'?'bg-rose-500':a.severity==='medium'?'bg-amber-500':'bg-slate-400'}'></span>
-            <span class='text-sm'>${a.message}</span>
-          </div>
-          <div class='flex items-center gap-3'>
-            <span class='text-xs text-slate-500'>${a.time} ago</span>
-            <button class='rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm'>Acknowledge</button>
-          </div>
-        </li>`).join('');
-      alertsPrev.disabled = aPage===1; alertsNext.disabled = aPage===aPages; alertsPage.textContent = `${aPage}/${aPages}`;
-    }
-    alertsPrev.addEventListener('click', ()=>{ if(aPage>1){ aPage--; renderAlerts(); }});
-    alertsNext.addEventListener('click', ()=>{ if(aPage<aPages){ aPage++; renderAlerts(); }});
-    renderAlerts();
-
-    // Heatmaps
-    const stockHeat = document.getElementById('stockHeat');
-    stockHeat.innerHTML = Array.from({length:36}).map(()=>{
-      const v = Math.floor(Math.random()*100);
-      const cls = v>66?'bg-emerald-300':v>33?'bg-amber-300':'bg-rose-300';
-      return `<div class='h-5 rounded ${cls}' title='${v}'></div>`;
-    }).join('');
-
-    const cohortGrid = document.getElementById('cohortGrid');
-    const cohortVals = [
-      [68,58,49,43,39,35,32,28,25],
-      [70,61,53,47,42,37,33,30,27],
-      [72,63,54,48,43,38,34,31,28],
-      [74,65,56,49,44,39,35,32,29],
-      [75,66,57,50,45,40,36,33,30],
-      [77,68,59,51,46,41,37,34,31],
-    ];
-    cohortGrid.innerHTML = cohortVals.flat().map(v=>`<div class='flex h-7 items-center justify-center rounded text-[10px] ${v>60?'bg-emerald-200':v>40?'bg-amber-200':'bg-rose-200'}'>${v}%</div>`).join('');
+    // Example stats recalculation
+    $('#recalcBtn').addEventListener('click', () => {
+      const rev = (1000000 + Math.random()*500000);
+      $('#statRevenue').textContent = rev.toLocaleString('en-US', {style:'currency', currency:'USD', maximumFractionDigits:0});
+      $('#statMB').textContent = (12 + Math.random()*6).toFixed(1) + ' GB';
+      $('#statLatency').textContent = Math.round(180 + Math.random()*80) + ' ms';
+      notify('KPIs recalculated');
+    });
 
     // Charts
-    const Charts = {};
-    function initCharts(){
-      // Home: Revenue vs Forecast
-      Charts.homeRevForecast = new Chart(document.getElementById('homeRevForecast'), {
-        type: 'line',
-        data: {
-          labels: series.map(s=>s.date),
-          datasets: [
-            { label:'Revenue', data: series.map(s=>s.revenue), tension:0.35, fill:false },
-            { label:'Forecast', data: series.map(s=>s.forecast), tension:0.35, borderDash:[6,4], fill:false },
-          ]
-        },
-        options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'top' } }, scales: { y: { beginAtZero:true } } }
-      });
+    const lineCtx = $('#lineChart');
+    const barCtx  = $('#barChart');
+    const pieCtx  = $('#pieChart');
+    const usageCtx= $('#usageChart');
 
-      // Home: Category Mix
-      Charts.homeCategoryMix = new Chart(document.getElementById('homeCategoryMix'), {
-        type:'pie',
-        data:{ labels: categoryMix.map(c=>c.name), datasets:[{ data: categoryMix.map(c=>c.value) }] },
-        options:{ responsive:true, maintainAspectRatio:false }
-      });
-
-      // Home: Daypart
-      Charts.homeDaypart = new Chart(document.getElementById('homeDaypart'), {
-        type:'bar',
-        data:{ labels: daypart.map(d=>d.part), datasets:[{ label:'Revenue', data: daypart.map(d=>d.revenue) }] },
-        options:{ responsive:true, maintainAspectRatio:false, scales:{ y:{ beginAtZero:true } } }
-      });
-
-      // Sales: Revenue & Orders
-      Charts.salesRevOrders = new Chart(document.getElementById('salesRevOrders'), {
-        type:'line',
-        data:{ labels: series.map(s=>s.date), datasets:[
-          { label:'Revenue', data: series.map(s=>s.revenue), tension:0.35, fill:true },
-          { label:'Orders', data: series.map(s=>s.orders), tension:0.35, yAxisID:'y1', fill:false },
-        ]},
-        options:{ responsive:true, maintainAspectRatio:false, scales:{ y:{ beginAtZero:true }, y1:{ position:'right', beginAtZero:true } } }
-      });
-
-      // Sales: AOV Trend
-      Charts.salesAov = new Chart(document.getElementById('salesAov'), {
-        type:'line', data:{ labels: series.map(s=>s.date), datasets:[{ label:'AOV', data: series.map(s=>s.aov), tension:0.35, fill:false }] },
-        options:{ responsive:true, maintainAspectRatio:false, scales:{ y:{ beginAtZero:true } } }
-      });
-
-      // Inventory: Forecast vs On-hand (reuse revenue as on-hand proxy)
-      Charts.invForecastOnhand = new Chart(document.getElementById('invForecastOnhand'), {
-        type:'line', data:{ labels: series.map(s=>s.date), datasets:[
-          { label:'Forecast', data: series.map(s=>s.forecast), tension:0.35, fill:false },
-          { label:'On‑Hand', data: series.map(s=>s.revenue), tension:0.35, fill:false },
-        ] }, options:{ responsive:true, maintainAspectRatio:false, scales:{ y:{ beginAtZero:true } } }
-      });
-
-      // Pricing: Price vs Volume (reuse aov as price proxy)
-      Charts.pricingPriceVolume = new Chart(document.getElementById('pricingPriceVolume'), {
-        type:'line', data:{ labels: series.map(s=>s.date), datasets:[{ label:'Price (AOV)', data: series.map(s=>s.aov), tension:0.35, fill:false }] },
-        options:{ responsive:true, maintainAspectRatio:false, scales:{ y:{ beginAtZero:true } } }
-      });
+    function daysArray(n){
+      const arr=[]; const now = new Date();
+      for(let i=n-1;i>=0;i--){ const d=new Date(now - i*86400000); arr.push((d.getMonth()+1)+'/'+d.getDate()); }
+      return arr;
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
-      lucide.createIcons();
-      initCharts();
-      showPage('home');
+    const lineChart = new Chart(lineCtx, {
+      type: 'line',
+      data: {
+        labels: daysArray(30),
+        datasets: [{ label: 'MB', data: Array.from({length:30}, () => 300+Math.random()*300), tension:.35, fill:false }]
+      },
+      options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false } }, scales:{ y:{ grid:{ color:'#eee' } }, x:{ grid:{ display:false } } } }
+    });
+
+    const barChart = new Chart(barCtx, {
+      type: 'bar',
+      data: {
+        labels: ['RDU-01','RDU-07','ATL-02','CLT-05','GSO-03','DFW-08'],
+        datasets: [{ label: 'Revenue $', data: [220,195,182,160,144,133], }]
+      },
+      options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false } }, scales:{ y:{ grid:{ color:'#eee' } }, x:{ grid:{ display:false } } } }
+    });
+
+    const pieChart = new Chart(pieCtx, {
+      type: 'doughnut',
+      data: {
+        labels: ['Transactions','Inventory','Loyalty','Pricing'],
+        datasets: [{ data: [48, 22, 18, 12] }]
+      },
+      options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'bottom' } }, cutout:'60%' }
+    });
+
+    const usageChart = new Chart(usageCtx, {
+      type: 'line',
+      data: { labels: daysArray(14), datasets: [{ label:'MB', data: Array.from({length:14}, () => 700+Math.random()*400), tension:.35 }] },
+      options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false } } }
+    });
+
+    // Datasets table (seed data)
+    const tableBody = $('#datasetTable tbody');
+    let datasets = [
+      { name:'Transactions — RDU', cat:'grocery', size: 512, updated:'2025-08-22', quality: 96, status:'Active' },
+      { name:'Inventory — ATL',    cat:'electronics', size: 380, updated:'2025-08-21', quality: 92, status:'Active' },
+      { name:'Pricing — CLT',      cat:'apparel', size: 210, updated:'2025-08-20', quality: 88, status:'Active' },
+      { name:'Loyalty — GSO',      cat:'pharmacy', size: 160, updated:'2025-08-19', quality: 90, status:'Paused' },
+      { name:'Transactions — DFW', cat:'grocery', size: 640, updated:'2025-08-23', quality: 94, status:'Active' },
+      { name:'Inventory — RDU',    cat:'electronics', size: 420, updated:'2025-08-18', quality: 89, status:'Active' },
+      { name:'Receipts — SE',      cat:'grocery', size: 980, updated:'2025-08-24', quality: 97, status:'Active' },
+      { name:'Returns — SE',       cat:'apparel', size: 120, updated:'2025-08-17', quality: 85, status:'Active' },
+    ];
+
+    function renderTable(filter='all', search=''){
+      tableBody.innerHTML = '';
+      const rows = datasets
+        .filter(d => filter==='all' || d.cat===filter)
+        .filter(d => d.name.toLowerCase().includes(search.toLowerCase()))
+        .map(d => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td class="fw-semibold">${d.name}</td>
+            <td class="text-capitalize">${d.cat}</td>
+            <td>${d.size.toLocaleString()} MB</td>
+            <td>${d.updated}</td>
+            <td>${d.quality}</td>
+            <td>${d.status==='Active' ? '<span class="badge text-bg-dark">Active</span>' : '<span class="badge text-bg-secondary">Paused</span>'}</td>
+            <td class="text-end">
+              <div class="btn-group">
+                <button class="btn btn-ghost btn-sm" onclick="toggleStatus('${d.name.replace(/'/g, "&#39;")}')"><i class="bi bi-pause"></i></button>
+                <button class="btn btn-ghost btn-sm" onclick="removeDataset('${d.name.replace(/'/g, "&#39;")}')"><i class="bi bi-trash"></i></button>
+              </div>
+            </td>`;
+          return tr;
+        });
+      rows.forEach(r => tableBody.appendChild(r));
+    }
+    renderTable();
+
+    // Global + dataset search
+    $('#globalSearch').addEventListener('input', (e) => {
+      $('#datasetSearch').value = e.target.value; renderTable(activeFilter, e.target.value);
+    });
+    $('#datasetSearch').addEventListener('input', (e) => renderTable(activeFilter, e.target.value));
+
+    // Filter chips
+    let activeFilter = 'all';
+    $$('.chip').forEach(ch => ch.addEventListener('click', () => {
+      activeFilter = ch.dataset.filter; renderTable(activeFilter, $('#datasetSearch').value);
+      $$('.chip').forEach(c => c.classList.remove('btn-dark','text-white'));
+      ch.classList.add('btn-dark','text-white');
+    }));
+
+    // Add dataset
+    $('#addDataset').addEventListener('click', () => {
+      const name = $('#dsName').value.trim();
+      const cat  = $('#dsCat').value;
+      const size = parseInt($('#dsSize').value || '0', 10);
+      const qual = parseInt($('#dsQuality').value || '90', 10);
+      if(!name || !size) { notify('Please provide a name and size'); return; }
+      datasets.unshift({ name, cat, size, updated: new Date().toISOString().slice(0,10), quality: qual, status: 'Active' });
+      renderTable(activeFilter, $('#datasetSearch').value);
+      notify('Dataset added');
+    });
+
+    // Actions
+    window.toggleStatus = (name) => {
+      datasets = datasets.map(d => d.name===name ? { ...d, status: d.status==='Active' ? 'Paused' : 'Active' } : d);
+      renderTable(activeFilter, $('#datasetSearch').value);
+      notify('Status toggled');
+    }
+    window.removeDataset = (name) => {
+      datasets = datasets.filter(d => d.name!==name);
+      renderTable(activeFilter, $('#datasetSearch').value);
+      notify('Dataset removed');
+    }
+
+    // Export CSV
+    function download(filename, text) {
+      const a = document.createElement('a');
+      a.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+      a.setAttribute('download', filename); a.style.display='none'; document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    }
+    $('#exportBtn').addEventListener('click', () => {
+      const header = ['Name','Category','Size (MB)','Updated','Quality','Status'];
+      const rows = datasets.map(d => [d.name, d.cat, d.size, d.updated, d.quality, d.status].join(','));
+      download('aurelo-datasets.csv', [header.join(','), ...rows].join('\n'));
+      notify('CSV exported');
+    });
+
+    // Quick alert creation
+    $('#saveQuickAlert').addEventListener('click', () => {
+      const m=$('#alertMetric').value, o=$('#alertOp').value, v=$('#alertValue').value;
+      notify(`Alert saved: ${m} ${o} ${v}`);
+    });
+    $('#createAlert').addEventListener('click', () => notify('Alert created'));
+
+    // Agenta chat (local mock)
+    const chat = $('#chat');
+    function pushBubble(text, who='bot'){
+      const row = document.createElement('div');
+      row.className = 'd-flex ' + (who==='user' ? 'justify-content-end' : 'justify-content-start');
+      const b = document.createElement('div');
+      b.className = 'bubble ' + (who==='user' ? 'user' : 'bot'); b.textContent = text; row.appendChild(b);
+      chat.appendChild(row); chat.scrollTop = chat.scrollHeight;
+    }
+    const playReplies = {
+      kpi: 'KPI Summary: Revenue up 8.1% MoM, p95 latency down 11%, throughput averaging 512 MB/day, data quality median 92. No critical anomalies in last 24h.',
+      anomaly: 'Anomalies: 1) p95 latency spike at 10:42 tied to SE region; 2) Ingestion backlog at 07:30 resolved by autoscaler; 3) Mild drift in CLT pricing dataset.',
+      stores: 'Top margins: RDU-01 (22%), ATL-02 (20%), DFW-08 (19%), CLT-05 (17%), GSO-03 (16%). Recommendations: expand RDU cluster, reduce ATL promo leakage.'
+    };
+    $$('#agenta .list-group-item').forEach(btn => btn.addEventListener('click', () => {
+      const key = btn.dataset.play; pushBubble(`Run playbook: ${btn.textContent}`, 'user'); setTimeout(()=>pushBubble(playReplies[key]), 400);
+    }));
+    function agentaReply(input){
+      // Simple canned logic
+      const s = input.toLowerCase();
+      if(s.includes('latency')) return 'Latest p95 latency is 212 ms; trending downward 11% WoW.';
+      if(s.includes('revenue')) return 'Monthly revenue is ~$1.24M (+8.1% MoM). Top store RDU-01.';
+      if(s.includes('quality')) return 'Median dataset quality: 92. 3 datasets flagged for completeness.';
+      return 'Got it. I would run a query on the analytics warehouse and reply with KPIs and explanations here.';
+    }
+    $('#chatSend').addEventListener('click', () => {
+      const v = $('#chatInput').value.trim(); if(!v) return; $('#chatInput').value=''; pushBubble(v, 'user'); setTimeout(()=>pushBubble(agentaReply(v)), 450);
+    });
+    $('#chatInput').addEventListener('keydown', (e) => { if(e.key==='Enter'){ e.preventDefault(); $('#chatSend').click(); }});
+
+    // Export usage when clicking usage numbers (fun easter egg)
+    $('#usageCost').addEventListener('click', () => notify('Usage cost includes data overages, API, and seats.'));
+
+    // Global keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+      if(e.key === '/' && document.activeElement.tagName !== 'INPUT') { e.preventDefault(); $('#globalSearch').focus(); }
     });
   </script>
 </body>
 </html>
+
