@@ -6,13 +6,16 @@
   <title>Largest Companies — Table</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
   <style>
-    body { background:#0b0c10; color:#e5e7eb; }
-    .table-box { background:rgba(17,18,24,0.9); border-radius:12px; padding:1rem; box-shadow:0 6px 25px rgba(0,0,0,0.5); border:1px solid rgba(255,255,255,0.08); }
-    .table-wrap { max-height:70vh; overflow:auto; border-radius:8px; }
-    table { border-collapse: collapse; }
-    th, td { border:1px solid rgba(255,255,255,0.15); padding:.75rem; }
-    thead th { position:sticky; top:0; background:#1a1c22; z-index:1; border:1px solid #6c5ce7; }
-    tbody tr:hover { background:rgba(108,92,231,0.15); }
+  body { background:#0b0c10; color:#e5e7eb; }
+  .table-box { background:rgba(17,18,24,0.7); border-radius:12px; padding:1rem; box-shadow:0 6px 25px rgba(0,0,0,0.5); border:1px solid rgba(255,255,255,0.08); }
+  .table-wrap { max-height:70vh; overflow:auto; border-radius:8px; }
+  .header-row { background:#142a4a; color:#fff; border-radius:8px; border:1px solid #6c5ce7; }
+  .header-cell { position:relative; display:flex; align-items:center; justify-content:space-between; border:1px solid #6c5ce7; padding:.5rem .75rem; }
+  .sort-arrow { font-size:1rem; margin-left:6px; cursor:pointer; user-select:none; }
+  .data-row { border-radius:8px; }
+  .data-cell { border:1px solid #6c5ce7; padding:.5rem .75rem; background:inherit; }
+  .row-bg1 { background:rgba(227,242,253,0.7); }
+  .row-bg2 { background:rgba(255,255,255,0.7); }
   </style>
 </head>
 <body class="p-4">
@@ -21,8 +24,8 @@
 
     <div class="table-box">
       <div class="table-wrap">
-        <div class="row fw-bold py-2 mb-2" style="background:#142a4a; color:#fff; border-radius:8px; border:1px solid #6c5ce7;">
-          <div class="col">Company
+        <div class="row header-row fw-bold py-2 mb-2">
+          <div class="col header-cell">Company <span class="sort-arrow">&#8597;</span>
             <select class="form-select form-select-sm mt-1">
               <option>All</option>
               <option>Apple</option>
@@ -37,7 +40,7 @@
               <option>TSMC</option>
             </select>
           </div>
-          <div class="col text-end">Market Cap
+          <div class="col header-cell text-end">Market Cap <span class="sort-arrow">&#8597;</span>
             <select class="form-select form-select-sm mt-1">
               <option>All</option>
               <option>$3.5T</option>
@@ -51,7 +54,7 @@
               <option>$780B</option>
             </select>
           </div>
-          <div class="col text-end">Employees
+          <div class="col header-cell text-end">Employees <span class="sort-arrow">&#8597;</span>
             <select class="form-select form-select-sm mt-1">
               <option>All</option>
               <option>161k</option>
@@ -66,7 +69,7 @@
               <option>73k</option>
             </select>
           </div>
-          <div class="col text-end">Revenue
+          <div class="col header-cell text-end">Revenue <span class="sort-arrow">&#8597;</span>
             <select class="form-select form-select-sm mt-1">
               <option>All</option>
               <option>$383B</option>
@@ -81,7 +84,7 @@
               <option>$78B</option>
             </select>
           </div>
-          <div class="col">Headquarters
+          <div class="col header-cell">Headquarters <span class="sort-arrow">&#8597;</span>
             <select class="form-select form-select-sm mt-1">
               <option>All</option>
               <option>Cupertino</option>
@@ -96,7 +99,7 @@
               <option>Hsinchu</option>
             </select>
           </div>
-          <div class="col">Industry
+          <div class="col header-cell">Industry <span class="sort-arrow">&#8597;</span>
             <select class="form-select form-select-sm mt-1">
               <option>All</option>
               <option>Tech</option>
@@ -112,84 +115,94 @@
         </div>
         <!-- Data rows, alternating backgrounds -->
         <div class="row align-items-center py-2" style="background:#e3f2fd;">
-          <div class="col">Apple</div>
-          <div class="col text-end">$3.5T</div>
-          <div class="col text-end">161k</div>
-          <div class="col text-end">$383B</div>
-          <div class="col">Cupertino</div>
-          <div class="col">Tech</div>
+        <div class="row data-row row-bg1 align-items-center py-2">
+          <div class="col data-cell">Apple</div>
+          <div class="col data-cell text-end">$3.5T</div>
+          <div class="col data-cell text-end">161k</div>
+          <div class="col data-cell text-end">$383B</div>
+          <div class="col data-cell">Cupertino</div>
+          <div class="col data-cell">Tech</div>
         </div>
         <div class="row align-items-center py-2" style="background:#fff;">
-          <div class="col">Microsoft</div>
-          <div class="col text-end">$3.2T</div>
-          <div class="col text-end">221k</div>
-          <div class="col text-end">$212B</div>
-          <div class="col">Redmond</div>
-          <div class="col">Tech</div>
+        <div class="row data-row row-bg2 align-items-center py-2">
+          <div class="col data-cell">Microsoft</div>
+          <div class="col data-cell text-end">$3.2T</div>
+          <div class="col data-cell text-end">221k</div>
+          <div class="col data-cell text-end">$212B</div>
+          <div class="col data-cell">Redmond</div>
+          <div class="col data-cell">Tech</div>
         </div>
         <div class="row align-items-center py-2" style="background:#e3f2fd;">
-          <div class="col">Saudi Aramco</div>
-          <div class="col text-end">$2.1T</div>
-          <div class="col text-end">70k</div>
-          <div class="col text-end">$500B</div>
-          <div class="col">Dhahran</div>
-          <div class="col">Energy</div>
+        <div class="row data-row row-bg1 align-items-center py-2">
+          <div class="col data-cell">Saudi Aramco</div>
+          <div class="col data-cell text-end">$2.1T</div>
+          <div class="col data-cell text-end">70k</div>
+          <div class="col data-cell text-end">$500B</div>
+          <div class="col data-cell">Dhahran</div>
+          <div class="col data-cell">Energy</div>
         </div>
         <div class="row align-items-center py-2" style="background:#fff;">
-          <div class="col">Alphabet</div>
-          <div class="col text-end">$2.1T</div>
-          <div class="col text-end">180k</div>
-          <div class="col text-end">$307B</div>
-          <div class="col">Mountain View</div>
-          <div class="col">Internet</div>
+        <div class="row data-row row-bg2 align-items-center py-2">
+          <div class="col data-cell">Alphabet</div>
+          <div class="col data-cell text-end">$2.1T</div>
+          <div class="col data-cell text-end">180k</div>
+          <div class="col data-cell text-end">$307B</div>
+          <div class="col data-cell">Mountain View</div>
+          <div class="col data-cell">Internet</div>
         </div>
         <div class="row align-items-center py-2" style="background:#e3f2fd;">
-          <div class="col">Amazon</div>
-          <div class="col text-end">$2.0T</div>
-          <div class="col text-end">1.5M</div>
-          <div class="col text-end">$575B</div>
-          <div class="col">Seattle</div>
-          <div class="col">E‑commerce</div>
+        <div class="row data-row row-bg1 align-items-center py-2">
+          <div class="col data-cell">Amazon</div>
+          <div class="col data-cell text-end">$2.0T</div>
+          <div class="col data-cell text-end">1.5M</div>
+          <div class="col data-cell text-end">$575B</div>
+          <div class="col data-cell">Seattle</div>
+          <div class="col data-cell">E‑commerce</div>
         </div>
         <div class="row align-items-center py-2" style="background:#fff;">
-          <div class="col">NVIDIA</div>
-          <div class="col text-end">$2.8T</div>
-          <div class="col text-end">29k</div>
-          <div class="col text-end">$80B</div>
-          <div class="col">Santa Clara</div>
-          <div class="col">Semiconductors</div>
+        <div class="row data-row row-bg2 align-items-center py-2">
+          <div class="col data-cell">NVIDIA</div>
+          <div class="col data-cell text-end">$2.8T</div>
+          <div class="col data-cell text-end">29k</div>
+          <div class="col data-cell text-end">$80B</div>
+          <div class="col data-cell">Santa Clara</div>
+          <div class="col data-cell">Semiconductors</div>
         </div>
         <div class="row align-items-center py-2" style="background:#e3f2fd;">
-          <div class="col">Meta</div>
-          <div class="col text-end">$1.2T</div>
-          <div class="col text-end">86k</div>
-          <div class="col text-end">$135B</div>
-          <div class="col">Menlo Park</div>
-          <div class="col">Social Media</div>
+        <div class="row data-row row-bg1 align-items-center py-2">
+          <div class="col data-cell">Meta</div>
+          <div class="col data-cell text-end">$1.2T</div>
+          <div class="col data-cell text-end">86k</div>
+          <div class="col data-cell text-end">$135B</div>
+          <div class="col data-cell">Menlo Park</div>
+          <div class="col data-cell">Social Media</div>
         </div>
         <div class="row align-items-center py-2" style="background:#fff;">
-          <div class="col">Berkshire Hathaway</div>
-          <div class="col text-end">$870B</div>
-          <div class="col text-end">383k</div>
-          <div class="col text-end">$364B</div>
-          <div class="col">Omaha</div>
-          <div class="col">Conglomerate</div>
+        <div class="row data-row row-bg2 align-items-center py-2">
+          <div class="col data-cell">Berkshire Hathaway</div>
+          <div class="col data-cell text-end">$870B</div>
+          <div class="col data-cell text-end">383k</div>
+          <div class="col data-cell text-end">$364B</div>
+          <div class="col data-cell">Omaha</div>
+          <div class="col data-cell">Conglomerate</div>
         </div>
         <div class="row align-items-center py-2" style="background:#e3f2fd;">
-          <div class="col">Tesla</div>
-          <div class="col text-end">$760B</div>
-          <div class="col text-end">140k</div>
-          <div class="col text-end">$97B</div>
-          <div class="col">Austin</div>
-          <div class="col">EVs</div>
+        <div class="row data-row row-bg1 align-items-center py-2">
+          <div class="col data-cell">Tesla</div>
+          <div class="col data-cell text-end">$760B</div>
+          <div class="col data-cell text-end">140k</div>
+          <div class="col data-cell text-end">$97B</div>
+          <div class="col data-cell">Austin</div>
+          <div class="col data-cell">EVs</div>
         </div>
         <div class="row align-items-center py-2" style="background:#fff;">
-          <div class="col">TSMC</div>
-          <div class="col text-end">$780B</div>
-          <div class="col text-end">73k</div>
-          <div class="col text-end">$78B</div>
-          <div class="col">Hsinchu</div>
-          <div class="col">Semiconductors</div>
+        <div class="row data-row row-bg2 align-items-center py-2">
+          <div class="col data-cell">TSMC</div>
+          <div class="col data-cell text-end">$780B</div>
+          <div class="col data-cell text-end">73k</div>
+          <div class="col data-cell text-end">$78B</div>
+          <div class="col data-cell">Hsinchu</div>
+          <div class="col data-cell">Semiconductors</div>
         </div>
       </div>
     </div>
