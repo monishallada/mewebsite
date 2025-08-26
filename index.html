@@ -4,103 +4,70 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Magenta AI</title>
-  <meta name="color-scheme" content="light only" />
   <style>
     :root{
       --bg:#ffffff;
       --fg:#0a0a0a;
-      --line:#eaeaea;
-      --soft:#f7f7f8;
+      --muted:#6b7280;
+      --line:#ececec;
+      --soft:#f9f9fa;
       --radius:18px;
+      --shadow:0 8px 32px rgba(0,0,0,.08);
       --trans:200ms cubic-bezier(.2,.7,.2,1);
     }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial;}
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{height:100%;margin:0;background:var(--bg);color:var(--fg);font:16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial;display:flex;flex-direction:column}
 
-    /* Center stage */
-    .stage{min-height:100%;display:grid;place-items:center;padding:24px}
-    .stack{display:flex;flex-direction:column;gap:22px;align-items:center;width:100%;}
-    h1{font-size:clamp(32px,4vw,56px);line-height:1.05;margin:0;font-weight:900;letter-spacing:.2px}
+    main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:20px}
 
-    /* Composer */
-    .composer{width:min(880px,100%);display:flex;gap:10px;align-items:stretch;transition:transform var(--trans), box-shadow var(--trans), border-color var(--trans);}
-    .composer textarea{flex:1;min-height:72px;max-height:220px;padding:14px 16px;border:1px solid var(--line);border-radius:16px;font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;resize:vertical;outline:none;transition:border-color var(--trans), box-shadow var(--trans)}
-    .composer textarea:focus{border-color:#111;box-shadow:0 0 0 3px rgba(0,0,0,.08)}
-    .upload{display:inline-flex;align-items:center;justify-content:center;padding:0 16px;border:1px solid var(--line);border-radius:16px;background:#fff;font-weight:800;cursor:pointer;white-space:nowrap}
-    .upload input{position:absolute;inset:0;opacity:0;cursor:pointer}
-    .hint{font-size:13px;color:#666}
+    h1{font-size:clamp(36px,5vw,60px);font-weight:900;margin-bottom:12px;letter-spacing:-.02em}
+    p.sub{font-size:18px;color:var(--muted);max-width:60ch;margin:0 auto 32px}
 
-    /* Docked state (after user starts) */
-    body.docked .stage{padding-bottom:100px}
-    .dock{position:fixed;left:0;right:0;bottom:0;display:flex;justify-content:center;padding:14px 16px;background:linear-gradient(180deg, rgba(255,255,255,0), #fff 40%);border-top:1px solid var(--line)}
-    .dock .composer{width:min(900px,100%);}
+    .search-bar{width:min(700px,100%);display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px 18px;transition:border-color var(--trans),box-shadow var(--trans)}
+    .search-bar:focus-within{border-color:#000;box-shadow:0 0 0 3px rgba(0,0,0,.1)}
+    .search-bar textarea{flex:1;border:none;outline:none;resize:none;min-height:28px;max-height:180px;font:inherit;background:transparent}
+    .search-bar label{font-weight:700;cursor:pointer;color:#000;white-space:nowrap}
+    .search-bar input[type=file]{display:none}
 
-    /* Hide center composer when docked */
-    body.docked .center{display:none}
-
-    @media (prefers-reduced-motion: reduce){.composer, .composer textarea{transition:none}}
+    footer{padding:24px;text-align:center;color:var(--muted);font-size:14px}
   </style>
 </head>
 <body>
-  <main class="stage">
-    <!-- Centered view -->
-    <div class="stack center" aria-live="polite">
-      <h1>Magenta&nbsp;AI</h1>
-      <div class="composer">
-        <textarea id="input" placeholder="Paste dataset (CSV / TSV / JSON / JSONL)"></textarea>
-        <label class="upload" title="Upload file">
-          Upload
-          <input id="file" type="file" accept=".csv,.tsv,.json,.jsonl,.ndjson,.parquet" />
-        </label>
-      </div>
-      <div class="hint">Just the input. When you start typing or pick a file, the composer docks to the bottom — like Gemini.</div>
-    </div>
+  <main>
+    <h1>Magenta AI</h1>
+    <p class="sub">Turn raw datasets into clean, LLM‑ready training packets.<br/> Paste directly or upload a file to get started.</p>
 
-    <!-- Docked view (appears after input) -->
-    <div id="dock" class="dock" hidden>
-      <div class="composer">
-        <textarea id="inputDock" placeholder="Paste dataset (CSV / TSV / JSON / JSONL)"></textarea>
-        <label class="upload" title="Upload file">
-          Upload
-          <input id="fileDock" type="file" accept=".csv,.tsv,.json,.jsonl,.ndjson,.parquet" />
-        </label>
-      </div>
+    <div class="search-bar">
+      <textarea id="input" placeholder="Paste dataset or type here…"></textarea>
+      <label>
+        Upload
+        <input id="file" type="file" accept=".csv,.tsv,.json,.jsonl,.ndjson,.parquet" />
+      </label>
     </div>
   </main>
 
+  <footer>
+    © <span id="year"></span> Magenta AI — Simple. Minimal. Focused.
+  </footer>
+
   <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+
     const input = document.getElementById('input');
     const file = document.getElementById('file');
-    const dock = document.getElementById('dock');
-    const inputDock = document.getElementById('inputDock');
-    const fileDock = document.getElementById('fileDock');
 
-    // When user types or selects a file, switch to docked composer at bottom
-    function activateDock(){
-      if(document.body.classList.contains('docked')) return;
-      document.body.classList.add('docked');
-      dock.hidden = false;
-      // carry content over
-      inputDock.value = input.value;
-      inputDock.focus();
-    }
-
-    input.addEventListener('input', ()=>{ if(input.value.trim().length>0) activateDock(); });
-    input.addEventListener('focus', ()=>{ /* optional: wait for typing */});
-
-    file.addEventListener('change', (e)=>{
-      const f = e.target.files?.[0];
-      if(f) activateDock();
+    input.addEventListener('input', ()=>{
+      // TODO: plug in your processing logic here
     });
 
-    // Keep docked input in sync if user continues typing there
-    inputDock.addEventListener('input', ()=>{ /* placeholder to wire into your pipeline */ });
-    fileDock.addEventListener('change', ()=>{ /* placeholder to wire into your pipeline */ });
-
-    // NOTE: Insert your processing / upload logic by reading from inputDock and fileDock.
+    file.addEventListener('change', e=>{
+      const f = e.target.files?.[0];
+      if(f){
+        // TODO: handle uploaded file
+        alert(`Selected: ${f.name}`);
+      }
+    });
   </script>
 </body>
 </html>
-
 
