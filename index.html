@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Magenta AI — Offline Data → LLM Packets</title>
+  <title>Magenta AI — Offline Data → LLM Packets (CSV‑first)</title>
   <meta name="color-scheme" content="light" />
   <style>
     :root{--bg:#ffffff;--fg:#0a0a0a;--muted:#6b7280;--line:#ececec;--radius:18px;--shadow:0 8px 28px rgba(0,0,0,.08)}
@@ -16,7 +16,6 @@
     .bar:focus-within{outline:3px solid rgba(0,0,0,.08)}
     .bar textarea{flex:1;border:none;outline:none;resize:none;min-height:28px;max-height:220px;font:inherit;background:transparent}
     .bar label{font-weight:800;cursor:pointer;white-space:nowrap}
-    /* accept all files: no accept filter on input */
     .bar input[type=file]{display:none}
     .row{margin-top:10px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
     .pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;font-size:13px;color:var(--muted)}
@@ -34,7 +33,7 @@
 <body>
   <main>
     <h1>Magenta AI</h1>
-    <p class="sub">Turn raw datasets into clean, LLM‑ready training packets — <b>fully offline</b>, in your browser. No servers. No API keys.</p>
+    <p class="sub">Turn raw datasets into clean, LLM‑ready training packets — <b>CSV by default</b>, fully offline in your browser. No servers. No API keys.</p>
 
     <div class="bar">
       <textarea id="input" placeholder="Paste dataset here (CSV / TSV / JSON / JSONL)…"></textarea>
@@ -70,10 +69,11 @@
     <details>
       <summary>What you’ll get</summary>
       <pre>
-• <b>packets.jsonl</b> — training rows in your chosen schema
-• <b>dataset_manifest.json</b> — counts, config, hash
-• <b>DATASET_CARD.md</b> — describes how data was processed
-Files are bundled into <b>magenta_packets.zip</b> and downloaded automatically.
+• <b>packets.csv</b> — primary output (open in Numbers/Excel)
+• <b>packets.jsonl</b> — line-by-line LLM packets (full rows)
+• <b>packets_preview.json</b> — pretty JSON array for quick viewing
+• <b>dataset_manifest.json</b>, <b>DATASET_CARD.md</b>
+All files are bundled into <b>magenta_packets.zip</b> and downloaded automatically.
       </pre>
     </details>
   </main>
@@ -149,7 +149,6 @@ Files are bundled into <b>magenta_packets.zip</b> and downloaded automatically.
   }
 
   async function readAnyFile(file){
-    // Always try to decode as text first; fallback to UTF-8 from ArrayBuffer
     const text = await new Promise((res)=>{ const fr=new FileReader(); fr.onload=()=>res(fr.result||''); fr.onerror=()=>res(''); fr.readAsText(file); });
     if(text && String(text).trim().length>0) return String(text);
     const ab = await new Promise((res)=>{ const fr=new FileReader(); fr.onload=()=>res(fr.result); fr.onerror=()=>res(new ArrayBuffer(0)); fr.readAsArrayBuffer(file); });
@@ -159,7 +158,7 @@ Files are bundled into <b>magenta_packets.zip</b> and downloaded automatically.
   // -------------------- Cleaning & PII --------------------
   const EMAIL_RE = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g;
   const PHONE_RE = /(?:(?<!\d)[+]?\d{1,3}[\s.-]?)?(?:\(\d{3}\)|\d{3})[\s.-]?\d{3}[\s.-]?\d{4}\b/g;
-  const IPV4_RE  = /\b(?:(?:25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(?:25[0-5]|2[0-4]\d|[01]?\d\d?)\b/g;
+  const IPV4_RE  = /\b(?:(?:25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(?:25[0-5]|2[0-5]\d|[01]?\d\d?)\b/g;
   const CC_RE    = /\b(?:\d[ -]*?){13,19}\b/g;
 
   function normalizeText(s){ if(!s) return s; s = s.normalize('NFC'); s = s.replace(/\s+/g,' ').trim(); return s; }
@@ -199,6 +198,31 @@ Files are bundled into <b>magenta_packets.zip</b> and downloaded automatically.
   function makeInstruct(prompt, response, meta){ return {instruction:prompt, response, meta}; }
   function makeQA(q,a,meta){ return {question:q, answer:a, meta}; }
   function makeChat(messages, meta){ return {messages, meta}; }
+
+  // -------------------- CSV helpers --------------------
+  function toCSV(rows){
+    return rows.map(r => r.map(v => `"${String(v ?? '').replace(/"/g,'""')}"`).join(',')).join('\n');
+  }
+
+  function packetsToCSV(packets, mode){
+    if(mode === 'pairs'){
+      const header = 'input,output,meta';
+      const rows = packets.map(p => [p.input, p.output, JSON.stringify(p.meta)]);
+      return header + '\n' + toCSV(rows);
+    } else if(mode === 'qa'){
+      const header = 'question,answer,meta';
+      const rows = packets.map(p => [p.question, p.answer, JSON.stringify(p.meta)]);
+      return header + '\n' + toCSV(rows);
+    } else if(mode === 'chat'){
+      const header = 'messages_json,meta';
+      const rows = packets.map(p => [JSON.stringify(p.messages), JSON.stringify(p.meta)]);
+      return header + '\n' + toCSV(rows);
+    } else { // instruct
+      const header = 'instruction,response,meta';
+      const rows = packets.map(p => [p.instruction, p.response, JSON.stringify(p.meta)]);
+      return header + '\n' + toCSV(rows);
+    }
+  }
 
   // -------------------- Main build --------------------
   async function buildPackets(rows, cfg){
@@ -308,27 +332,33 @@ Files are bundled into <b>magenta_packets.zip</b> and downloaded automatically.
       if(kind==='json' || kind==='jsonl') rows = parseJSONorJSONL(rawText);
       else if(kind==='csv' || kind==='tsv') rows = parseCSV(rawText, cfg.delimiter);
       else if(kind==='empty'){ setProgress(0,'No content detected.'); return; }
-      else rows = parseCSV(rawText, cfg.delimiter); // best-effort fallback
+      else rows = parseCSV(rawText, cfg.delimiter); // best-effort fallback to CSV
       if(!rows.length){ setProgress(0,'No rows detected.'); return; }
       setProgress(25,'Building packets…');
       const {packets, kept, total} = await buildPackets(rows, cfg);
       setProgress(92,'Packaging…');
       const jsonl = packets.map(p=>JSON.stringify(p)).join('\n');
+      const previewJSON = JSON.stringify(packets, null, 2);
+      const csvOut = packetsToCSV(packets, mode);
       const manifest = JSON.stringify({ total_records_in: total, total_packets_out: kept, mode }, null, 2);
       const card = datasetCard({total, kept, pii: cfg.pii});
 
       const zip = new JSZip();
+      // CSV is primary by default
+      zip.file('packets.csv', new Blob([csvOut], {type:'text/csv'}));
+      // Still include JSONL + pretty JSON for reference
       zip.file('packets.jsonl', new Blob([jsonl], {type:'application/json'}));
+      zip.file('packets_preview.json', new Blob([previewJSON], {type:'application/json'}));
       zip.file('dataset_manifest.json', new Blob([manifest], {type:'application/json'}));
       zip.file('DATASET_CARD.md', new Blob([card], {type:'text/markdown'}));
-      const blob = await zip.generateAsync({type:'blob'});
 
+      const blob = await zip.generateAsync({type:'blob'});
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url; a.download = `magenta_packets_${Date.now()}.zip`;
       document.body.appendChild(a); a.click(); a.remove();
       setTimeout(()=>URL.revokeObjectURL(url),0);
-      setProgress(100,'Done — ZIP downloaded');
+      setProgress(100,'Done — CSV‑first ZIP downloaded');
     }catch(err){
       console.error(err);
       setProgress(0,'Processing failed');
@@ -337,5 +367,6 @@ Files are bundled into <b>magenta_packets.zip</b> and downloaded automatically.
   </script>
 </body>
 </html>
+
 
 
