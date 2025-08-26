@@ -16,6 +16,7 @@
     .bar:focus-within{outline:3px solid rgba(0,0,0,.08)}
     .bar textarea{flex:1;border:none;outline:none;resize:none;min-height:28px;max-height:220px;font:inherit;background:transparent}
     .bar label{font-weight:800;cursor:pointer;white-space:nowrap}
+    /* accept all files: no accept filter on input */
     .bar input[type=file]{display:none}
     .row{margin-top:10px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
     .pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;font-size:13px;color:var(--muted)}
@@ -23,6 +24,7 @@
     .btn:disabled{opacity:.5;cursor:not-allowed}
     .progress{height:8px;background:#f5f5f7;border:1px solid var(--line);border-radius:999px;overflow:hidden;margin-top:12px;width:min(760px,92%)}
     .progbar{height:100%;width:0;background:#111;transition:width .25s ease}
+    .status{margin-top:6px;color:var(--muted);font-size:13px}
     footer{padding:20px;text-align:center;color:var(--muted);font-size:14px}
     details{margin-top:16px;width:min(760px,92%);text-align:left}
     summary{cursor:pointer;font-weight:800}
@@ -36,7 +38,7 @@
 
     <div class="bar">
       <textarea id="input" placeholder="Paste dataset here (CSV / TSV / JSON / JSONL)…"></textarea>
-      <label>Upload<input id="file" type="file" accept=".csv,.tsv,.json,.jsonl,.ndjson" /></label>
+      <label>Upload<input id="file" type="file" /></label>
     </div>
 
     <div class="row">
@@ -49,6 +51,7 @@
     </div>
 
     <div class="progress" aria-live="polite" aria-label="Progress"><div id="bar" class="progbar"></div></div>
+    <div id="status" class="status">Idle</div>
 
     <details>
       <summary>Advanced (optional)</summary>
@@ -78,7 +81,7 @@ Files are bundled into <b>magenta_packets.zip</b> and downloaded automatically.
   <footer>© <span id="year"></span> Magenta AI — Simple. Minimal. Focused.</footer>
 
   <!-- Load JSZip from CDN (ZIP creation fully client-side) -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" integrity="sha512-4Iu9w8i6Ew6JXKQd0gDg1Y3wqQ7b8m4f0V6x7QpQmU1g8+f2x0n2eGk2m3n+q8kUq+1N4k0Xl1nA5O9n3m7N7g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
   <script>
   // -------------------- Utility helpers --------------------
@@ -87,14 +90,14 @@ Files are bundled into <b>magenta_packets.zip</b> and downloaded automatically.
   const fileEl = document.getElementById('file');
   const runBtn = document.getElementById('run');
   const barEl = document.getElementById('bar');
+  const statusEl = document.getElementById('status');
   const modeBtns = Array.from(document.querySelectorAll('button.btn[data-mode]'));
 
   let MODE = 'instruct';
   modeBtns.forEach(b=>{ b.addEventListener('click',()=>{ MODE=b.dataset.mode; modeBtns.forEach(x=>x.disabled=false); b.disabled=true; }); });
-  // set default selected
   document.querySelector('button.btn[data-mode="instruct"]').disabled = true;
 
-  function setProgress(p){ barEl.style.width = `${p}%`; }
+  function setProgress(p, msg){ barEl.style.width = `${p}%`; if(msg) statusEl.textContent = msg; }
   function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
 
   async function sha256(text){
@@ -106,6 +109,7 @@ Files are bundled into <b>magenta_packets.zip</b> and downloaded automatically.
   // -------------------- Parsing --------------------
   function detectFormat(text){
     const t = text.trim();
+    if(!t) return 'empty';
     if(t.startsWith('{') || t.startsWith('[')) return 'json';
     if(t.includes('\n') && t.split('\n',2)[0].includes(',')) return 'csv';
     if(t.includes('\n') && t.split('\n',2)[0].includes('\t')) return 'tsv';
@@ -138,13 +142,18 @@ Files are bundled into <b>magenta_packets.zip</b> and downloaded automatically.
 
   function parseJSONorJSONL(text){
     const t=text.trim();
+    if(!t) return [];
     if(t.startsWith('[')) return JSON.parse(t);
     const out=[]; for(const line of t.split(/\r?\n/)){ const L=line.trim(); if(!L) continue; out.push(JSON.parse(L)); }
     return out;
   }
 
-  async function readFileAsText(file){
-    return new Promise((res,rej)=>{ const fr=new FileReader(); fr.onload=()=>res(fr.result); fr.onerror=rej; fr.readAsText(file); });
+  async function readAnyFile(file){
+    // Always try to decode as text first; fallback to UTF-8 from ArrayBuffer
+    const text = await new Promise((res)=>{ const fr=new FileReader(); fr.onload=()=>res(fr.result||''); fr.onerror=()=>res(''); fr.readAsText(file); });
+    if(text && String(text).trim().length>0) return String(text);
+    const ab = await new Promise((res)=>{ const fr=new FileReader(); fr.onload=()=>res(fr.result); fr.onerror=()=>res(new ArrayBuffer(0)); fr.readAsArrayBuffer(file); });
+    try{ return new TextDecoder('utf-8',{fatal:false}).decode(new Uint8Array(ab)); }catch{ return ''; }
   }
 
   // -------------------- Cleaning & PII --------------------
@@ -237,7 +246,7 @@ Files are bundled into <b>magenta_packets.zip</b> and downloaded automatically.
         if(cfg.dedupe==='near'){ const sh = simhash(text); if(seenS.some(s=>hamdist(s,sh)<=3)) continue; seenS.push(sh); }
         out.push(pkt); kept++;
       }
-      if(total%200===0) setProgress(Math.min(95, Math.round((total/(rows.length||1))*90)));
+      if(total%200===0) setProgress(Math.min(95, Math.round((total/(rows.length||1))*90)), 'Processing…');
       await sleep(0);
     }
     return {packets:out, kept, total};
@@ -258,21 +267,28 @@ Files are bundled into <b>magenta_packets.zip</b> and downloaded automatically.
 
   fileEl.addEventListener('change', async (e)=>{
     const f = e.target.files?.[0]; if(!f) return;
+    statusEl.textContent = `Reading: ${f.name}`;
     inputEl.value = ''; pastedText = '';
-    const text = await readFileAsText(f);
-    await runPipeline(text);
+    const text = await readAnyFile(f);
+    if(!text || !String(text).trim()){
+      statusEl.textContent = 'Could not extract text from this file.';
+      setProgress(0);
+      fileEl.value='';
+      return;
+    }
+    await runPipeline(String(text));
     fileEl.value='';
   });
 
   runBtn.addEventListener('click', async ()=>{
     const text = pastedText.trim();
-    if(!text){ alert('Paste some data or upload a file first.'); return; }
+    if(!text){ setProgress(0,'Awaiting input…'); return; }
     await runPipeline(text);
   });
 
   async function runPipeline(rawText){
     try{
-      setProgress(3);
+      setProgress(3,'Preparing…');
       const mode = MODE;
       const cfg = {
         mode,
@@ -286,15 +302,17 @@ Files are bundled into <b>magenta_packets.zip</b> and downloaded automatically.
         maxChars: parseInt(document.getElementById('maxChars').value || '20000',10),
         salt: 'magenta_salt'
       };
-      setProgress(10);
+      setProgress(10,'Parsing…');
       let rows=[];
       const kind = detectFormat(rawText);
       if(kind==='json' || kind==='jsonl') rows = parseJSONorJSONL(rawText);
-      else rows = parseCSV(rawText, cfg.delimiter);
-      if(!rows.length){ alert('No rows detected.'); setProgress(0); return; }
-      setProgress(25);
+      else if(kind==='csv' || kind==='tsv') rows = parseCSV(rawText, cfg.delimiter);
+      else if(kind==='empty'){ setProgress(0,'No content detected.'); return; }
+      else rows = parseCSV(rawText, cfg.delimiter); // best-effort fallback
+      if(!rows.length){ setProgress(0,'No rows detected.'); return; }
+      setProgress(25,'Building packets…');
       const {packets, kept, total} = await buildPackets(rows, cfg);
-      setProgress(92);
+      setProgress(92,'Packaging…');
       const jsonl = packets.map(p=>JSON.stringify(p)).join('\n');
       const manifest = JSON.stringify({ total_records_in: total, total_packets_out: kept, mode }, null, 2);
       const card = datasetCard({total, kept, pii: cfg.pii});
@@ -310,16 +328,14 @@ Files are bundled into <b>magenta_packets.zip</b> and downloaded automatically.
       a.href = url; a.download = `magenta_packets_${Date.now()}.zip`;
       document.body.appendChild(a); a.click(); a.remove();
       setTimeout(()=>URL.revokeObjectURL(url),0);
-      setProgress(100);
+      setProgress(100,'Done — ZIP downloaded');
     }catch(err){
       console.error(err);
-      alert('Processing failed: '+(err?.message||err));
-      setProgress(0);
+      setProgress(0,'Processing failed');
     }
   }
   </script>
 </body>
 </html>
-
 
 
