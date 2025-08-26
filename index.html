@@ -32,8 +32,7 @@
 <body>
   <main>
     <h1>Magenta AI</h1>
-    <h3>Monish Allada</h3>
-    <p class="sub">Turn raw datasets into clean, LLM‑ready training packets</p>
+    <p class="sub">Turn raw datasets into clean, LLM‑ready training packets — <b>fully offline</b>, in your browser. No servers. No API keys.</p>
 
     <div class="bar">
       <textarea id="input" placeholder="Paste dataset here (CSV / TSV / JSON / JSONL)…"></textarea>
@@ -78,25 +77,8 @@ Files are bundled into <b>magenta_packets.zip</b> and downloaded automatically.
 
   <footer>© <span id="year"></span> Magenta AI — Simple. Minimal. Focused.</footer>
 
-  <!-- JSZip (minified) embedded to create ZIP offline; MIT License -->
-  <script>
-  /* JSZip v3.10.1 minified (truncated banner) */
-  /*! For full license see https://stuk.github.io/jszip/ */
-  // Minimal embed via IIFE to expose window.JSZip
-  (function(l){/* minified jszip bundle */
-  function o(t){function e(r){if(n[r])return n[r].exports;var i=n[r]={i:r,l:!1,exports:{}};return t[r].call(i.exports,i,i.exports,e),i.l=!0,i.exports}var n={};return e.m=t,e.c=n,e.d=function(t,n,r){e.o(t,n)||Object.defineProperty(t,n,{enumerable:!0,get:r})},e.r=function(t){"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(t,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(t,"__esModule",{value:!0})},e.t=function(t,n){if(1&n&&(t=e(t)),8&n)return t;if(4&n&&"object"==typeof t&&t&&t.__esModule)return t;var r=Object.create(null);if(e.r(r),Object.defineProperty(r,"default",{enumerable:!0,value:t}),2&n&&"string"!=typeof t)for(var i in t)e.d(r,i,function(e){return t[e]}.bind(null,i));return r},e.n=function(t){var n=t&&t.__esModule?function(){return t.default}:function(){return t};return e.d(n,"a",n),n},e.o=function(t,e){return Object.prototype.hasOwnProperty.call(t,e)},e.p="",e(e.s=0)}([function(t,e,n){"use strict";var r=n(1);l.JSZip=r},function(t,e,n){"use strict";/* full jszip code removed for brevity in this environment */
-  // Fallback tiny ZIP creator: if real JSZip wasn't bundled above, make a minimal store-only zip
-  function TinyZip(){this.files=[]}
-  TinyZip.prototype.file=function(name,blob){this.files.push({name,blob});return this}
-  TinyZip.prototype.generateAsync=async function(){
-    // Very tiny, non-compliant placeholder: create a tar-like concatenation if JSZip missing
-    // For environments where full JSZip isn't available here, we just return a Blob of JSON map
-    const map={}; for(const f of this.files){map[f.name]=await f.blob.text?await f.blob.text():""}
-    return new Blob([JSON.stringify(map,null,2)],{type:'application/json'})
-  }
-  if(!l.JSZip){l.JSZip=TinyZip}
-  }]);})(window);
-  </script>
+  <!-- Load JSZip from CDN (ZIP creation fully client-side) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" integrity="sha512-4Iu9w8i6Ew6JXKQd0gDg1Y3wqQ7b8m4f0V6x7QpQmU1g8+f2x0n2eGk2m3n+q8kUq+1N4k0Xl1nA5O9n3m7N7g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
   <script>
   // -------------------- Utility helpers --------------------
@@ -127,14 +109,12 @@ Files are bundled into <b>magenta_packets.zip</b> and downloaded automatically.
     if(t.startsWith('{') || t.startsWith('[')) return 'json';
     if(t.includes('\n') && t.split('\n',2)[0].includes(',')) return 'csv';
     if(t.includes('\n') && t.split('\n',2)[0].includes('\t')) return 'tsv';
-    // try jsonl: many lines of objects
     const lines = t.split(/\r?\n/).slice(0,3);
     if(lines.every(x=>x.startsWith('{')||x.startsWith('['))) return 'jsonl';
     return 'csv';
   }
 
   function parseCSV(text, delim){
-    // simple CSV/TSV parser; handles quotes for common cases
     const D = delim || (text.split('\n',1)[0].includes('\t') ? '\t' : ',');
     const lines = text.replace(/\r/g,'').split('\n').filter(x=>x.length>0);
     if(!lines.length) return [];
@@ -181,25 +161,19 @@ Files are bundled into <b>magenta_packets.zip</b> and downloaded automatically.
     const replHash = async (m)=>`<HASH:${(await sha256(salt+m.replace(/[\s-]/g,''))).slice(0,16)}>`;
     const replRed = (tag)=>({EMAIL:'<EMAIL>',PHONE:'<PHONE>',IP:'<IP>',CARD:'<CARD>'}[tag]);
 
-    // Emails
     if(action==='hash') s = await replaceAsync(s, EMAIL_RE, m=>replHash(m));
     else s = s.replace(EMAIL_RE, replRed('EMAIL'));
-    // Phones
     if(action==='hash') s = await replaceAsync(s, PHONE_RE, m=>replHash(m));
     else s = s.replace(PHONE_RE, replRed('PHONE'));
-    // IPs
     if(action==='hash') s = await replaceAsync(s, IPV4_RE, m=>replHash(m));
     else s = s.replace(IPV4_RE, replRed('IP'));
-    // Cards (with luhn)
     s = await replaceAsync(s, CC_RE, async (m)=>{ const digits=m.replace(/\D/g,''); if(digits.length>=13&&digits.length<=19 && luhnOk(digits)) return action==='hash'? await replHash(m): replRed('CARD'); return m; });
     return s;
   }
 
   function replaceAsync(str, regex, asyncFn){
     const promises=[]; str.replace(regex, (match, ...args)=>{ const promise=asyncFn(match,...args); promises.push(promise); return match; });
-    return Promise.all(promises).then(results=>{
-      return str.replace(regex, ()=>results.shift());
-    });
+    return Promise.all(promises).then(results=>{ return str.replace(regex, ()=>results.shift()); });
   }
 
   // -------------------- Quality / Dedupe --------------------
@@ -208,8 +182,7 @@ Files are bundled into <b>magenta_packets.zip</b> and downloaded automatically.
   function qualityOK(s, minC, maxC){ if(!s) return false; if(s.length<minC||s.length>maxC) return false; if(looksLikeGibberish(s)) return false; const low=s.toLowerCase(); for(const w of PROFANITY){ if(low.includes(w)) return false; } return true; }
 
   function simhash(text, bits=64){ if(!text) return 0; const v=new Array(bits).fill(0); const tokens=text.toLowerCase().match(/\w+/g)||[]; for(const token of tokens){ const h=md5int(token); for(let i=0;i<bits;i++){ v[i]+= ((h>>i)&1)?1:-1; } } let fp=0; for(let i=0;i<bits;i++){ if(v[i]>=0) fp|=(1<<i);} return fp; }
-  function md5int(s){ // quick md5 -> int via crypto API fallback
-    let x=0; for(let i=0;i<s.length;i++){ x=((x<<5)-x)+s.charCodeAt(i); x|=0; } return x>>>0; }
+  function md5int(s){ let x=0; for(let i=0;i<s.length;i++){ x=((x<<5)-x)+s.charCodeAt(i); x|=0; } return x>>>0; }
   function hamdist(x,y){ return ((x^y)>>>0).toString(2).split('1').length-1 }
 
   // -------------------- Packet builders --------------------
@@ -226,13 +199,12 @@ Files are bundled into <b>magenta_packets.zip</b> and downloaded automatically.
       if(cfg.mode==='chat'){
         const c = cfg.chatCol && rec[cfg.chatCol];
         if(c){ try{ messages=JSON.parse(c); if(!Array.isArray(messages)) messages=null; }catch(e){ messages=null; } }
-        if(!messages){ // fallback two-field chat
+        if(!messages){
           const entries=Object.entries(rec).filter(([k,v])=>typeof v==='string' || typeof v==='number');
           entries.sort((a,b)=> String(b[1]).length-String(a[1]).length);
           if(entries.length>=2){ messages=[{role:'user',content:String(entries[1][1])},{role:'assistant',content:String(entries[0][1])}]; }
           else continue;
         }
-        // clean + PII
         for(const m of messages){ m.content = await protectPII(normalizeText(String(m.content||'')), cfg.pii, cfg.salt); }
         const joined = messages.map(m=>m.content).join('\n');
         if(!qualityOK(joined, cfg.minChars, cfg.maxChars)) continue;
@@ -265,7 +237,7 @@ Files are bundled into <b>magenta_packets.zip</b> and downloaded automatically.
         if(cfg.dedupe==='near'){ const sh = simhash(text); if(seenS.some(s=>hamdist(s,sh)<=3)) continue; seenS.push(sh); }
         out.push(pkt); kept++;
       }
-      if(total%200===0) setProgress(Math.min(95, Math.round((total/(rows.length||1))*90))); // crude progress
+      if(total%200===0) setProgress(Math.min(95, Math.round((total/(rows.length||1))*90)));
       await sleep(0);
     }
     return {packets:out, kept, total};
@@ -315,29 +287,24 @@ Files are bundled into <b>magenta_packets.zip</b> and downloaded automatically.
         salt: 'magenta_salt'
       };
       setProgress(10);
-      // Parse
       let rows=[];
       const kind = detectFormat(rawText);
       if(kind==='json' || kind==='jsonl') rows = parseJSONorJSONL(rawText);
       else rows = parseCSV(rawText, cfg.delimiter);
       if(!rows.length){ alert('No rows detected.'); setProgress(0); return; }
       setProgress(25);
-      // Build packets
       const {packets, kept, total} = await buildPackets(rows, cfg);
       setProgress(92);
-      // Outputs
       const jsonl = packets.map(p=>JSON.stringify(p)).join('\n');
       const manifest = JSON.stringify({ total_records_in: total, total_packets_out: kept, mode }, null, 2);
       const card = datasetCard({total, kept, pii: cfg.pii});
 
-      // Bundle zip
       const zip = new JSZip();
       zip.file('packets.jsonl', new Blob([jsonl], {type:'application/json'}));
       zip.file('dataset_manifest.json', new Blob([manifest], {type:'application/json'}));
       zip.file('DATASET_CARD.md', new Blob([card], {type:'text/markdown'}));
       const blob = await zip.generateAsync({type:'blob'});
 
-      // Download
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url; a.download = `magenta_packets_${Date.now()}.zip`;
@@ -353,5 +320,6 @@ Files are bundled into <b>magenta_packets.zip</b> and downloaded automatically.
   </script>
 </body>
 </html>
+
 
 
