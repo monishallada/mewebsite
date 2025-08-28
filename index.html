@@ -1,53 +1,1370 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Aurelo Data - Login</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Aurelo Data — Unified Console</title>
 
-  <!-- Bootstrap CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" 
-        rel="stylesheet" 
-        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" 
-        crossorigin="anonymous">
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+        crossorigin="anonymous" />
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <!-- PapaParse (CSV) -->
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
+  <style>
+    :root{
+      --brand:#111;
+      --brand-accent:#6b46ff;
+      --muted:#f6f6f6;
+      --border:#e9ecef;
+    }
+    body { background:#fff; color:#000; }
+    .auth-wrapper{
+      min-height:100vh; display:flex; align-items:center; justify-content:center;
+      background: radial-gradient(80% 80% at 50% 20%, #f7f7ff 0%, #ffffff 60%);
+      padding:2rem;
+    }
+    .login-card{ max-width:460px; width:100%; border-radius:20px; border:1px solid var(--border); }
+    .brand-badge{
+      display:inline-flex; align-items:center; gap:.6rem; font-weight:700; letter-spacing:.3px;
+    }
+    .brand-dot{ width:10px; height:10px; border-radius:999px; background:var(--brand-accent); display:inline-block; }
+    .app-shell{ display:flex; min-height:100vh; }
+    .sidebar{
+      width:300px; border-right:1px solid var(--border); background:#fff; position:sticky; top:0; height:100vh; overflow:auto;
+    }
+    .sidebar .nav-link{
+      border-radius:12px; color:#111; padding:.65rem .8rem; display:flex; align-items:center; gap:.6rem;
+    }
+    .sidebar .nav-link.active{
+      background:#f2f0ff; color:#4c2bff; font-weight:600; border:1px solid #e7e2ff;
+    }
+    .content{ flex:1; min-width:0; }
+    .topbar{ border-bottom:1px solid var(--border); position:sticky; top:0; background:#fff; z-index:30; }
+    .kpi-card{
+      border-radius:18px; border:1px solid var(--border); background:#fff;
+    }
+    .table-wrap{ border:1px solid var(--border); border-radius:14px; overflow:auto; }
+    .pill{
+      border:1px solid var(--border); padding:.35rem .6rem; border-radius:999px; font-size:.85rem; background:#fff;
+    }
+    .btn-brand{ background:#111; color:#fff; border-radius:12px; }
+    .btn-brand:hover{ background:#000; color:#fff; }
+    .btn-ghost{
+      background:#fff; border:1px solid var(--border); border-radius:12px;
+    }
+    .section-title{
+      font-size:1.1rem; font-weight:700; margin-bottom:.25rem;
+    }
+    .section-sub{ color:#666; font-size:.95rem; }
+    .code{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      background:#f7f7f7; border:1px dashed #e5e5e5; border-radius:10px; padding:.65rem .8rem; display:block;
+    }
+    .footer-note{ color:#777; font-size:.9rem; }
+    /* Print styles for Reports page */
+    @media print {
+      .sidebar, .topbar, .no-print { display:none !important; }
+      .content { padding:0 !important; }
+      .print-container { margin:0 !important; }
+    }
+  </style>
 </head>
-<body class="bg-light d-flex align-items-center justify-content-center vh-100">
+<body>
 
-  <div class="card shadow p-4" style="max-width: 400px; width: 100%;">
-    <h3 class="text-center mb-3">Aurelo Data</h3>
-    <h5 class="text-center mb-4">Login</h5>
-    <form>
-      <!-- Username -->
-      <div class="mb-3">
-        <label for="username" class="form-label">Username</label>
-        <input type="text" class="form-control" id="username" placeholder="Enter username" required>
+<!-- ===================== LOGIN ===================== -->
+<section id="loginView" class="auth-wrapper">
+  <div class="card shadow-sm login-card">
+    <div class="card-body p-4 p-md-5">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <span class="brand-badge">
+          <span class="brand-dot"></span>
+          <span>Aurelo Data</span>
+        </span>
+        <span class="pill">v1.0</span>
       </div>
+      <h1 class="h4 fw-bold mb-2">Sign in to your console</h1>
+      <p class="text-secondary mb-4">Secure access to data ingestion, Agenta AI models, trading analytics, and contracts—unified in one dashboard.</p>
 
-      <!-- Password -->
-      <div class="mb-3">
-        <label for="password" class="form-label">Password</label>
-        <input type="password" class="form-control" id="password" placeholder="Enter password" required>
+      <form id="loginForm" class="needs-validation" novalidate>
+        <div class="mb-3">
+          <label class="form-label">Email or Username</label>
+          <input type="text" class="form-control" id="loginUser" placeholder="you@aurelo.ai" required />
+          <div class="invalid-feedback">Please enter your username.</div>
+        </div>
+        <div class="mb-2">
+          <label class="form-label d-flex justify-content-between">
+            <span>Password</span>
+            <a href="#" data-bs-toggle="modal" data-bs-target="#forgotModal" class="small">Forgot password?</a>
+          </label>
+          <input type="password" class="form-control" id="loginPass" placeholder="••••••••" minlength="6" required />
+          <div class="invalid-feedback">Please enter your password (min 6 chars).</div>
+        </div>
+        <div class="form-check my-3">
+          <input class="form-check-input" type="checkbox" value="" id="keepSigned" />
+          <label class="form-check-label" for="keepSigned">Keep me signed in</label>
+        </div>
+        <button type="submit" class="btn btn-brand w-100">Sign in</button>
+      </form>
+
+      <div class="mt-4">
+        <div class="section-title">Demo credentials</div>
+        <div class="section-sub">Any username/password will work locally. This is a front-end demo only.</div>
+        <code class="code">Example: monish / aurelo123</code>
       </div>
-
-      <!-- Keep signed in -->
-      <div class="mb-3 form-check">
-        <input type="checkbox" class="form-check-input" id="keepSignedIn">
-        <label class="form-check-label" for="keepSignedIn">Keep me signed in</label>
-      </div>
-
-      <!-- Submit -->
-      <button type="submit" class="btn btn-primary w-100">Login</button>
-
-      <!-- Forgot password -->
-      <div class="text-center mt-3">
-        <a href="#">Forgot password?</a>
-      </div>
-    </form>
+    </div>
   </div>
+</section>
 
-  <!-- Bootstrap JS -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" 
-          integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" 
-          crossorigin="anonymous"></script>
+<!-- Forgot Password Modal -->
+<div class="modal fade" id="forgotModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form id="forgotForm">
+        <div class="modal-header">
+          <h5 class="modal-title">Reset your password</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <label class="form-label">Account email</label>
+          <input type="email" class="form-control" id="forgotEmail" placeholder="you@aurelo.ai" required />
+          <div class="form-text">We’ll simulate sending a reset link in this demo.</div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-ghost" data-bs-dismiss="modal" type="button">Cancel</button>
+          <button class="btn btn-brand" type="submit">Send Link</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== APP SHELL ===================== -->
+<section id="appView" class="app-shell" style="display:none">
+  <!-- Sidebar -->
+  <aside class="sidebar p-3">
+    <div class="d-flex align-items-center mb-4">
+      <span class="brand-badge fs-5">
+        <span class="brand-dot"></span>
+        <span>Aurelo Data</span>
+      </span>
+    </div>
+
+    <nav class="nav flex-column gap-1" id="sideNav">
+      <a class="nav-link active" data-target="page-overview" href="#"><i class="bi bi-speedometer2"></i> Overview</a>
+      <a class="nav-link" data-target="page-ingestion" href="#"><i class="bi bi-cloud-arrow-up"></i> Data Ingestion</a>
+      <a class="nav-link" data-target="page-explorer" href="#"><i class="bi bi-table"></i> Data Explorer</a>
+      <a class="nav-link" data-target="page-llm" href="#"><i class="bi bi-braces-asterisk"></i> LLM Packet Builder</a>
+      <a class="nav-link" data-target="page-agenta" href="#"><i class="bi bi-cpu"></i> Agenta AI Models</a>
+      <a class="nav-link" data-target="page-trading" href="#"><i class="bi bi-graph-up"></i> Trading Algorithms</a>
+      <a class="nav-link" data-target="page-revenue" href="#"><i class="bi bi-cash-coin"></i> Revenue & Pricing</a>
+      <a class="nav-link" data-target="page-contracts" href="#"><i class="bi bi-briefcase"></i> Contracts & Clients</a>
+      <a class="nav-link" data-target="page-reports" href="#"><i class="bi bi-file-earmark-text"></i> Reports & Exports</a>
+      <a class="nav-link" data-target="page-settings" href="#"><i class="bi bi-gear"></i> Settings</a>
+    </nav>
+
+    <div class="mt-4">
+      <div class="small text-secondary">Shortcuts</div>
+      <div class="d-flex flex-wrap gap-2 mt-2">
+        <button class="btn btn-ghost btn-sm" data-target="page-llm">New Packet</button>
+        <button class="btn btn-ghost btn-sm" data-target="page-explorer">Open Data</button>
+        <button class="btn btn-ghost btn-sm" data-target="page-trading">Run Backtest</button>
+      </div>
+    </div>
+
+    <div class="mt-4 border-top pt-3">
+      <div class="footer-note">© Aurelo Data • Unified data packets • AI • Trading analytics</div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="content">
+    <!-- Topbar -->
+    <div class="topbar px-3 py-2">
+      <div class="d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center gap-2">
+          <span class="pill">Environment: Demo</span>
+          <span class="pill">Region: US-East</span>
+          <span class="pill" id="statusPill">Status: Idle</span>
+        </div>
+        <div class="dropdown">
+          <button class="btn btn-ghost dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bi bi-person-circle me-1"></i><span id="userDisplay">user</span>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" href="#" data-target="page-settings">Settings</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item text-danger" href="#" id="logoutBtn">Logout</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pages container -->
+    <div class="p-3 p-md-4" id="pages">
+
+      <!-- =========== OVERVIEW =========== -->
+      <section id="page-overview">
+        <div class="mb-3">
+          <div class="section-title">Welcome back</div>
+          <div class="section-sub">Unified view across ingestion, packet generation, Agenta AI, and trading analytics.</div>
+        </div>
+
+        <div class="row g-3">
+          <div class="col-12 col-lg-3">
+            <div class="kpi-card p-3">
+              <div class="text-secondary small">Daily Transactions</div>
+              <div class="h3 fw-bold" id="kpiTxn">—</div>
+              <div class="small text-secondary" id="kpiTxnDelta">Loading…</div>
+            </div>
+          </div>
+          <div class="col-12 col-lg-3">
+            <div class="kpi-card p-3">
+              <div class="text-secondary small">Data Ingested (MB)</div>
+              <div class="h3 fw-bold" id="kpiMB">—</div>
+              <div class="small text-secondary" id="kpiMbDelta">Loading…</div>
+            </div>
+          </div>
+          <div class="col-12 col-lg-3">
+            <div class="kpi-card p-3">
+              <div class="text-secondary small">Active Stores</div>
+              <div class="h3 fw-bold" id="kpiStores">—</div>
+              <div class="small text-secondary">Across pilot & production</div>
+            </div>
+          </div>
+          <div class="col-12 col-lg-3">
+            <div class="kpi-card p-3">
+              <div class="text-secondary small">Projected MRR</div>
+              <div class="h3 fw-bold" id="kpiMRR">$—</div>
+              <div class="small text-secondary">Based on current volume</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row g-3 mt-1">
+          <div class="col-12 col-lg-8">
+            <div class="kpi-card p-3">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <div class="section-title">Transactions & Ingestion</div>
+                  <div class="section-sub">7-day trend (demo data)</div>
+                </div>
+                <button class="btn btn-ghost btn-sm no-print" id="refreshOverview"><i class="bi bi-arrow-repeat"></i> Refresh</button>
+              </div>
+              <canvas id="chartTxn" height="100" class="mt-2"></canvas>
+            </div>
+          </div>
+          <div class="col-12 col-lg-4">
+            <div class="kpi-card p-3">
+              <div class="section-title">Revenue Mix</div>
+              <div class="section-sub">Data packets vs. enterprise contracts vs. algo leasing</div>
+              <canvas id="chartMix" height="100" class="mt-2"></canvas>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =========== DATA INGESTION =========== -->
+      <section id="page-ingestion" style="display:none">
+        <div class="mb-3">
+          <div class="section-title">Data Ingestion</div>
+          <div class="section-sub">Upload CSV exports from stores, POS, or partner S3 buckets. We validate and stage for packetization.</div>
+        </div>
+
+        <div class="row g-3">
+          <div class="col-12 col-xl-8">
+            <div class="kpi-card p-3">
+              <form id="ingestForm">
+                <label class="form-label">Upload CSV file</label>
+                <input class="form-control" type="file" id="ingestFile" accept=".csv,text/csv" />
+                <div class="form-text">Tip: Use UTF-8 CSV with headers. Example columns: transaction_id, sku, qty, price, store_id, timestamp</div>
+                <div class="row g-2 mt-2">
+                  <div class="col-md">
+                    <label class="form-label">Source</label>
+                    <select class="form-select" id="ingestSource">
+                      <option value="pos">Retail POS</option>
+                      <option value="ecom">E-commerce</option>
+                      <option value="s3">S3/Glue</option>
+                      <option value="partner">Partner API</option>
+                    </select>
+                  </div>
+                  <div class="col-md">
+                    <label class="form-label">Store ID</label>
+                    <input class="form-control" id="ingestStore" placeholder="e.g., RDU-001" />
+                  </div>
+                  <div class="col-md">
+                    <label class="form-label">Batch Tag</label>
+                    <input class="form-control" id="ingestTag" placeholder="e.g., 2025-08-Batch-A" />
+                  </div>
+                </div>
+                <div class="d-flex gap-2 mt-3">
+                  <button class="btn btn-brand" type="submit"><i class="bi bi-cloud-upload"></i> Stage Data</button>
+                  <button class="btn btn-ghost" type="button" id="btnIngestDemo">Use Demo Data</button>
+                </div>
+              </form>
+            </div>
+            <div class="kpi-card p-3 mt-3">
+              <div class="section-title">Ingestion Log</div>
+              <div class="table-wrap mt-2">
+                <table class="table table-sm align-middle mb-0">
+                  <thead class="table-light">
+                    <tr>
+                      <th>Time</th><th>Source</th><th>Store</th><th>Rows</th><th>Size (MB)</th><th>Tag</th><th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody id="ingestLog"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-12 col-xl-4">
+            <div class="kpi-card p-3">
+              <div class="section-title">Validation</div>
+              <div class="section-sub">Schema & sanity checks</div>
+              <ul class="list-group list-group-flush" id="validationList">
+                <li class="list-group-item">Awaiting upload…</li>
+              </ul>
+            </div>
+            <div class="kpi-card p-3 mt-3">
+              <div class="section-title">Next steps</div>
+              <p class="mb-2">Once staged, use <strong>LLM Packet Builder</strong> to transform rows into training-ready examples (classification, Q&A, tool-use, etc.).</p>
+              <button class="btn btn-ghost" data-target="page-llm"><i class="bi bi-braces-asterisk"></i> Open Packet Builder</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =========== DATA EXPLORER =========== -->
+      <section id="page-explorer" style="display:none">
+        <div class="mb-3">
+          <div class="section-title">Data Explorer</div>
+          <div class="section-sub">Browse parsed rows, search, filter by column, and export.</div>
+        </div>
+
+        <div class="row g-2 align-items-end">
+          <div class="col-12 col-md-4">
+            <label class="form-label">Search</label>
+            <input class="form-control" id="explorerSearch" placeholder="Find text in table…" />
+          </div>
+          <div class="col-6 col-md-3">
+            <label class="form-label">Column</label>
+            <select class="form-select" id="explorerColumn"></select>
+          </div>
+          <div class="col-6 col-md-3">
+            <label class="form-label">Filter value</label>
+            <input class="form-control" id="explorerFilter" placeholder="Exact match…" />
+          </div>
+          <div class="col-12 col-md-2 d-grid">
+            <button class="btn btn-ghost" id="applyFilter">Apply</button>
+          </div>
+        </div>
+
+        <div class="d-flex gap-2 mt-3">
+          <button class="btn btn-brand btn-sm" id="exportCsv"><i class="bi bi-download"></i> Export CSV</button>
+          <button class="btn btn-ghost btn-sm" id="exportJsonl"><i class="bi bi-download"></i> Export JSONL</button>
+          <button class="btn btn-ghost btn-sm" id="clearExplorer">Clear</button>
+        </div>
+
+        <div class="table-wrap mt-3">
+          <table class="table table-striped table-hover table-sm mb-0" id="explorerTable">
+            <thead></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- =========== LLM PACKET BUILDER =========== -->
+      <section id="page-llm" style="display:none">
+        <div class="mb-3">
+          <div class="section-title">LLM Packet Builder</div>
+          <div class="section-sub">Map transaction rows → training examples. Output as JSONL (default) or CSV.</div>
+        </div>
+
+        <div class="row g-3">
+          <div class="col-12 col-xl-4">
+            <div class="kpi-card p-3">
+              <label class="form-label">System Prompt (applies to all)</label>
+              <textarea class="form-control" id="llmSystem" rows="4" placeholder="You are an expert retail data assistant. Answer succinctly with numeric precision."></textarea>
+              <div class="row g-2 mt-2">
+                <div class="col-6">
+                  <label class="form-label">Input columns → prompt</label>
+                  <input class="form-control" id="llmInputCols" placeholder="e.g., sku, qty, price, timestamp" />
+                </div>
+                <div class="col-6">
+                  <label class="form-label">Target column → answer</label>
+                  <input class="form-control" id="llmTargetCol" placeholder="e.g., price" />
+                </div>
+              </div>
+              <div class="form-text mt-2">We’ll create {"messages":[{"role":"system"...},{"role":"user":...},{"role":"assistant":...}]} per row.</div>
+              <div class="d-flex gap-2 mt-3">
+                <button class="btn btn-brand" id="btnBuildPacket"><i class="bi bi-gear"></i> Build Packet</button>
+                <button class="btn btn-ghost" id="btnDownloadPacket"><i class="bi bi-download"></i> Download JSONL</button>
+              </div>
+            </div>
+            <div class="kpi-card p-3 mt-3">
+              <div class="section-title">Packet Stats</div>
+              <ul class="list-group list-group-flush" id="packetStats">
+                <li class="list-group-item">No packet built yet.</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="col-12 col-xl-8">
+            <div class="kpi-card p-3">
+              <div class="d-flex justify-content-between">
+                <div class="section-title">Preview (first 10)</div>
+                <button class="btn btn-ghost btn-sm" id="btnCopyPreview"><i class="bi bi-clipboard"></i> Copy</button>
+              </div>
+              <pre class="code" id="packetPreview" style="max-height:420px; overflow:auto">Build a packet to preview…</pre>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =========== AGENTA AI MODELS =========== -->
+      <section id="page-agenta" style="display:none">
+        <div class="mb-3">
+          <div class="section-title">Agenta AI Models</div>
+          <div class="section-sub">Lightweight demo of per-store inference routing and latency metrics (front-end only).</div>
+        </div>
+
+        <div class="row g-3">
+          <div class="col-12 col-lg-5">
+            <div class="kpi-card p-3">
+              <label class="form-label">Store Context</label>
+              <select class="form-select" id="agentaStore">
+                <option>RDU-001</option>
+                <option>ATL-104</option>
+                <option>NYC-212</option>
+              </select>
+              <label class="form-label mt-2">Question</label>
+              <textarea class="form-control" id="agentaQ" rows="4" placeholder="Which SKUs have the highest margin today?"></textarea>
+              <div class="d-flex gap-2 mt-3">
+                <button class="btn btn-brand" id="agentaRun"><i class="bi bi-lightning-charge"></i> Run</button>
+                <button class="btn btn-ghost" id="agentaClear">Clear</button>
+              </div>
+            </div>
+          </div>
+          <div class="col-12 col-lg-7">
+            <div class="kpi-card p-3">
+              <div class="section-title">Response</div>
+              <pre class="code" id="agentaOut" style="min-height:160px">Awaiting question…</pre>
+              <div class="row g-2">
+                <div class="col">
+                  <div class="kpi-card p-2 text-center">
+                    <div class="text-secondary small">Latency (ms)</div>
+                    <div class="h5 m-0" id="agentaLatency">—</div>
+                  </div>
+                </div>
+                <div class="col">
+                  <div class="kpi-card p-2 text-center">
+                    <div class="text-secondary small">Token Est.</div>
+                    <div class="h5 m-0" id="agentaTokens">—</div>
+                  </div>
+                </div>
+                <div class="col">
+                  <div class="kpi-card p-2 text-center">
+                    <div class="text-secondary small">Route</div>
+                    <div class="h5 m-0" id="agentaRoute">—</div>
+                  </div>
+                </div>
+              </div>
+              <div class="form-text mt-2">Demo simulates routing (US-East/US-West) and token counts.</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =========== TRADING ALGORITHMS =========== -->
+      <section id="page-trading" style="display:none">
+        <div class="mb-3">
+          <div class="section-title">Trading Algorithms</div>
+          <div class="section-sub">TTM Scalper-style signals, MACD/RSI, and position sizing demo (front-end mock backtest).</div>
+        </div>
+
+        <div class="row g-3">
+          <div class="col-12 col-xl-4">
+            <div class="kpi-card p-3">
+              <div class="row g-2">
+                <div class="col-6">
+                  <label class="form-label">Lookback (days)</label>
+                  <input type="number" min="50" max="400" value="180" class="form-control" id="taLookback" />
+                </div>
+                <div class="col-6">
+                  <label class="form-label">Risk % per trade</label>
+                  <input type="number" min="0.1" max="5" step="0.1" value="1.0" class="form-control" id="taRisk" />
+                </div>
+              </div>
+              <div class="row g-2 mt-1">
+                <div class="col-6">
+                  <label class="form-label">MACD Fast</label>
+                  <input type="number" class="form-control" value="12" id="taMacdFast"/>
+                </div>
+                <div class="col-6">
+                  <label class="form-label">MACD Slow</label>
+                  <input type="number" class="form-control" value="26" id="taMacdSlow"/>
+                </div>
+              </div>
+              <div class="row g-2 mt-1">
+                <div class="col-6">
+                  <label class="form-label">RSI Period</label>
+                  <input type="number" class="form-control" value="14" id="taRsi"/>
+                </div>
+                <div class="col-6">
+                  <label class="form-label">Slippage (bps)</label>
+                  <input type="number" class="form-control" value="2" id="taSlip"/>
+                </div>
+              </div>
+              <div class="d-flex gap-2 mt-3">
+                <button class="btn btn-brand" id="taRun"><i class="bi bi-play-fill"></i> Run Backtest</button>
+                <button class="btn btn-ghost" id="taReset">Reset</button>
+              </div>
+            </div>
+
+            <div class="kpi-card p-3 mt-3">
+              <div class="section-title">Backtest Metrics</div>
+              <ul class="list-group list-group-flush" id="taMetrics">
+                <li class="list-group-item">No results yet.</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="col-12 col-xl-8">
+            <div class="kpi-card p-3">
+              <div class="d-flex justify-content-between">
+                <div class="section-title">Equity Curve (simulated)</div>
+                <button class="btn btn-ghost btn-sm" id="taExport"><i class="bi bi-download"></i> Export Trades</button>
+              </div>
+              <canvas id="chartTA" height="110"></canvas>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =========== REVENUE & PRICING =========== -->
+      <section id="page-revenue" style="display:none">
+        <div class="mb-3">
+          <div class="section-title">Revenue & Pricing</div>
+          <div class="section-sub">MB-based pricing, store counts, Aurelo ↔ Microknots splits, and contract projections.</div>
+        </div>
+
+        <div class="row g-3">
+          <div class="col-12 col-xl-4">
+            <div class="kpi-card p-3">
+              <div class="row g-2">
+                <div class="col-6">
+                  <label class="form-label">Stores</label>
+                  <input class="form-control" type="number" id="revStores" value="30" />
+                </div>
+                <div class="col-6">
+                  <label class="form-label">Tx/day per store</label>
+                  <input class="form-control" type="number" id="revTx" value="700" />
+                </div>
+              </div>
+              <div class="row g-2 mt-1">
+                <div class="col-6">
+                  <label class="form-label">KB per transaction</label>
+                  <input class="form-control" type="number" id="revKbPerTx" value="3.0" step="0.1" />
+                </div>
+                <div class="col-6">
+                  <label class="form-label">$ per MB</label>
+                  <input class="form-control" type="number" id="revPerMb" value="50" />
+                </div>
+              </div>
+              <div class="row g-2 mt-1">
+                <div class="col-6">
+                  <label class="form-label">Aurelo Share %</label>
+                  <input class="form-control" type="number" id="revAureloPct" value="36" />
+                </div>
+                <div class="col-6">
+                  <label class="form-label">Microknots Share %</label>
+                  <input class="form-control" type="number" id="revMkPct" value="64" />
+                </div>
+              </div>
+              <button class="btn btn-brand mt-3" id="revCalc"><i class="bi bi-calculator"></i> Calculate</button>
+            </div>
+          </div>
+
+          <div class="col-12 col-xl-8">
+            <div class="kpi-card p-3">
+              <div class="section-title">Results</div>
+              <div class="row g-3 mt-1">
+                <div class="col-6 col-lg-3">
+                  <div class="kpi-card p-2 text-center">
+                    <div class="text-secondary small">MB / Day</div>
+                    <div class="h5 m-0" id="revMbDay">—</div>
+                  </div>
+                </div>
+                <div class="col-6 col-lg-3">
+                  <div class="kpi-card p-2 text-center">
+                    <div class="text-secondary small">Gross $ / Day</div>
+                    <div class="h5 m-0" id="revGrossDay">—</div>
+                  </div>
+                </div>
+                <div class="col-6 col-lg-3">
+                  <div class="kpi-card p-2 text-center">
+                    <div class="text-secondary small">Aurelo $ / Mo</div>
+                    <div class="h5 m-0" id="revAureloMo">—</div>
+                  </div>
+                </div>
+                <div class="col-6 col-lg-3">
+                  <div class="kpi-card p-2 text-center">
+                    <div class="text-secondary small">Microknots $ / Mo</div>
+                    <div class="h5 m-0" id="revMkMo">—</div>
+                  </div>
+                </div>
+              </div>
+              <canvas id="chartRev" height="90" class="mt-3"></canvas>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =========== CONTRACTS & CLIENTS =========== -->
+      <section id="page-contracts" style="display:none">
+        <div class="mb-3">
+          <div class="section-title">Contracts & Clients</div>
+          <div class="section-sub">Track pipeline and active agreements (demo data).</div>
+        </div>
+        <div class="kpi-card p-3">
+          <div class="d-flex justify-content-between align-items-center">
+            <div class="section-title mb-0">Pipeline</div>
+            <button class="btn btn-ghost btn-sm" id="addClient"><i class="bi bi-plus"></i> Add</button>
+          </div>
+          <div class="table-wrap mt-2">
+            <table class="table table-sm align-middle mb-0" id="contractsTable">
+              <thead class="table-light">
+                <tr>
+                  <th>Company</th><th>Type</th><th>Value (USD)</th><th>Term</th><th>Status</th><th></th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- =========== REPORTS & EXPORTS =========== -->
+      <section id="page-reports" style="display:none">
+        <div class="mb-3">
+          <div class="section-title">Reports & Exports</div>
+          <div class="section-sub">Generate a print-ready summary of KPIs, ingestion, and revenue projections.</div>
+        </div>
+
+        <div class="kpi-card p-3 print-container">
+          <h3 class="h5 fw-bold">Aurelo Data — Executive Summary</h3>
+          <p class="mb-2">This report summarizes the recent ingestion volume, packet generation activity, Agenta model usage, and projected revenue based on MB-based pricing and store counts.</p>
+          <hr/>
+          <div class="row g-3">
+            <div class="col-md">
+              <div class="kpi-card p-2 text-center">
+                <div class="text-secondary small">7-day TX Avg</div>
+                <div class="h5 m-0" id="repTxAvg">—</div>
+              </div>
+            </div>
+            <div class="col-md">
+              <div class="kpi-card p-2 text-center">
+                <div class="text-secondary small">7-day MB Avg</div>
+                <div class="h5 m-0" id="repMbAvg">—</div>
+              </div>
+            </div>
+            <div class="col-md">
+              <div class="kpi-card p-2 text-center">
+                <div class="text-secondary small">Active Stores</div>
+                <div class="h5 m-0" id="repStores">—</div>
+              </div>
+            </div>
+            <div class="col-md">
+              <div class="kpi-card p-2 text-center">
+                <div class="text-secondary small">Proj. MRR</div>
+                <div class="h5 m-0" id="repMRR">—</div>
+              </div>
+            </div>
+          </div>
+          <div class="mt-3">
+            <div class="section-title">Notes</div>
+            <ul id="repNotes">
+              <li>Data derived from demo in-browser computations; replace with backend metrics in production.</li>
+              <li>Packet Builder uses JSONL with messages for system/user/assistant.</li>
+              <li>Pricing based on $/MB with share split between Aurelo and Microknots.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="d-flex gap-2 mt-3 no-print">
+          <button class="btn btn-brand" onclick="window.print()"><i class="bi bi-printer"></i> Print / Save PDF</button>
+          <button class="btn btn-ghost" id="exportOverviewJson"><i class="bi bi-download"></i> Export KPI JSON</button>
+        </div>
+      </section>
+
+      <!-- =========== SETTINGS =========== -->
+      <section id="page-settings" style="display:none">
+        <div class="mb-3">
+          <div class="section-title">Settings</div>
+          <div class="section-sub">Theme, persistence, and session management.</div>
+        </div>
+        <div class="kpi-card p-3">
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label class="form-label">Theme</label>
+              <select class="form-select" id="themeSelect">
+                <option value="light" selected>Light (default)</option>
+                <option value="dark">Dark (high contrast)</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Persist Session</label>
+              <select class="form-select" id="persistSelect">
+                <option value="remember">Keep me signed in</option>
+                <option value="session">Sign out on close</option>
+              </select>
+            </div>
+            <div class="col-md-4 d-grid align-items-end">
+              <button class="btn btn-brand mt-md-4" id="applySettings">Apply</button>
+            </div>
+          </div>
+          <hr/>
+          <div class="d-flex gap-2">
+            <button class="btn btn-ghost" id="resetApp">Reset App</button>
+            <button class="btn btn-danger" id="logoutBtn2">Logout</button>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+</section>
+
+<!-- ===================== SCRIPTS ===================== -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+        crossorigin="anonymous"></script>
+<script>
+(function(){
+  // --------- Helpers ---------
+  const $ = (s, r=document) => r.querySelector(s);
+  const $$ = (s, r=document) => [...r.querySelectorAll(s)];
+  const fmt = new Intl.NumberFormat('en-US');
+  const money = v => '$' + fmt.format(Math.round(v));
+
+  function setStatus(text){ $('#statusPill').innerText = 'Status: ' + text; }
+  function nowISO(){ return new Date().toISOString().replace('T',' ').slice(0,19); }
+  function download(name, text){
+    const blob = new Blob([text], {type:'text/plain;charset=utf-8'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    URL.revokeObjectURL(a.href);
+    a.remove();
+  }
+  function toCSV(rows){
+    if(!rows || !rows.length) return '';
+    const cols = Object.keys(rows[0]);
+    const esc = v => `"${String(v ?? '').replaceAll('"','""')}"`;
+    const header = cols.map(esc).join(',');
+    const lines = rows.map(r => cols.map(c => esc(r[c])).join(','));
+    return [header, ...lines].join('\n');
+  }
+  function toJSONL(objs){ return objs.map(o => JSON.stringify(o)).join('\n'); }
+
+  // --------- Auth ---------
+  const loginView = $('#loginView');
+  const appView   = $('#appView');
+  function showApp(){
+    loginView.style.display='none';
+    appView.style.display='flex';
+    const u = localStorage.getItem('ad_user') || 'user';
+    $('#userDisplay').innerText = u;
+    routeTo('page-overview');
+  }
+  function showLogin(){
+    loginView.style.display='flex';
+    appView.style.display='none';
+  }
+
+  // Keep-signed behavior
+  const authed = localStorage.getItem('ad_keep')==='1' && localStorage.getItem('ad_authed')==='1';
+  if(authed) showApp();
+
+  $('#loginForm').addEventListener('submit', (e)=>{
+    e.preventDefault();
+    const form = e.currentTarget;
+    if(!form.checkValidity()){ form.classList.add('was-validated'); return; }
+    const user = $('#loginUser').value.trim() || 'user';
+    const keep = $('#keepSigned').checked;
+    localStorage.setItem('ad_user', user);
+    localStorage.setItem('ad_authed','1');
+    localStorage.setItem('ad_keep', keep ? '1' : '0');
+    showApp();
+  });
+
+  $('#forgotForm').addEventListener('submit', (e)=>{
+    e.preventDefault();
+    const email = $('#forgotEmail').value.trim();
+    alert('Demo: reset link sent to ' + email);
+    const modal = bootstrap.Modal.getInstance($('#forgotModal'));
+    modal?.hide();
+  });
+
+  $('#logoutBtn, #logoutBtn2').forEach?.call ? null : null; // guard older browsers
+  $$('#logoutBtn, #logoutBtn2').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      e.preventDefault();
+      localStorage.removeItem('ad_authed');
+      if(localStorage.getItem('ad_keep')!=='1'){ localStorage.removeItem('ad_user'); }
+      showLogin();
+    });
+  });
+
+  // --------- Routing ---------
+  function routeTo(id){
+    // Sidebar state
+    $$('#sideNav .nav-link').forEach(n=>{
+      n.classList.toggle('active', n.dataset.target===id);
+    });
+    // Page visibility
+    $$('#pages > section').forEach(s=>{
+      s.style.display = (s.id===id) ? '' : 'none';
+    });
+    // Set status
+    setStatus('Idle');
+  }
+  // handle clicks anywhere with data-target
+  document.addEventListener('click', (e)=>{
+    const el = e.target.closest('[data-target]');
+    if(!el) return;
+    e.preventDefault();
+    routeTo(el.getAttribute('data-target'));
+  });
+
+  // --------- Overview (charts + KPIs) ---------
+  let chartTxn, chartMix;
+  function randomSeries(n, base=100, vol=10){
+    const out=[];
+    for(let i=0;i<n;i++){
+      base += (Math.random()*2-1)*vol;
+      out.push(Math.max(1, Math.round(base)));
+    }
+    return out;
+  }
+  function rollingAvg(arr){ return Math.round(arr.reduce((a,b)=>a+b,0)/arr.length); }
+
+  function initOverview(){
+    const labels = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+    const tx = randomSeries(7, 1000, 160);
+    const mb = tx.map(v=> Math.round(v*3.0/1024*10)/10); // 3 KB/tx → MB approx demo
+    const stores = 30 + Math.floor(Math.random()*6);
+    const mrr = Math.round( (rollingAvg(mb)*50) * 30 ); // $50/MB * days
+
+    $('#kpiTxn').innerText = fmt.format(tx[6]);
+    $('#kpiTxnDelta').innerText = `7-day avg: ${fmt.format(rollingAvg(tx))}`;
+    $('#kpiMB').innerText = fmt.format(mb[6]);
+    $('#kpiMbDelta').innerText = `7-day avg: ${fmt.format(rollingAvg(mb))} MB`;
+    $('#kpiStores').innerText = stores;
+    $('#kpiMRR').innerText = money(mrr);
+
+    // For Reports page snapshot
+    $('#repTxAvg').innerText = fmt.format(rollingAvg(tx));
+    $('#repMbAvg').innerText = fmt.format(rollingAvg(mb));
+    $('#repStores').innerText = stores;
+    $('#repMRR').innerText = money(mrr);
+
+    // line chart
+    chartTxn?.destroy();
+    chartTxn = new Chart($('#chartTxn'), {
+      type:'line',
+      data:{
+        labels,
+        datasets:[
+          {label:'Transactions', data:tx, tension:.35},
+          {label:'Ingested MB', data:mb, tension:.35}
+        ]
+      },
+      options:{
+        responsive:true,
+        plugins:{ legend:{position:'bottom'} },
+        scales:{ y:{ beginAtZero:true } }
+      }
+    });
+
+    // doughnut
+    chartMix?.destroy();
+    chartMix = new Chart($('#chartMix'), {
+      type:'doughnut',
+      data:{ labels:['Data Packets','Enterprise','Algo Leasing'], datasets:[{ data:[55,30,15] }]},
+      options:{ plugins:{ legend:{ position:'bottom' } } }
+    });
+  }
+  $('#refreshOverview').addEventListener('click', initOverview);
+
+  // --------- Ingestion ---------
+  const ingestLog = JSON.parse(localStorage.getItem('ad_ingestLog')||'[]');
+  function renderIngestLog(){
+    const tb = $('#ingestLog'); tb.innerHTML='';
+    ingestLog.forEach(r=>{
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${r.time}</td><td>${r.source}</td><td>${r.store}</td><td>${fmt.format(r.rows)}</td><td>${r.mb}</td><td>${r.tag}</td><td><span class="badge text-bg-success">Staged</span></td>`;
+      tb.appendChild(tr);
+    });
+  }
+  renderIngestLog();
+
+  function validateRows(rows){
+    const req = ['transaction_id','sku','qty','price','store_id','timestamp'];
+    const issues = [];
+    if(!rows.length){ issues.push('No rows parsed.'); return issues; }
+    const cols = Object.keys(rows[0]);
+    req.forEach(c=>{ if(!cols.includes(c)) issues.push(`Missing column: ${c}`); });
+    if(rows.some(r=> Number(r.qty) <= 0 )) issues.push('Some rows have qty <= 0');
+    if(rows.some(r=> Number(r.price) <= 0 )) issues.push('Some rows have price <= 0');
+    return issues.length ? issues : ['All checks passed.'];
+  }
+
+  function setValidation(listItems){
+    const ul = $('#validationList'); ul.innerHTML='';
+    listItems.forEach(t=>{
+      const li = document.createElement('li');
+      li.className='list-group-item';
+      li.textContent = t;
+      ul.appendChild(li);
+    });
+  }
+
+  // In-memory parsed rows store (used by Explorer/LLM)
+  let parsedRows = [];
+
+  $('#ingestForm').addEventListener('submit', (e)=>{
+    e.preventDefault();
+    const file = $('#ingestFile').files[0];
+    if(!file){ alert('Choose a CSV file.'); return; }
+    setStatus('Parsing');
+    Papa.parse(file, {
+      header:true,
+      skipEmptyLines:true,
+      complete: (res)=>{
+        parsedRows = res.data;
+        setStatus('Validating');
+        const issues = validateRows(parsedRows);
+        setValidation(issues);
+
+        // log
+        const estKB = Math.max(1, Math.round(JSON.stringify(parsedRows).length/1024));
+        const mb = Math.round(estKB/1024*10)/10;
+        const rec = {
+          time: nowISO(),
+          source: $('#ingestSource').value,
+          store: $('#ingestStore').value || 'N/A',
+          rows: parsedRows.length,
+          mb,
+          tag: $('#ingestTag').value || '-'
+        };
+        ingestLog.unshift(rec);
+        localStorage.setItem('ad_ingestLog', JSON.stringify(ingestLog));
+        renderIngestLog();
+
+        // seed explorer
+        seedExplorerFromRows(parsedRows);
+        alert(`Parsed ${parsedRows.length} rows (${mb} MB est).`);
+        setStatus('Idle');
+      },
+      error: (err)=>{ alert('Parse error: ' + err); setStatus('Idle'); }
+    });
+  });
+
+  $('#btnIngestDemo').addEventListener('click', ()=>{
+    // Minimal demo dataset
+    parsedRows = [];
+    for(let i=0;i<200;i++){
+      parsedRows.push({
+        transaction_id: 100000+i,
+        sku: ['APPLE','BREAD','MILK','EGGS','RICE'][Math.floor(Math.random()*5)],
+        qty: [1,1,2,3,5][Math.floor(Math.random()*5)],
+        price: (Math.random()*20+1).toFixed(2),
+        store_id: ['RDU-001','ATL-104','NYC-212'][Math.floor(Math.random()*3)],
+        timestamp: new Date(Date.now()-Math.random()*7*86400000).toISOString()
+      });
+    }
+    const issues = validateRows(parsedRows);
+    setValidation(issues);
+    const rec = { time:nowISO(), source:'demo', store:'—', rows:parsedRows.length, mb: (parsedRows.length*0.003).toFixed(1), tag:'demo' };
+    ingestLog.unshift(rec);
+    localStorage.setItem('ad_ingestLog', JSON.stringify(ingestLog));
+    renderIngestLog();
+    seedExplorerFromRows(parsedRows);
+    alert('Loaded demo dataset (200 rows).');
+  });
+
+  // --------- Explorer ---------
+  function seedExplorerFromRows(rows){
+    const thead = $('#explorerTable thead'), tbody = $('#explorerTable tbody');
+    thead.innerHTML=''; tbody.innerHTML='';
+    if(!rows || !rows.length){ return; }
+    const cols = Object.keys(rows[0]);
+    // header
+    const trh = document.createElement('tr');
+    cols.forEach(c=>{
+      const th = document.createElement('th'); th.textContent = c; trh.appendChild(th);
+    });
+    thead.appendChild(trh);
+    // body
+    rows.forEach(r=>{
+      const tr = document.createElement('tr');
+      cols.forEach(c=>{
+        const td = document.createElement('td'); td.textContent = r[c]; tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    });
+    // filter column select
+    const select = $('#explorerColumn'); select.innerHTML='';
+    cols.forEach(c=>{
+      const o = document.createElement('option'); o.value=c; o.textContent=c; select.appendChild(o);
+    });
+  }
+  $('#applyFilter').addEventListener('click', ()=>{
+    const col = $('#explorerColumn').value;
+    const val = $('#explorerFilter').value;
+    const rows = parsedRows.filter(r => val ? String(r[col])===val : true);
+    seedExplorerFromRows(rows);
+  });
+  $('#explorerSearch').addEventListener('input', (e)=>{
+    const q = e.target.value.toLowerCase();
+    const rows = parsedRows.filter(r => Object.values(r).some(v => String(v).toLowerCase().includes(q)));
+    seedExplorerFromRows(rows);
+  });
+  $('#clearExplorer').addEventListener('click', ()=>{
+    seedExplorerFromRows(parsedRows);
+    $('#explorerSearch').value=''; $('#explorerFilter').value='';
+  });
+
+  $('#exportCsv').addEventListener('click', ()=>{
+    if(!parsedRows.length) return alert('No data to export.');
+    download('aurelo_explorer.csv', toCSV(parsedRows));
+  });
+  $('#exportJsonl').addEventListener('click', ()=>{
+    if(!parsedRows.length) return alert('No data to export.');
+    const lines = parsedRows.map(r=> JSON.stringify(r));
+    download('aurelo_explorer.jsonl', lines.join('\n'));
+  });
+
+  // --------- LLM Packet Builder ---------
+  let builtPacket = [];
+  $('#btnBuildPacket').addEventListener('click', ()=>{
+    if(!parsedRows.length) return alert('Ingest or load demo data first.');
+    const sys = $('#llmSystem').value.trim() || 'You are an expert retail data assistant.';
+    const inputCols = ($('#llmInputCols').value || 'sku, qty, price, timestamp').split(',').map(s=>s.trim()).filter(Boolean);
+    const tgt = ($('#llmTargetCol').value || 'price').trim();
+
+    builtPacket = parsedRows.slice(0, 500).map(r=>{
+      const prompt = inputCols.map(c=> `${c}: ${r[c]}`).join(', ');
+      const answer = String(r[tgt] ?? '');
+      return {
+        messages: [
+          {role:'system', content: sys},
+          {role:'user', content: `Given: ${prompt}\nQuestion: What is ${tgt}?`},
+          {role:'assistant', content: answer}
+        ],
+        metadata: { store_id: r.store_id, transaction_id: r.transaction_id }
+      };
+    });
+
+    // preview
+    const previewLines = builtPacket.slice(0,10).map(o=> JSON.stringify(o));
+    $('#packetPreview').textContent = previewLines.join('\n');
+    // stats
+    const ul = $('#packetStats'); ul.innerHTML='';
+    [
+      `Examples: ${builtPacket.length}`,
+      `System prompt length: ${sys.length} chars`,
+      `Input cols: ${inputCols.join(', ')}`,
+      `Target: ${tgt}`
+    ].forEach(t=>{ const li=document.createElement('li'); li.className='list-group-item'; li.textContent=t; ul.appendChild(li); });
+    alert('Packet built (preview first 10).');
+  });
+
+  $('#btnDownloadPacket').addEventListener('click', ()=>{
+    if(!builtPacket.length) return alert('Build the packet first.');
+    download('aurelo_packet.jsonl', toJSONL(builtPacket));
+  });
+
+  $('#btnCopyPreview').addEventListener('click', ()=>{
+    const text = $('#packetPreview').textContent;
+    navigator.clipboard.writeText(text).then(()=> alert('Preview copied to clipboard.'));
+  });
+
+  // --------- Agenta AI (sim) ---------
+  $('#agentaRun').addEventListener('click', ()=>{
+    const q = $('#agentaQ').value.trim();
+    if(!q) return alert('Ask a question.');
+    setStatus('Routing');
+    const latency = Math.floor(120 + Math.random()*120);
+    const tokens  = Math.floor(50 + Math.random()*150);
+    const route = Math.random()>.5 ? 'US-East' : 'US-West';
+    setTimeout(()=>{
+      $('#agentaOut').textContent = `Simulated answer for "${q}":\nTop SKUs: APPLE, BREAD, EGGS.\nEstimated margins: APPLE 34%, BREAD 22%, EGGS 19%.\nConfidence: medium.`;
+      $('#agentaLatency').innerText = latency;
+      $('#agentaTokens').innerText = tokens;
+      $('#agentaRoute').innerText  = route;
+      setStatus('Idle');
+    }, 420);
+  });
+  $('#agentaClear').addEventListener('click', ()=>{
+    $('#agentaOut').textContent = 'Awaiting question…';
+    $('#agentaLatency').innerText = '—';
+    $('#agentaTokens').innerText = '—';
+    $('#agentaRoute').innerText  = '—';
+  });
+
+  // --------- Trading (mock backtest) ---------
+  let chartTA;
+  function simulateBacktest(days){
+    // generate price series (random walk)
+    const px = [];
+    let p = 100;
+    for(let i=0;i<days;i++){ p *= (1 + (Math.random()-0.5)*0.02); px.push(Math.max(1, p)); }
+    // equity curve (buy/hold baseline + random trade alpha)
+    let eq = 10000, trades=[];
+    for(let i=1;i<px.length;i++){
+      const edge = (px[i]-px[i-1])/px[i-1];
+      const sized = Math.sign(edge) * (0.5 + Math.random()*0.5);
+      const pnl = eq * sized * edge;
+      eq += pnl;
+      if(Math.random()<0.06){
+        trades.push({ day:i, side: sized>0?'LONG':'SHORT', pnl: Math.round(pnl) });
+      }
+    }
+    return { px, eqCurve: eqSeries(10000, trades, px.length), trades };
+    function eqSeries(start, trades, n){
+      const series = new Array(n).fill(0).map((_,i)=> start);
+      let cur = start;
+      trades.forEach(t=>{
+        for(let j=t.day; j<n; j++){ series[j] += t.pnl/3; }
+        cur += t.pnl;
+      });
+      // smooth-ish
+      return series.map((v,i)=> v + Math.sin(i/6)*50 );
+    }
+  }
+
+  function renderTAChart(series){
+    chartTA?.destroy();
+    const labels = series.eqCurve.map((_,i)=> i);
+    chartTA = new Chart($('#chartTA'), {
+      type:'line',
+      data:{ labels, datasets:[ { label:'Equity', data:series.eqCurve, tension:.3 } ] },
+      options:{ plugins:{ legend:{ position:'bottom' } }, scales:{ y:{ beginAtZero:false } } }
+    });
+  }
+
+  $('#taRun').addEventListener('click', ()=>{
+    const look = parseInt($('#taLookback').value||180,10);
+    const res = simulateBacktest(Math.max(100, Math.min(400, look)));
+    renderTAChart(res);
+    const pnl = Math.round(res.eqCurve.at(-1)-10000);
+    const win = Math.round(50 + Math.random()*30);
+    const dd  = Math.round(5 + Math.random()*10);
+    const ul = $('#taMetrics'); ul.innerHTML='';
+    [
+      `Net P&L: ${money(pnl)}`,
+      `Win rate: ${win}%`,
+      `Max Drawdown: ${dd}%`,
+      `Trades: ${res.trades.length}`
+    ].forEach(t=>{ const li=document.createElement('li'); li.className='list-group-item'; li.textContent=t; ul.appendChild(li); });
+    alert('Backtest complete (simulated).');
+  });
+  $('#taReset').addEventListener('click', ()=>{
+    chartTA?.destroy();
+    $('#taMetrics').innerHTML='<li class="list-group-item">No results yet.</li>';
+  });
+  $('#taExport').addEventListener('click', ()=>{
+    const rows = [{time:nowISO(), note:'Demo trades placeholder'}];
+    download('aurelo_trades.csv', toCSV(rows));
+  });
+
+  // --------- Revenue & Pricing ---------
+  let chartRev;
+  function calcRevenue(){
+    const stores = +$('#revStores').value||0;
+    const tx     = +$('#revTx').value||0;
+    const kbTx   = +$('#revKbPerTx').value||0;
+    const perMb  = +$('#revPerMb').value||0;
+    const aurelo = +$('#revAureloPct').value||0;
+    const mk     = +$('#revMkPct').value||0;
+
+    const kbDay  = stores * tx * kbTx;
+    const mbDay  = Math.round(kbDay/1024*10)/10;
+    const grossDay = mbDay * perMb;
+    const grossMo  = grossDay * 30;
+    const aureloMo = Math.round(grossMo * (aurelo/100));
+    const mkMo     = Math.round(grossMo * (mk/100));
+
+    $('#revMbDay').innerText = fmt.format(mbDay);
+    $('#revGrossDay').innerText = money(grossDay);
+    $('#revAureloMo').innerText = money(aureloMo);
+    $('#revMkMo').innerText = money(mkMo);
+
+    chartRev?.destroy();
+    const months = ['Sep','Oct','Nov','Dec','Jan','Feb'];
+    const proj = months.map((_,i)=> Math.round(grossMo * (0.9 + i*0.03)));
+    chartRev = new Chart($('#chartRev'), {
+      type:'bar',
+      data:{ labels: months, datasets: [ { label:'Projected Gross Revenue / mo', data: proj } ] },
+      options:{ plugins:{ legend:{position:'bottom'} }, scales:{ y:{ beginAtZero:true } } }
+    });
+
+    // Update overview MRR snapshot
+    $('#kpiMRR').innerText = money(grossMo);
+    $('#repMRR').innerText = money(grossMo);
+  }
+  $('#revCalc').addEventListener('click', calcRevenue);
+
+  // --------- Contracts & Clients ---------
+  const defaultClients = [
+    { company:'Alpha Retail Group', type:'Data Packets', value:1200000, term:'12 mo', status:'Negotiation' },
+    { company:'BroadVista Tech', type:'Enterprise', value:2700000, term:'24 mo', status:'Signed' },
+    { company:'QuantBridge Fund', type:'Algo Leasing', value:900000, term:'12 mo', status:'Pilot' }
+  ];
+  let clients = JSON.parse(localStorage.getItem('ad_clients')||'null') || defaultClients;
+  function renderClients(){
+    const tb = $('#contractsTable tbody'); tb.innerHTML='';
+    clients.forEach((c, idx)=>{
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><input class="form-control form-control-sm" value="${c.company}"/></td>
+        <td>
+          <select class="form-select form-select-sm">
+            <option ${c.type==='Data Packets'?'selected':''}>Data Packets</option>
+            <option ${c.type==='Enterprise'?'selected':''}>Enterprise</option>
+            <option ${c.type==='Algo Leasing'?'selected':''}>Algo Leasing</option>
+          </select>
+        </td>
+        <td><input class="form-control form-control-sm" value="${c.value}"/></td>
+        <td><input class="form-control form-control-sm" value="${c.term}"/></td>
+        <td>
+          <select class="form-select form-select-sm">
+            <option ${c.status==='Prospect'?'selected':''}>Prospect</option>
+            <option ${c.status==='Negotiation'?'selected':''}>Negotiation</option>
+            <option ${c.status==='Pilot'?'selected':''}>Pilot</option>
+            <option ${c.status==='Signed'?'selected':''}>Signed</option>
+          </select>
+        </td>
+        <td class="text-end"><button class="btn btn-sm btn-outline-danger" data-del="${idx}"><i class="bi bi-trash"></i></button></td>
+      `;
+      tb.appendChild(tr);
+    });
+  }
+  renderClients();
+  $('#contractsTable').addEventListener('input', ()=>{
+    // persist edits
+    const rows = $$('#contractsTable tbody tr');
+    clients = rows.map(r=>{
+      const [company,type,value,term,status] = [
+        r.children[0].querySelector('input').value,
+        r.children[1].querySelector('select').value,
+        Number(r.children[2].querySelector('input').value) || 0,
+        r.children[3].querySelector('input').value,
+        r.children[4].querySelector('select').value,
+      ];
+      return { company, type, value, term, status };
+    });
+    localStorage.setItem('ad_clients', JSON.stringify(clients));
+  });
+  $('#contractsTable').addEventListener('click', (e)=>{
+    const del = e.target.closest('[data-del]');
+    if(!del) return;
+    const idx = +del.getAttribute('data-del');
+    clients.splice(idx,1);
+    localStorage.setItem('ad_clients', JSON.stringify(clients));
+    renderClients();
+  });
+  $('#addClient').addEventListener('click', ()=>{
+    clients.unshift({ company:'New Co', type:'Data Packets', value:50000, term:'6 mo', status:'Prospect' });
+    localStorage.setItem('ad_clients', JSON.stringify(clients));
+    renderClients();
+  });
+
+  // --------- Reports / Export KPI JSON ---------
+  $('#exportOverviewJson').addEventListener('click', ()=>{
+    const obj = {
+      generated_at: nowISO(),
+      kpis:{
+        daily_txn: $('#kpiTxn').innerText,
+        daily_mb: $('#kpiMB').innerText,
+        active_stores: $('#kpiStores').innerText,
+        projected_mrr: $('#kpiMRR').innerText
+      }
+    };
+    download('aurelo_kpis.json', JSON.stringify(obj, null, 2));
+  });
+
+  // --------- Settings ---------
+  function applyTheme(mode){
+    if(mode==='dark'){
+      document.body.style.background = '#0f0f12';
+      document.body.style.color = '#f1f3f5';
+      document.querySelectorAll('.kpi-card').forEach(c=>{
+        c.style.background = '#141418';
+        c.style.borderColor = '#2a2a30';
+      });
+      document.querySelectorAll('.sidebar, .topbar').forEach(c=>{
+        c.style.background = '#101016';
+        c.style.borderColor = '#2a2a30';
+      });
+    } else {
+      document.body.style.background = '#fff';
+      document.body.style.color = '#000';
+      document.querySelectorAll('.kpi-card').forEach(c=>{
+        c.style.background = '#fff';
+        c.style.borderColor = '#e9ecef';
+      });
+      document.querySelectorAll('.sidebar, .topbar').forEach(c=>{
+        c.style.background = '#fff';
+        c.style.borderColor = '#e9ecef';
+      });
+    }
+  }
+  $('#applySettings').addEventListener('click', ()=>{
+    const theme = $('#themeSelect').value;
+    const persist = $('#persistSelect').value;
+    localStorage.setItem('ad_theme', theme);
+    if(persist==='session'){ localStorage.setItem('ad_keep','0'); }
+    applyTheme(theme);
+    alert('Settings applied.');
+  });
+  $('#resetApp').addEventListener('click', ()=>{
+    if(!confirm('Reset local demo data?')) return;
+    localStorage.removeItem('ad_ingestLog');
+    localStorage.removeItem('ad_clients');
+    localStorage.removeItem('ad_theme');
+    localStorage.removeItem('ad_authed');
+    localStorage.removeItem('ad_user');
+    localStorage.removeItem('ad_keep');
+    location.reload();
+  });
+
+  // --------- Init ---------
+  // default demo seed to Explorer
+  seedExplorerFromRows([]);
+  // overview charts
+  initOverview();
+  // revenue defaults
+  calcRevenue();
+  // theme
+  const savedTheme = localStorage.getItem('ad_theme') || 'light';
+  $('#themeSelect').value = savedTheme;
+  applyTheme(savedTheme);
+
+})();
+</script>
 </body>
 </html>
+
