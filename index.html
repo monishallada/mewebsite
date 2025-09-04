@@ -3,1368 +3,858 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Aurelo Data — Unified Console</title>
-
-  <!-- Bootstrap 5 -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-        rel="stylesheet"
-        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
-        crossorigin="anonymous" />
-  <!-- Bootstrap Icons -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-
-  <!-- Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <!-- PapaParse (CSV) -->
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-
+  <title>Aurelo Data — Store Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
   <style>
     :root{
-      --brand:#111;
-      --brand-accent:#6b46ff;
-      --muted:#f6f6f6;
-      --border:#e9ecef;
+      --bg:#0a0a12;
+      --bg-2:#0e0e19;
+      --card:#121224;
+      --card-2:#14142a;
+      --elev:#1a1a33;
+      --muted:#a2a2bc;
+      --text:#ffffff;
+      --primary:#8b5cf6;         /* purple-500 */
+      --primary-600:#7c3aed;     /* purple-600 */
+      --primary-700:#6d28d9;     /* purple-700 */
+      --accent:#22d3ee;          /* cyan accent */
+      --good:#22c55e;
+      --warn:#f59e0b;
+      --bad:#ef4444;
+      --ring: rgba(139,92,246,.35);
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --glass: rgba(255,255,255,.04);
+      --glass-2: rgba(255,255,255,.06);
+      --radius: 16px;
     }
-    body { background:#fff; color:#000; }
-    .auth-wrapper{
-      min-height:100vh; display:flex; align-items:center; justify-content:center;
-      background: radial-gradient(80% 80% at 50% 20%, #f7f7ff 0%, #ffffff 60%);
-      padding:2rem;
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:Inter,system-ui,Segoe UI,Roboto,Arial,Helvetica,sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(1200px 600px at 10% -10%, rgba(124,58,237,.28), transparent 60%),
+        radial-gradient(1000px 500px at 120% 10%, rgba(34,211,238,.18), transparent 60%),
+        linear-gradient(0deg, var(--bg), var(--bg));
+      letter-spacing:.1px;
     }
-    .login-card{ max-width:460px; width:100%; border-radius:20px; border:1px solid var(--border); }
-    .brand-badge{
-      display:inline-flex; align-items:center; gap:.6rem; font-weight:700; letter-spacing:.3px;
-    }
-    .brand-dot{ width:10px; height:10px; border-radius:999px; background:var(--brand-accent); display:inline-block; }
-    .app-shell{ display:flex; min-height:100vh; }
+    a{color:inherit;text-decoration:none}
+    .app{display:grid;grid-template-columns: 280px 1fr;min-height:100vh}
+    /* Sidebar */
     .sidebar{
-      width:300px; border-right:1px solid var(--border); background:#fff; position:sticky; top:0; height:100vh; overflow:auto;
+      position:sticky; top:0; height:100dvh;
+      background:linear-gradient(180deg,var(--bg-2),rgba(10,10,18,.7)), url('') no-repeat center/cover;
+      border-right:1px solid rgba(255,255,255,.06);
+      padding:24px 18px;
     }
-    .sidebar .nav-link{
-      border-radius:12px; color:#111; padding:.65rem .8rem; display:flex; align-items:center; gap:.6rem;
+    .brand{
+      display:flex;align-items:center;gap:12px;margin-bottom:28px;
+      padding:10px 12px;border-radius:12px;background:var(--glass);
+      backdrop-filter: blur(10px);
+      box-shadow:var(--shadow);
     }
-    .sidebar .nav-link.active{
-      background:#f2f0ff; color:#4c2bff; font-weight:600; border:1px solid #e7e2ff;
+    .brand-logo{
+      width:36px;height:36px;border-radius:10px;
+      background: conic-gradient(from 220deg at 50% 50%, var(--primary), #4c1d95 35%, #0ea5e9 60%, #9333ea 80%, var(--primary));
+      box-shadow: 0 0 0 2px rgba(139,92,246,.25), 0 10px 20px rgba(124,58,237,.3);
     }
-    .content{ flex:1; min-width:0; }
-    .topbar{ border-bottom:1px solid var(--border); position:sticky; top:0; background:#fff; z-index:30; }
-    .kpi-card{
-      border-radius:18px; border:1px solid var(--border); background:#fff;
+    .brand h1{font-size:16px;margin:0;font-weight:800;letter-spacing:.5px}
+    .brand span{display:block;font-size:11px;color:var(--muted);margin-top:2px;font-weight:600}
+    .nav{display:grid;gap:6px}
+    .nav h3{margin:18px 8px 10px;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em}
+    .nav a{
+      display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;
+      color:#fff;border:1px solid transparent;background:transparent;
+      transition:.2s ease; font-weight:600;
     }
-    .table-wrap{ border:1px solid var(--border); border-radius:14px; overflow:auto; }
+    .nav a svg{opacity:.9}
+    .nav a:hover{background:var(--glass);border-color:rgba(255,255,255,.06)}
+    .nav a.active{
+      background:linear-gradient(180deg, rgba(139,92,246,.15), rgba(139,92,246,.05));
+      border-color:rgba(139,92,246,.35);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 8px 24px rgba(124,58,237,.25);
+    }
+    .sidebar .foot{
+      position:absolute;left:18px;right:18px;bottom:18px;
+      background:var(--glass);
+      border:1px solid rgba(255,255,255,.06);
+      border-radius:14px;padding:12px;
+    }
+    .badge{
+      display:inline-flex;align-items:center;gap:8px;
+      padding:6px 10px;border-radius:999px;font-size:12px;font-weight:700;
+      background:rgba(139,92,246,.18);border:1px solid rgba(139,92,246,.35);color:#fff;
+    }
+
+    /* Main */
+    .main{padding:22px 22px 34px}
+    .topbar{
+      display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between;margin-bottom:18px;
+    }
+    .topbar-left{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+    .store-switch{
+      display:flex;gap:8px;align-items:center;background:var(--glass);border:1px solid rgba(255,255,255,.08);
+      border-radius:12px;padding:8px 10px;min-width:240px;
+    }
+    select, input, button{
+      font:inherit;color:inherit;background:transparent;border:none;outline:none;
+    }
+    .select, .input{
+      flex:1;background:var(--card);border:1px solid rgba(255,255,255,.07);
+      padding:10px 12px;border-radius:12px;min-width:200px;
+    }
+    .input{display:flex;align-items:center;gap:8px}
+    .input input{width:100%}
+    .kpis{display:grid;grid-template-columns: repeat(12,1fr);gap:14px;margin:12px 0 18px}
+    .card{
+      background:linear-gradient(180deg,var(--card),var(--card-2));
+      border:1px solid rgba(255,255,255,.06);
+      border-radius:var(--radius);
+      padding:16px 16px;
+      box-shadow:var(--shadow);
+    }
+    .kpi{grid-column: span 3; position:relative; overflow:hidden}
+    .kpi .title{color:var(--muted);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.12em}
+    .kpi .value{font-size:26px;font-weight:800;margin-top:6px}
+    .delta{font-size:12px;font-weight:700;margin-top:6px;display:inline-flex;gap:6px;align-items:center}
+    .delta.good{color:var(--good)} .delta.bad{color:var(--bad)}
+    .spark{position:absolute;inset:auto 0 0 0;height:52px;opacity:.5}
+    .grid{display:grid;gap:14px}
+    .grid-2{grid-template-columns: 1.5fr 1fr}
+    .grid-3{grid-template-columns: 1fr 1fr 1fr}
+    .card h2{margin:0 0 10px;font-size:14px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+    canvas{width:100%;height:280px !important}
+    .table{
+      width:100%;border-collapse:separate;border-spacing:0 10px;
+    }
+    .table thead th{
+      font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em;text-align:left;padding:0 10px 6px;
+    }
+    .table tbody tr{
+      background:var(--elev);border:1px solid rgba(255,255,255,.06);border-radius:12px;
+    }
+    .table tbody td{padding:12px 10px;border-top:1px solid rgba(255,255,255,.06)}
+    .table tbody tr:first-child td{border-top:none}
+    .status{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:999px;font-size:12px;font-weight:700;border:1px solid}
+    .status.paid{background:rgba(34,197,94,.15);border-color:rgba(34,197,94,.5)}
+    .status.pending{background:rgba(245,158,11,.15);border-color:rgba(245,158,11,.5)}
+    .status.refunded{background:rgba(239,68,68,.15);border-color:rgba(239,68,68,.5)}
+    .btn{
+      display:inline-flex;align-items:center;gap:10px;padding:10px 14px;border-radius:12px;font-weight:800;letter-spacing:.02em;
+      background:linear-gradient(180deg, rgba(139,92,246,.25), rgba(124,58,237,.15));
+      border:1px solid rgba(139,92,246,.45);box-shadow:0 8px 24px rgba(124,58,237,.25);
+      cursor:pointer;transition:.2s ease;
+    }
+    .btn:hover{transform:translateY(-1px)}
+    .btn.ghost{
+      background:var(--glass);border-color:rgba(255,255,255,.1);box-shadow:none;font-weight:700
+    }
+    .btn.warn{background:linear-gradient(180deg, rgba(245,158,11,.25), rgba(245,158,11,.1));border-color:rgba(245,158,11,.45)}
+    .btn.bad{background:linear-gradient(180deg, rgba(239,68,68,.25), rgba(239,68,68,.1));border-color:rgba(239,68,68,.45)}
+
+    .toolbar{display:flex;gap:10px;flex-wrap:wrap}
+    .filters{display:flex;gap:10px;flex-wrap:wrap}
+    .chip{
+      display:inline-flex;gap:8px;align-items:center;padding:8px 12px;border-radius:999px;font-weight:700;border:1px solid rgba(255,255,255,.1);
+      background:var(--glass);cursor:pointer
+    }
+    .chip.active{border-color:rgba(139,92,246,.45);background:rgba(139,92,246,.2)}
+    .progress{
+      position:relative;height:10px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden;border:1px solid rgba(255,255,255,.08)
+    }
+    .progress .bar{height:100%;background:linear-gradient(90deg, var(--primary), #4f46e5, #06b6d4)}
+    .mini{
+      font-size:12px;color:var(--muted);display:flex;justify-content:space-between;margin-top:8px
+    }
+    /* Modals */
+    .modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;padding:20px;z-index:50}
+    .modal.show{display:flex}
+    .modal .dialog{width:min(680px, 96vw);background:var(--card);border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:18px 18px 16px;box-shadow:var(--shadow)}
+    .dialog h3{margin:0 0 12px;font-size:18px}
+    .row{display:grid;grid-template-columns: 1fr 1fr; gap:10px}
+    .field{display:flex;flex-direction:column;gap:6px}
+    .field label{font-size:12px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.12em}
+    .field input, .field select, .field textarea{
+      background:var(--elev);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px;color:#fff
+    }
+    .dialog .actions{display:flex;justify-content:flex-end;gap:10px;margin-top:12px}
+    /* Responsive */
+    @media (max-width: 1100px){
+      .app{grid-template-columns: 88px 1fr}
+      .nav a span{display:none}
+      .brand span{display:none}
+    }
+    @media (max-width: 860px){
+      .kpi{grid-column: span 6}
+      .grid-2{grid-template-columns: 1fr}
+      .grid-3{grid-template-columns: 1fr}
+    }
+    @media (max-width: 540px){
+      .kpi{grid-column: span 12}
+      .topbar{gap:10px}
+    }
+    /* Focus ring */
+    .focusable:focus {outline:2px solid var(--ring); outline-offset:2px}
+    .sep{height:1px;background:linear-gradient(90deg, transparent, rgba(255,255,255,.08), transparent);margin:12px 0}
+    .muted{color:var(--muted)}
+    .right{margin-left:auto}
     .pill{
-      border:1px solid var(--border); padding:.35rem .6rem; border-radius:999px; font-size:.85rem; background:#fff;
+      padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.12);
+      background:var(--glass);font-weight:700;font-size:12px
     }
-    .btn-brand{ background:#111; color:#fff; border-radius:12px; }
-    .btn-brand:hover{ background:#000; color:#fff; }
-    .btn-ghost{
-      background:#fff; border:1px solid var(--border); border-radius:12px;
-    }
-    .section-title{
-      font-size:1.1rem; font-weight:700; margin-bottom:.25rem;
-    }
-    .section-sub{ color:#666; font-size:.95rem; }
-    .code{
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      background:#f7f7f7; border:1px dashed #e5e5e5; border-radius:10px; padding:.65rem .8rem; display:block;
-    }
-    .footer-note{ color:#777; font-size:.9rem; }
-    /* Print styles for Reports page */
-    @media print {
-      .sidebar, .topbar, .no-print { display:none !important; }
-      .content { padding:0 !important; }
-      .print-container { margin:0 !important; }
-    }
+    .hint{font-size:12px;color:var(--muted)}
   </style>
 </head>
 <body>
-
-<!-- ===================== LOGIN ===================== -->
-<section id="loginView" class="auth-wrapper">
-  <div class="card shadow-sm login-card">
-    <div class="card-body p-4 p-md-5">
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <span class="brand-badge">
-          <span class="brand-dot"></span>
-          <span>Aurelo Data</span>
-        </span>
-        <span class="pill">v1.0</span>
-      </div>
-      <h1 class="h4 fw-bold mb-2">Sign in to your console</h1>
-      <p class="text-secondary mb-4">Secure access to data ingestion, Agenta AI models, trading analytics, and contracts—unified in one dashboard.</p>
-
-      <form id="loginForm" class="needs-validation" novalidate>
-        <div class="mb-3">
-          <label class="form-label">Email or Username</label>
-          <input type="text" class="form-control" id="loginUser" placeholder="you@aurelo.ai" required />
-          <div class="invalid-feedback">Please enter your username.</div>
-        </div>
-        <div class="mb-2">
-          <label class="form-label d-flex justify-content-between">
-            <span>Password</span>
-            <a href="#" data-bs-toggle="modal" data-bs-target="#forgotModal" class="small">Forgot password?</a>
-          </label>
-          <input type="password" class="form-control" id="loginPass" placeholder="••••••••" minlength="6" required />
-          <div class="invalid-feedback">Please enter your password (min 6 chars).</div>
-        </div>
-        <div class="form-check my-3">
-          <input class="form-check-input" type="checkbox" value="" id="keepSigned" />
-          <label class="form-check-label" for="keepSigned">Keep me signed in</label>
-        </div>
-        <button type="submit" class="btn btn-brand w-100">Sign in</button>
-      </form>
-
-      <div class="mt-4">
-        <div class="section-title">Demo credentials</div>
-        <div class="section-sub">Any username/password will work locally. This is a front-end demo only.</div>
-        <code class="code">Example: monish / aurelo123</code>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- Forgot Password Modal -->
-<div class="modal fade" id="forgotModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <form id="forgotForm">
-        <div class="modal-header">
-          <h5 class="modal-title">Reset your password</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <label class="form-label">Account email</label>
-          <input type="email" class="form-control" id="forgotEmail" placeholder="you@aurelo.ai" required />
-          <div class="form-text">We’ll simulate sending a reset link in this demo.</div>
-        </div>
-        <div class="modal-footer">
-          <button class="btn btn-ghost" data-bs-dismiss="modal" type="button">Cancel</button>
-          <button class="btn btn-brand" type="submit">Send Link</button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
-
-<!-- ===================== APP SHELL ===================== -->
-<section id="appView" class="app-shell" style="display:none">
-  <!-- Sidebar -->
-  <aside class="sidebar p-3">
-    <div class="d-flex align-items-center mb-4">
-      <span class="brand-badge fs-5">
-        <span class="brand-dot"></span>
-        <span>Aurelo Data</span>
-      </span>
-    </div>
-
-    <nav class="nav flex-column gap-1" id="sideNav">
-      <a class="nav-link active" data-target="page-overview" href="#"><i class="bi bi-speedometer2"></i> Overview</a>
-      <a class="nav-link" data-target="page-ingestion" href="#"><i class="bi bi-cloud-arrow-up"></i> Data Ingestion</a>
-      <a class="nav-link" data-target="page-explorer" href="#"><i class="bi bi-table"></i> Data Explorer</a>
-      <a class="nav-link" data-target="page-llm" href="#"><i class="bi bi-braces-asterisk"></i> LLM Packet Builder</a>
-      <a class="nav-link" data-target="page-agenta" href="#"><i class="bi bi-cpu"></i> Agenta AI Models</a>
-      <a class="nav-link" data-target="page-trading" href="#"><i class="bi bi-graph-up"></i> Trading Algorithms</a>
-      <a class="nav-link" data-target="page-revenue" href="#"><i class="bi bi-cash-coin"></i> Revenue & Pricing</a>
-      <a class="nav-link" data-target="page-contracts" href="#"><i class="bi bi-briefcase"></i> Contracts & Clients</a>
-      <a class="nav-link" data-target="page-reports" href="#"><i class="bi bi-file-earmark-text"></i> Reports & Exports</a>
-      <a class="nav-link" data-target="page-settings" href="#"><i class="bi bi-gear"></i> Settings</a>
-    </nav>
-
-    <div class="mt-4">
-      <div class="small text-secondary">Shortcuts</div>
-      <div class="d-flex flex-wrap gap-2 mt-2">
-        <button class="btn btn-ghost btn-sm" data-target="page-llm">New Packet</button>
-        <button class="btn btn-ghost btn-sm" data-target="page-explorer">Open Data</button>
-        <button class="btn btn-ghost btn-sm" data-target="page-trading">Run Backtest</button>
-      </div>
-    </div>
-
-    <div class="mt-4 border-top pt-3">
-      <div class="footer-note">© Aurelo Data • Unified data packets • AI • Trading analytics</div>
-    </div>
-  </aside>
-
-  <!-- Main -->
-  <main class="content">
-    <!-- Topbar -->
-    <div class="topbar px-3 py-2">
-      <div class="d-flex align-items-center justify-content-between">
-        <div class="d-flex align-items-center gap-2">
-          <span class="pill">Environment: Demo</span>
-          <span class="pill">Region: US-East</span>
-          <span class="pill" id="statusPill">Status: Idle</span>
-        </div>
-        <div class="dropdown">
-          <button class="btn btn-ghost dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-            <i class="bi bi-person-circle me-1"></i><span id="userDisplay">user</span>
-          </button>
-          <ul class="dropdown-menu dropdown-menu-end">
-            <li><a class="dropdown-item" href="#" data-target="page-settings">Settings</a></li>
-            <li><hr class="dropdown-divider"></li>
-            <li><a class="dropdown-item text-danger" href="#" id="logoutBtn">Logout</a></li>
-          </ul>
+  <div class="app" role="application">
+    <!-- Sidebar -->
+    <aside class="sidebar" aria-label="Sidebar Navigation">
+      <div class="brand" aria-label="Aurelo brand">
+        <div class="brand-logo" aria-hidden="true"></div>
+        <div>
+          <h1>Aurelo Data</h1>
+          <span>Store Dashboard</span>
         </div>
       </div>
-    </div>
 
-    <!-- Pages container -->
-    <div class="p-3 p-md-4" id="pages">
+      <nav class="nav" role="navigation">
+        <h3>Overview</h3>
+        <a class="active" href="#" aria-current="page">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 13l9-9 9 9" stroke="#c4b5fd" stroke-width="2" stroke-linecap="round"/><path d="M9 21V9h6v12" stroke="#c4b5fd" stroke-width="2" stroke-linecap="round"/></svg>
+          <span>Home</span>
+        </a>
+        <a href="#sales">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 3v18h18" stroke="#c4b5fd" stroke-width="2"/><path d="M7 13l3 3 7-7" stroke="#22c55e" stroke-width="2" stroke-linecap="round"/></svg>
+          <span>Sales</span>
+        </a>
+        <a href="#products">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="14" rx="3" stroke="#c4b5fd" stroke-width="2"/><path d="M8 8h8" stroke="#22d3ee" stroke-width="2" stroke-linecap="round"/></svg>
+          <span>Products</span>
+        </a>
+        <a href="#inventory">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 7h18M5 7v12h14V7" stroke="#c4b5fd" stroke-width="2"/><path d="M8 7V3h8v4" stroke="#7c3aed" stroke-width="2"/></svg>
+          <span>Inventory</span>
+        </a>
+        <a href="#customers">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="9" cy="7" r="4" stroke="#c4b5fd" stroke-width="2"/><path d="M3 21c0-4 4-7 8-7" stroke="#22d3ee" stroke-width="2"/></svg>
+          <span>Customers</span>
+        </a>
+        <a href="#analytics">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 20V10" stroke="#c4b5fd" stroke-width="2"/><path d="M10 20V4" stroke="#7c3aed" stroke-width="2"/><path d="M16 20v-6" stroke="#22d3ee" stroke-width="2"/></svg>
+          <span>Analytics</span>
+        </a>
+        <a href="#packets">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="3" stroke="#c4b5fd" stroke-width="2"/><path d="M7 9h10M7 13h6" stroke="#7c3aed" stroke-width="2" stroke-linecap="round"/></svg>
+          <span>Data Packets</span>
+        </a>
+        <a href="#integrations">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="7" cy="12" r="3" stroke="#c4b5fd" stroke-width="2"/><circle cx="17" cy="6" r="3" stroke="#22d3ee" stroke-width="2"/><circle cx="17" cy="18" r="3" stroke="#7c3aed" stroke-width="2"/><path d="M9 11l6-4M9 13l6 4" stroke="#c4b5fd" stroke-width="2"/></svg>
+          <span>Integrations</span>
+        </a>
+        <a href="#billing">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3" y="6" width="18" height="12" rx="3" stroke="#c4b5fd" stroke-width="2"/><path d="M7 10h10" stroke="#7c3aed" stroke-width="2" stroke-linecap="round"/></svg>
+          <span>Billing & Payouts</span>
+        </a>
+        <a href="#settings">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" stroke="#c4b5fd" stroke-width="2"/><path d="M19.4 15a7.97 7.97 0 0 0 .1-6l2-1-2-3-2 1a8 8 0 0 0-5.2-2l-.4-2H10l-.4 2A8 8 0 0 0 4.4 6l-2-1-2 3 2 1a7.97 7.97 0 0 0 .1 6l-2 1 2 3 2-1a8 8 0 0 0 5.2 2l.4 2h3l.4-2a8 8 0 0 0 5.2-2l2 1 2-3-2-1Z" stroke="#7c3aed" stroke-width="2"/></svg>
+          <span>Settings</span>
+        </a>
+      </nav>
 
-      <!-- =========== OVERVIEW =========== -->
-      <section id="page-overview">
-        <div class="mb-3">
-          <div class="section-title">Welcome back</div>
-          <div class="section-sub">Unified view across ingestion, packet generation, Agenta AI, and trading analytics.</div>
+      <div class="foot">
+        <div class="badge">Pro Plan • <span class="muted">Unlimited data exports</span></div>
+        <div class="mini"><span>API status</span><span class="pill">All systems normal</span></div>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="main" id="home" tabindex="-1">
+      <!-- Topbar -->
+      <div class="topbar" role="region" aria-label="Top controls">
+        <div class="topbar-left">
+          <div class="store-switch">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 10l8-6 8 6v8a2 2 0 0 1-2 2h-12a2 2 0 0 1-2-2z" stroke="#7c3aed" stroke-width="2"/></svg>
+            <strong>Store:</strong>
+            <select id="storeSelect" class="focusable" aria-label="Select store">
+              <option>Microknots Outfitters</option>
+              <option>Aurelo Gadgets</option>
+              <option>Monish & Co. Streetwear</option>
+            </select>
+          </div>
+
+          <div class="select">
+            <label class="hint" for="range">Date Range</label>
+            <select id="range" class="focusable" aria-label="Select date range">
+              <option value="7">Last 7 days</option>
+              <option value="30" selected>Last 30 days</option>
+              <option value="90">Last 90 days</option>
+              <option value="365">Year to date</option>
+              <option value="custom">Custom…</option>
+            </select>
+          </div>
+
+          <div class="input" role="search">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="7" stroke="#a78bfa" stroke-width="2"/><path d="M21 21l-4-4" stroke="#a78bfa" stroke-width="2" stroke-linecap="round"/></svg>
+            <input id="search" class="focusable" type="search" placeholder="Search orders, customers, products…" aria-label="Search dashboard">
+          </div>
         </div>
 
-        <div class="row g-3">
-          <div class="col-12 col-lg-3">
-            <div class="kpi-card p-3">
-              <div class="text-secondary small">Daily Transactions</div>
-              <div class="h3 fw-bold" id="kpiTxn">—</div>
-              <div class="small text-secondary" id="kpiTxnDelta">Loading…</div>
-            </div>
-          </div>
-          <div class="col-12 col-lg-3">
-            <div class="kpi-card p-3">
-              <div class="text-secondary small">Data Ingested (MB)</div>
-              <div class="h3 fw-bold" id="kpiMB">—</div>
-              <div class="small text-secondary" id="kpiMbDelta">Loading…</div>
-            </div>
-          </div>
-          <div class="col-12 col-lg-3">
-            <div class="kpi-card p-3">
-              <div class="text-secondary small">Active Stores</div>
-              <div class="h3 fw-bold" id="kpiStores">—</div>
-              <div class="small text-secondary">Across pilot & production</div>
-            </div>
-          </div>
-          <div class="col-12 col-lg-3">
-            <div class="kpi-card p-3">
-              <div class="text-secondary small">Projected MRR</div>
-              <div class="h3 fw-bold" id="kpiMRR">$—</div>
-              <div class="small text-secondary">Based on current volume</div>
-            </div>
-          </div>
+        <div class="toolbar">
+          <button class="btn" id="exportCsvBtn" title="Export orders CSV">Export CSV</button>
+          <button class="btn" id="generatePacketBtn" title="Create data packet">Generate Data Packet</button>
+          <button class="btn ghost" id="openRefund" title="Issue refund">Issue Refund</button>
+          <button class="btn ghost" id="openIntegration" title="Add integration">Add Integration</button>
+          <span class="pill">Viewing: <span id="rangeLabel">Last 30 days</span></span>
         </div>
+      </div>
 
-        <div class="row g-3 mt-1">
-          <div class="col-12 col-lg-8">
-            <div class="kpi-card p-3">
-              <div class="d-flex justify-content-between align-items-center">
-                <div>
-                  <div class="section-title">Transactions & Ingestion</div>
-                  <div class="section-sub">7-day trend (demo data)</div>
-                </div>
-                <button class="btn btn-ghost btn-sm no-print" id="refreshOverview"><i class="bi bi-arrow-repeat"></i> Refresh</button>
-              </div>
-              <canvas id="chartTxn" height="100" class="mt-2"></canvas>
-            </div>
-          </div>
-          <div class="col-12 col-lg-4">
-            <div class="kpi-card p-3">
-              <div class="section-title">Revenue Mix</div>
-              <div class="section-sub">Data packets vs. enterprise contracts vs. algo leasing</div>
-              <canvas id="chartMix" height="100" class="mt-2"></canvas>
-            </div>
-          </div>
-        </div>
+      <!-- KPIs -->
+      <section class="kpis" aria-label="Key performance metrics">
+        <!-- Revenue -->
+        <article class="card kpi">
+          <div class="title">Revenue</div>
+          <div class="value" id="kpiRevenue">$128,420</div>
+          <div class="delta good"><span>▲</span><span id="kpiRevenueDelta">+8.4%</span> vs prev.</div>
+          <svg class="spark" viewBox="0 0 300 52" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M0,40 L30,30 L60,33 L90,22 L120,28 L150,18 L180,26 L210,12 L240,18 L270,9 L300,16"
+                  fill="none" stroke="url(#g1)" stroke-width="3" />
+            <defs>
+              <linearGradient id="g1" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stop-color="#8b5cf6"/><stop offset="100%" stop-color="#22d3ee"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </article>
+
+        <!-- Orders -->
+        <article class="card kpi">
+          <div class="title">Orders</div>
+          <div class="value" id="kpiOrders">2,914</div>
+          <div class="delta good"><span>▲</span><span id="kpiOrdersDelta">+5.1%</span></div>
+          <svg class="spark" viewBox="0 0 300 52" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M0,36 L30,34 L60,29 L90,26 L120,20 L150,18 L180,16 L210,14 L240,12 L270,15 L300,10"
+                  fill="none" stroke="url(#g1)" stroke-width="3" />
+          </svg>
+        </article>
+
+        <!-- AOV -->
+        <article class="card kpi">
+          <div class="title">Avg. Order Value</div>
+          <div class="value" id="kpiAov">$44.05</div>
+          <div class="delta bad"><span>▼</span><span id="kpiAovDelta">-1.2%</span></div>
+          <svg class="spark" viewBox="0 0 300 52" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M0,16 L30,18 L60,20 L90,24 L120,28 L150,26 L180,30 L210,34 L240,36 L270,40 L300,42"
+                  fill="none" stroke="url(#g1)" stroke-width="3" />
+          </svg>
+        </article>
+
+        <!-- Conversion -->
+        <article class="card kpi">
+          <div class="title">Conversion Rate</div>
+          <div class="value" id="kpiCv">3.21%</div>
+          <div class="delta good"><span>▲</span><span id="kpiCvDelta">+0.3 pts</span></div>
+          <svg class="spark" viewBox="0 0 300 52" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M0,42 L40,40 L80,35 L120,34 L160,28 L200,25 L240,20 L280,16 L300,14"
+                  fill="none" stroke="url(#g1)" stroke-width="3" />
+          </svg>
+        </article>
+
+        <!-- Customers -->
+        <article class="card kpi">
+          <div class="title">New Customers</div>
+          <div class="value" id="kpiCust">742</div>
+          <div class="delta good"><span>▲</span><span id="kpiCustDelta">+9.8%</span></div>
+          <svg class="spark" viewBox="0 0 300 52" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M0,44 L30,42 L60,36 L90,32 L120,28 L150,26 L180,20 L210,16 L240,14 L270,12 L300,10"
+                  fill="none" stroke="url(#g1)" stroke-width="3" />
+          </svg>
+        </article>
+
+        <!-- Refunds -->
+        <article class="card kpi">
+          <div class="title">Refund Rate</div>
+          <div class="value" id="kpiRefunds">1.14%</div>
+          <div class="delta good"><span>▲</span><span id="kpiRefundDelta">-0.2 pts</span></div>
+          <svg class="spark" viewBox="0 0 300 52" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M0,10 L60,14 L120,18 L180,20 L240,22 L300,24"
+                  fill="none" stroke="url(#g1)" stroke-width="3" />
+          </svg>
+        </article>
       </section>
 
-      <!-- =========== DATA INGESTION =========== -->
-      <section id="page-ingestion" style="display:none">
-        <div class="mb-3">
-          <div class="section-title">Data Ingestion</div>
-          <div class="section-sub">Upload CSV exports from stores, POS, or partner S3 buckets. We validate and stage for packetization.</div>
-        </div>
-
-        <div class="row g-3">
-          <div class="col-12 col-xl-8">
-            <div class="kpi-card p-3">
-              <form id="ingestForm">
-                <label class="form-label">Upload CSV file</label>
-                <input class="form-control" type="file" id="ingestFile" accept=".csv,text/csv" />
-                <div class="form-text">Tip: Use UTF-8 CSV with headers. Example columns: transaction_id, sku, qty, price, store_id, timestamp</div>
-                <div class="row g-2 mt-2">
-                  <div class="col-md">
-                    <label class="form-label">Source</label>
-                    <select class="form-select" id="ingestSource">
-                      <option value="pos">Retail POS</option>
-                      <option value="ecom">E-commerce</option>
-                      <option value="s3">S3/Glue</option>
-                      <option value="partner">Partner API</option>
-                    </select>
-                  </div>
-                  <div class="col-md">
-                    <label class="form-label">Store ID</label>
-                    <input class="form-control" id="ingestStore" placeholder="e.g., RDU-001" />
-                  </div>
-                  <div class="col-md">
-                    <label class="form-label">Batch Tag</label>
-                    <input class="form-control" id="ingestTag" placeholder="e.g., 2025-08-Batch-A" />
-                  </div>
-                </div>
-                <div class="d-flex gap-2 mt-3">
-                  <button class="btn btn-brand" type="submit"><i class="bi bi-cloud-upload"></i> Stage Data</button>
-                  <button class="btn btn-ghost" type="button" id="btnIngestDemo">Use Demo Data</button>
-                </div>
-              </form>
-            </div>
-            <div class="kpi-card p-3 mt-3">
-              <div class="section-title">Ingestion Log</div>
-              <div class="table-wrap mt-2">
-                <table class="table table-sm align-middle mb-0">
-                  <thead class="table-light">
-                    <tr>
-                      <th>Time</th><th>Source</th><th>Store</th><th>Rows</th><th>Size (MB)</th><th>Tag</th><th>Status</th>
-                    </tr>
-                  </thead>
-                  <tbody id="ingestLog"></tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-12 col-xl-4">
-            <div class="kpi-card p-3">
-              <div class="section-title">Validation</div>
-              <div class="section-sub">Schema & sanity checks</div>
-              <ul class="list-group list-group-flush" id="validationList">
-                <li class="list-group-item">Awaiting upload…</li>
-              </ul>
-            </div>
-            <div class="kpi-card p-3 mt-3">
-              <div class="section-title">Next steps</div>
-              <p class="mb-2">Once staged, use <strong>LLM Packet Builder</strong> to transform rows into training-ready examples (classification, Q&A, tool-use, etc.).</p>
-              <button class="btn btn-ghost" data-target="page-llm"><i class="bi bi-braces-asterisk"></i> Open Packet Builder</button>
-            </div>
-          </div>
-        </div>
+      <!-- Charts -->
+      <section class="grid grid-2" aria-label="Analytics charts">
+        <article class="card">
+          <h2>Revenue Trend</h2>
+          <canvas id="revenueChart" aria-label="Revenue line chart" role="img"></canvas>
+        </article>
+        <article class="card">
+          <h2>Orders by Channel</h2>
+          <canvas id="channelChart" aria-label="Orders by channel chart" role="img"></canvas>
+        </article>
       </section>
 
-      <!-- =========== DATA EXPLORER =========== -->
-      <section id="page-explorer" style="display:none">
-        <div class="mb-3">
-          <div class="section-title">Data Explorer</div>
-          <div class="section-sub">Browse parsed rows, search, filter by column, and export.</div>
+      <section class="grid grid-2" style="margin-top:14px">
+        <article class="card">
+          <h2>Orders by Day</h2>
+          <canvas id="ordersChart" aria-label="Orders bar chart" role="img"></canvas>
+        </article>
+
+        <article class="card">
+          <h2>Data Packet Usage</h2>
+          <div class="mini"><span>API Requests (this period)</span><span id="apiReqsLabel">62,140 / 100k</span></div>
+          <div class="progress" aria-label="API request usage"><div class="bar" id="apiReqsBar" style="width:62%"></div></div>
+
+          <div class="mini" style="margin-top:12px"><span>Storage (LLM-ready data)</span><span id="storageLabel">38.4 GB / 80 GB</span></div>
+          <div class="progress"><div class="bar" id="storageBar" style="width:48%"></div></div>
+
+          <div class="mini" style="margin-top:12px"><span>Exports Generated</span><span id="exportsLabel">142</span></div>
+          <div class="sep"></div>
+          <div class="mini"><span>Last Packet</span><span id="lastPacketLabel">#DP-2025-0904-1842 (2.6 GB)</span></div>
+          <div class="mini"><span>Status</span><span class="pill">Ready for marketplace</span></div>
+        </article>
+      </section>
+
+      <!-- Orders Table -->
+      <section class="card" style="margin-top:14px" aria-label="Recent orders">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+          <h2 style="margin:0">Recent Orders</h2>
+          <div class="filters">
+            <button class="chip active" data-status="all">All</button>
+            <button class="chip" data-status="paid">Paid</button>
+            <button class="chip" data-status="pending">Pending</button>
+            <button class="chip" data-status="refunded">Refunded</button>
+          </div>
+          <span class="right pill" id="ordersCount">124 results</span>
         </div>
 
-        <div class="row g-2 align-items-end">
-          <div class="col-12 col-md-4">
-            <label class="form-label">Search</label>
-            <input class="form-control" id="explorerSearch" placeholder="Find text in table…" />
-          </div>
-          <div class="col-6 col-md-3">
-            <label class="form-label">Column</label>
-            <select class="form-select" id="explorerColumn"></select>
-          </div>
-          <div class="col-6 col-md-3">
-            <label class="form-label">Filter value</label>
-            <input class="form-control" id="explorerFilter" placeholder="Exact match…" />
-          </div>
-          <div class="col-12 col-md-2 d-grid">
-            <button class="btn btn-ghost" id="applyFilter">Apply</button>
-          </div>
-        </div>
+        <table class="table" role="table" aria-label="Orders">
+          <thead>
+            <tr>
+              <th scope="col">Order</th>
+              <th scope="col">Date</th>
+              <th scope="col">Customer</th>
+              <th scope="col">Items</th>
+              <th scope="col">Total</th>
+              <th scope="col">Status</th>
+              <th scope="col" class="right">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="ordersBody" role="rowgroup">
+            <!-- rows injected via JS -->
+          </tbody>
+        </table>
+      </section>
 
-        <div class="d-flex gap-2 mt-3">
-          <button class="btn btn-brand btn-sm" id="exportCsv"><i class="bi bi-download"></i> Export CSV</button>
-          <button class="btn btn-ghost btn-sm" id="exportJsonl"><i class="bi bi-download"></i> Export JSONL</button>
-          <button class="btn btn-ghost btn-sm" id="clearExplorer">Clear</button>
-        </div>
-
-        <div class="table-wrap mt-3">
-          <table class="table table-striped table-hover table-sm mb-0" id="explorerTable">
-            <thead></thead>
-            <tbody></tbody>
+      <!-- Product & Integrations -->
+      <section class="grid grid-2" style="margin-top:14px">
+        <article class="card" id="products">
+          <h2>Top Products</h2>
+          <table class="table" aria-label="Top products">
+            <thead><tr><th>Product</th><th>SKU</th><th>Units</th><th>Revenue</th><th>Inventory</th></tr></thead>
+            <tbody id="topProducts"></tbody>
           </table>
-        </div>
+        </article>
+
+        <article class="card" id="integrations">
+          <h2>Integrations</h2>
+          <div class="mini"><span>Shopify</span><span class="pill">Connected</span></div>
+          <div class="mini"><span>Stripe</span><span class="pill">Connected</span></div>
+          <div class="mini"><span>Square</span><span class="pill">Connected</span></div>
+          <div class="mini"><span>Google Ads</span><span class="pill">Syncing</span></div>
+          <div class="mini"><span>Meta Pixel</span><span class="pill">Connected</span></div>
+          <div style="margin-top:10px"><button class="btn" id="openIntegration2">Add Integration</button></div>
+        </article>
       </section>
 
-      <!-- =========== LLM PACKET BUILDER =========== -->
-      <section id="page-llm" style="display:none">
-        <div class="mb-3">
-          <div class="section-title">LLM Packet Builder</div>
-          <div class="section-sub">Map transaction rows → training examples. Output as JSONL (default) or CSV.</div>
-        </div>
+      <!-- Billing & Payouts -->
+      <section class="grid grid-3" id="billing" style="margin-top:14px">
+        <article class="card">
+          <h2>Payouts</h2>
+          <div class="mini"><span>Next Payout</span><strong>$18,204 • Sep 06</strong></div>
+          <div class="mini"><span>Method</span><span class="pill">Stripe • **** 8123</span></div>
+          <div class="mini"><span>Last Payout</span><span>$12,940 • Aug 30</span></div>
+          <div class="sep"></div>
+          <button class="btn">View Payouts</button>
+        </article>
 
-        <div class="row g-3">
-          <div class="col-12 col-xl-4">
-            <div class="kpi-card p-3">
-              <label class="form-label">System Prompt (applies to all)</label>
-              <textarea class="form-control" id="llmSystem" rows="4" placeholder="You are an expert retail data assistant. Answer succinctly with numeric precision."></textarea>
-              <div class="row g-2 mt-2">
-                <div class="col-6">
-                  <label class="form-label">Input columns → prompt</label>
-                  <input class="form-control" id="llmInputCols" placeholder="e.g., sku, qty, price, timestamp" />
-                </div>
-                <div class="col-6">
-                  <label class="form-label">Target column → answer</label>
-                  <input class="form-control" id="llmTargetCol" placeholder="e.g., price" />
-                </div>
-              </div>
-              <div class="form-text mt-2">We’ll create {"messages":[{"role":"system"...},{"role":"user":...},{"role":"assistant":...}]} per row.</div>
-              <div class="d-flex gap-2 mt-3">
-                <button class="btn btn-brand" id="btnBuildPacket"><i class="bi bi-gear"></i> Build Packet</button>
-                <button class="btn btn-ghost" id="btnDownloadPacket"><i class="bi bi-download"></i> Download JSONL</button>
-              </div>
-            </div>
-            <div class="kpi-card p-3 mt-3">
-              <div class="section-title">Packet Stats</div>
-              <ul class="list-group list-group-flush" id="packetStats">
-                <li class="list-group-item">No packet built yet.</li>
-              </ul>
-            </div>
-          </div>
+        <article class="card">
+          <h2>Subscription</h2>
+          <div class="mini"><span>Plan</span><span class="pill">Pro</span></div>
+          <div class="mini"><span>Seats</span><span>3 / 5</span></div>
+          <div class="mini"><span>Renews</span><span>Oct 1, 2025</span></div>
+          <div class="sep"></div>
+          <button class="btn ghost">Manage Plan</button>
+        </article>
 
-          <div class="col-12 col-xl-8">
-            <div class="kpi-card p-3">
-              <div class="d-flex justify-content-between">
-                <div class="section-title">Preview (first 10)</div>
-                <button class="btn btn-ghost btn-sm" id="btnCopyPreview"><i class="bi bi-clipboard"></i> Copy</button>
-              </div>
-              <pre class="code" id="packetPreview" style="max-height:420px; overflow:auto">Build a packet to preview…</pre>
-            </div>
-          </div>
-        </div>
+        <article class="card">
+          <h2>Alerts</h2>
+          <div class="mini"><span>Chargeback Risk</span><span class="pill" style="border-color:rgba(245,158,11,.45)">Medium</span></div>
+          <div class="mini"><span>Low Stock (7 SKUs)</span><span class="pill" style="border-color:rgba(239,68,68,.45)">Action needed</span></div>
+          <div class="mini"><span>Webhook Retries</span><span class="pill">0</span></div>
+          <div class="sep"></div>
+          <button class="btn warn">Review Risks</button>
+        </article>
       </section>
 
-      <!-- =========== AGENTA AI MODELS =========== -->
-      <section id="page-agenta" style="display:none">
-        <div class="mb-3">
-          <div class="section-title">Agenta AI Models</div>
-          <div class="section-sub">Lightweight demo of per-store inference routing and latency metrics (front-end only).</div>
+      <!-- Footer -->
+      <footer class="mini" style="margin-top:16px">
+        <span>© 2025 Aurelo Data. Built by Microknots.</span>
+        <span class="right">Need help? <a href="#support" class="pill">Contact Support</a></span>
+      </footer>
+    </main>
+  </div>
+
+  <!-- Refund Modal -->
+  <div class="modal" id="refundModal" role="dialog" aria-modal="true" aria-labelledby="refundTitle">
+    <div class="dialog">
+      <h3 id="refundTitle">Issue Refund</h3>
+      <div class="row">
+        <div class="field">
+          <label for="refundOrder">Order ID</label>
+          <input id="refundOrder" placeholder="e.g., AU-10483" />
         </div>
-
-        <div class="row g-3">
-          <div class="col-12 col-lg-5">
-            <div class="kpi-card p-3">
-              <label class="form-label">Store Context</label>
-              <select class="form-select" id="agentaStore">
-                <option>RDU-001</option>
-                <option>ATL-104</option>
-                <option>NYC-212</option>
-              </select>
-              <label class="form-label mt-2">Question</label>
-              <textarea class="form-control" id="agentaQ" rows="4" placeholder="Which SKUs have the highest margin today?"></textarea>
-              <div class="d-flex gap-2 mt-3">
-                <button class="btn btn-brand" id="agentaRun"><i class="bi bi-lightning-charge"></i> Run</button>
-                <button class="btn btn-ghost" id="agentaClear">Clear</button>
-              </div>
-            </div>
-          </div>
-          <div class="col-12 col-lg-7">
-            <div class="kpi-card p-3">
-              <div class="section-title">Response</div>
-              <pre class="code" id="agentaOut" style="min-height:160px">Awaiting question…</pre>
-              <div class="row g-2">
-                <div class="col">
-                  <div class="kpi-card p-2 text-center">
-                    <div class="text-secondary small">Latency (ms)</div>
-                    <div class="h5 m-0" id="agentaLatency">—</div>
-                  </div>
-                </div>
-                <div class="col">
-                  <div class="kpi-card p-2 text-center">
-                    <div class="text-secondary small">Token Est.</div>
-                    <div class="h5 m-0" id="agentaTokens">—</div>
-                  </div>
-                </div>
-                <div class="col">
-                  <div class="kpi-card p-2 text-center">
-                    <div class="text-secondary small">Route</div>
-                    <div class="h5 m-0" id="agentaRoute">—</div>
-                  </div>
-                </div>
-              </div>
-              <div class="form-text mt-2">Demo simulates routing (US-East/US-West) and token counts.</div>
-            </div>
-          </div>
+        <div class="field">
+          <label for="refundAmount">Amount</label>
+          <input id="refundAmount" type="number" step="0.01" placeholder="e.g., 29.99" />
         </div>
-      </section>
-
-      <!-- =========== TRADING ALGORITHMS =========== -->
-      <section id="page-trading" style="display:none">
-        <div class="mb-3">
-          <div class="section-title">Trading Algorithms</div>
-          <div class="section-sub">TTM Scalper-style signals, MACD/RSI, and position sizing demo (front-end mock backtest).</div>
+        <div class="field" style="grid-column: 1 / -1;">
+          <label for="refundReason">Reason</label>
+          <textarea id="refundReason" rows="3" placeholder="Notes for customer and internal records"></textarea>
         </div>
-
-        <div class="row g-3">
-          <div class="col-12 col-xl-4">
-            <div class="kpi-card p-3">
-              <div class="row g-2">
-                <div class="col-6">
-                  <label class="form-label">Lookback (days)</label>
-                  <input type="number" min="50" max="400" value="180" class="form-control" id="taLookback" />
-                </div>
-                <div class="col-6">
-                  <label class="form-label">Risk % per trade</label>
-                  <input type="number" min="0.1" max="5" step="0.1" value="1.0" class="form-control" id="taRisk" />
-                </div>
-              </div>
-              <div class="row g-2 mt-1">
-                <div class="col-6">
-                  <label class="form-label">MACD Fast</label>
-                  <input type="number" class="form-control" value="12" id="taMacdFast"/>
-                </div>
-                <div class="col-6">
-                  <label class="form-label">MACD Slow</label>
-                  <input type="number" class="form-control" value="26" id="taMacdSlow"/>
-                </div>
-              </div>
-              <div class="row g-2 mt-1">
-                <div class="col-6">
-                  <label class="form-label">RSI Period</label>
-                  <input type="number" class="form-control" value="14" id="taRsi"/>
-                </div>
-                <div class="col-6">
-                  <label class="form-label">Slippage (bps)</label>
-                  <input type="number" class="form-control" value="2" id="taSlip"/>
-                </div>
-              </div>
-              <div class="d-flex gap-2 mt-3">
-                <button class="btn btn-brand" id="taRun"><i class="bi bi-play-fill"></i> Run Backtest</button>
-                <button class="btn btn-ghost" id="taReset">Reset</button>
-              </div>
-            </div>
-
-            <div class="kpi-card p-3 mt-3">
-              <div class="section-title">Backtest Metrics</div>
-              <ul class="list-group list-group-flush" id="taMetrics">
-                <li class="list-group-item">No results yet.</li>
-              </ul>
-            </div>
-          </div>
-
-          <div class="col-12 col-xl-8">
-            <div class="kpi-card p-3">
-              <div class="d-flex justify-content-between">
-                <div class="section-title">Equity Curve (simulated)</div>
-                <button class="btn btn-ghost btn-sm" id="taExport"><i class="bi bi-download"></i> Export Trades</button>
-              </div>
-              <canvas id="chartTA" height="110"></canvas>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- =========== REVENUE & PRICING =========== -->
-      <section id="page-revenue" style="display:none">
-        <div class="mb-3">
-          <div class="section-title">Revenue & Pricing</div>
-          <div class="section-sub">MB-based pricing, store counts, Aurelo ↔ Microknots splits, and contract projections.</div>
-        </div>
-
-        <div class="row g-3">
-          <div class="col-12 col-xl-4">
-            <div class="kpi-card p-3">
-              <div class="row g-2">
-                <div class="col-6">
-                  <label class="form-label">Stores</label>
-                  <input class="form-control" type="number" id="revStores" value="30" />
-                </div>
-                <div class="col-6">
-                  <label class="form-label">Tx/day per store</label>
-                  <input class="form-control" type="number" id="revTx" value="700" />
-                </div>
-              </div>
-              <div class="row g-2 mt-1">
-                <div class="col-6">
-                  <label class="form-label">KB per transaction</label>
-                  <input class="form-control" type="number" id="revKbPerTx" value="3.0" step="0.1" />
-                </div>
-                <div class="col-6">
-                  <label class="form-label">$ per MB</label>
-                  <input class="form-control" type="number" id="revPerMb" value="50" />
-                </div>
-              </div>
-              <div class="row g-2 mt-1">
-                <div class="col-6">
-                  <label class="form-label">Aurelo Share %</label>
-                  <input class="form-control" type="number" id="revAureloPct" value="36" />
-                </div>
-                <div class="col-6">
-                  <label class="form-label">Microknots Share %</label>
-                  <input class="form-control" type="number" id="revMkPct" value="64" />
-                </div>
-              </div>
-              <button class="btn btn-brand mt-3" id="revCalc"><i class="bi bi-calculator"></i> Calculate</button>
-            </div>
-          </div>
-
-          <div class="col-12 col-xl-8">
-            <div class="kpi-card p-3">
-              <div class="section-title">Results</div>
-              <div class="row g-3 mt-1">
-                <div class="col-6 col-lg-3">
-                  <div class="kpi-card p-2 text-center">
-                    <div class="text-secondary small">MB / Day</div>
-                    <div class="h5 m-0" id="revMbDay">—</div>
-                  </div>
-                </div>
-                <div class="col-6 col-lg-3">
-                  <div class="kpi-card p-2 text-center">
-                    <div class="text-secondary small">Gross $ / Day</div>
-                    <div class="h5 m-0" id="revGrossDay">—</div>
-                  </div>
-                </div>
-                <div class="col-6 col-lg-3">
-                  <div class="kpi-card p-2 text-center">
-                    <div class="text-secondary small">Aurelo $ / Mo</div>
-                    <div class="h5 m-0" id="revAureloMo">—</div>
-                  </div>
-                </div>
-                <div class="col-6 col-lg-3">
-                  <div class="kpi-card p-2 text-center">
-                    <div class="text-secondary small">Microknots $ / Mo</div>
-                    <div class="h5 m-0" id="revMkMo">—</div>
-                  </div>
-                </div>
-              </div>
-              <canvas id="chartRev" height="90" class="mt-3"></canvas>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- =========== CONTRACTS & CLIENTS =========== -->
-      <section id="page-contracts" style="display:none">
-        <div class="mb-3">
-          <div class="section-title">Contracts & Clients</div>
-          <div class="section-sub">Track pipeline and active agreements (demo data).</div>
-        </div>
-        <div class="kpi-card p-3">
-          <div class="d-flex justify-content-between align-items-center">
-            <div class="section-title mb-0">Pipeline</div>
-            <button class="btn btn-ghost btn-sm" id="addClient"><i class="bi bi-plus"></i> Add</button>
-          </div>
-          <div class="table-wrap mt-2">
-            <table class="table table-sm align-middle mb-0" id="contractsTable">
-              <thead class="table-light">
-                <tr>
-                  <th>Company</th><th>Type</th><th>Value (USD)</th><th>Term</th><th>Status</th><th></th>
-                </tr>
-              </thead>
-              <tbody></tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
-      <!-- =========== REPORTS & EXPORTS =========== -->
-      <section id="page-reports" style="display:none">
-        <div class="mb-3">
-          <div class="section-title">Reports & Exports</div>
-          <div class="section-sub">Generate a print-ready summary of KPIs, ingestion, and revenue projections.</div>
-        </div>
-
-        <div class="kpi-card p-3 print-container">
-          <h3 class="h5 fw-bold">Aurelo Data — Executive Summary</h3>
-          <p class="mb-2">This report summarizes the recent ingestion volume, packet generation activity, Agenta model usage, and projected revenue based on MB-based pricing and store counts.</p>
-          <hr/>
-          <div class="row g-3">
-            <div class="col-md">
-              <div class="kpi-card p-2 text-center">
-                <div class="text-secondary small">7-day TX Avg</div>
-                <div class="h5 m-0" id="repTxAvg">—</div>
-              </div>
-            </div>
-            <div class="col-md">
-              <div class="kpi-card p-2 text-center">
-                <div class="text-secondary small">7-day MB Avg</div>
-                <div class="h5 m-0" id="repMbAvg">—</div>
-              </div>
-            </div>
-            <div class="col-md">
-              <div class="kpi-card p-2 text-center">
-                <div class="text-secondary small">Active Stores</div>
-                <div class="h5 m-0" id="repStores">—</div>
-              </div>
-            </div>
-            <div class="col-md">
-              <div class="kpi-card p-2 text-center">
-                <div class="text-secondary small">Proj. MRR</div>
-                <div class="h5 m-0" id="repMRR">—</div>
-              </div>
-            </div>
-          </div>
-          <div class="mt-3">
-            <div class="section-title">Notes</div>
-            <ul id="repNotes">
-              <li>Data derived from demo in-browser computations; replace with backend metrics in production.</li>
-              <li>Packet Builder uses JSONL with messages for system/user/assistant.</li>
-              <li>Pricing based on $/MB with share split between Aurelo and Microknots.</li>
-            </ul>
-          </div>
-        </div>
-
-        <div class="d-flex gap-2 mt-3 no-print">
-          <button class="btn btn-brand" onclick="window.print()"><i class="bi bi-printer"></i> Print / Save PDF</button>
-          <button class="btn btn-ghost" id="exportOverviewJson"><i class="bi bi-download"></i> Export KPI JSON</button>
-        </div>
-      </section>
-
-      <!-- =========== SETTINGS =========== -->
-      <section id="page-settings" style="display:none">
-        <div class="mb-3">
-          <div class="section-title">Settings</div>
-          <div class="section-sub">Theme, persistence, and session management.</div>
-        </div>
-        <div class="kpi-card p-3">
-          <div class="row g-3">
-            <div class="col-md-4">
-              <label class="form-label">Theme</label>
-              <select class="form-select" id="themeSelect">
-                <option value="light" selected>Light (default)</option>
-                <option value="dark">Dark (high contrast)</option>
-              </select>
-            </div>
-            <div class="col-md-4">
-              <label class="form-label">Persist Session</label>
-              <select class="form-select" id="persistSelect">
-                <option value="remember">Keep me signed in</option>
-                <option value="session">Sign out on close</option>
-              </select>
-            </div>
-            <div class="col-md-4 d-grid align-items-end">
-              <button class="btn btn-brand mt-md-4" id="applySettings">Apply</button>
-            </div>
-          </div>
-          <hr/>
-          <div class="d-flex gap-2">
-            <button class="btn btn-ghost" id="resetApp">Reset App</button>
-            <button class="btn btn-danger" id="logoutBtn2">Logout</button>
-          </div>
-        </div>
-      </section>
-
+      </div>
+      <div class="actions">
+        <button class="btn bad" id="confirmRefund">Confirm Refund</button>
+        <button class="btn ghost" data-close="#refundModal">Cancel</button>
+      </div>
     </div>
-  </main>
-</section>
+  </div>
 
-<!-- ===================== SCRIPTS ===================== -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
-        crossorigin="anonymous"></script>
-<script>
-(function(){
-  // --------- Helpers ---------
-  const $ = (s, r=document) => r.querySelector(s);
-  const $$ = (s, r=document) => [...r.querySelectorAll(s)];
-  const fmt = new Intl.NumberFormat('en-US');
-  const money = v => '$' + fmt.format(Math.round(v));
-
-  function setStatus(text){ $('#statusPill').innerText = 'Status: ' + text; }
-  function nowISO(){ return new Date().toISOString().replace('T',' ').slice(0,19); }
-  function download(name, text){
-    const blob = new Blob([text], {type:'text/plain;charset=utf-8'});
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = name;
-    document.body.appendChild(a);
-    a.click();
-    URL.revokeObjectURL(a.href);
-    a.remove();
-  }
-  function toCSV(rows){
-    if(!rows || !rows.length) return '';
-    const cols = Object.keys(rows[0]);
-    const esc = v => `"${String(v ?? '').replaceAll('"','""')}"`;
-    const header = cols.map(esc).join(',');
-    const lines = rows.map(r => cols.map(c => esc(r[c])).join(','));
-    return [header, ...lines].join('\n');
-  }
-  function toJSONL(objs){ return objs.map(o => JSON.stringify(o)).join('\n'); }
-
-  // --------- Auth ---------
-  const loginView = $('#loginView');
-  const appView   = $('#appView');
-  function showApp(){
-    loginView.style.display='none';
-    appView.style.display='flex';
-    const u = localStorage.getItem('ad_user') || 'user';
-    $('#userDisplay').innerText = u;
-    routeTo('page-overview');
-  }
-  function showLogin(){
-    loginView.style.display='flex';
-    appView.style.display='none';
-  }
-
-  // Keep-signed behavior
-  const authed = localStorage.getItem('ad_keep')==='1' && localStorage.getItem('ad_authed')==='1';
-  if(authed) showApp();
-
-  $('#loginForm').addEventListener('submit', (e)=>{
-    e.preventDefault();
-    const form = e.currentTarget;
-    if(!form.checkValidity()){ form.classList.add('was-validated'); return; }
-    const user = $('#loginUser').value.trim() || 'user';
-    const keep = $('#keepSigned').checked;
-    localStorage.setItem('ad_user', user);
-    localStorage.setItem('ad_authed','1');
-    localStorage.setItem('ad_keep', keep ? '1' : '0');
-    showApp();
-  });
-
-  $('#forgotForm').addEventListener('submit', (e)=>{
-    e.preventDefault();
-    const email = $('#forgotEmail').value.trim();
-    alert('Demo: reset link sent to ' + email);
-    const modal = bootstrap.Modal.getInstance($('#forgotModal'));
-    modal?.hide();
-  });
-
-  $('#logoutBtn, #logoutBtn2').forEach?.call ? null : null; // guard older browsers
-  $$('#logoutBtn, #logoutBtn2').forEach(btn=>{
-    btn.addEventListener('click', (e)=>{
-      e.preventDefault();
-      localStorage.removeItem('ad_authed');
-      if(localStorage.getItem('ad_keep')!=='1'){ localStorage.removeItem('ad_user'); }
-      showLogin();
-    });
-  });
-
-  // --------- Routing ---------
-  function routeTo(id){
-    // Sidebar state
-    $$('#sideNav .nav-link').forEach(n=>{
-      n.classList.toggle('active', n.dataset.target===id);
-    });
-    // Page visibility
-    $$('#pages > section').forEach(s=>{
-      s.style.display = (s.id===id) ? '' : 'none';
-    });
-    // Set status
-    setStatus('Idle');
-  }
-  // handle clicks anywhere with data-target
-  document.addEventListener('click', (e)=>{
-    const el = e.target.closest('[data-target]');
-    if(!el) return;
-    e.preventDefault();
-    routeTo(el.getAttribute('data-target'));
-  });
-
-  // --------- Overview (charts + KPIs) ---------
-  let chartTxn, chartMix;
-  function randomSeries(n, base=100, vol=10){
-    const out=[];
-    for(let i=0;i<n;i++){
-      base += (Math.random()*2-1)*vol;
-      out.push(Math.max(1, Math.round(base)));
-    }
-    return out;
-  }
-  function rollingAvg(arr){ return Math.round(arr.reduce((a,b)=>a+b,0)/arr.length); }
-
-  function initOverview(){
-    const labels = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-    const tx = randomSeries(7, 1000, 160);
-    const mb = tx.map(v=> Math.round(v*3.0/1024*10)/10); // 3 KB/tx → MB approx demo
-    const stores = 30 + Math.floor(Math.random()*6);
-    const mrr = Math.round( (rollingAvg(mb)*50) * 30 ); // $50/MB * days
-
-    $('#kpiTxn').innerText = fmt.format(tx[6]);
-    $('#kpiTxnDelta').innerText = `7-day avg: ${fmt.format(rollingAvg(tx))}`;
-    $('#kpiMB').innerText = fmt.format(mb[6]);
-    $('#kpiMbDelta').innerText = `7-day avg: ${fmt.format(rollingAvg(mb))} MB`;
-    $('#kpiStores').innerText = stores;
-    $('#kpiMRR').innerText = money(mrr);
-
-    // For Reports page snapshot
-    $('#repTxAvg').innerText = fmt.format(rollingAvg(tx));
-    $('#repMbAvg').innerText = fmt.format(rollingAvg(mb));
-    $('#repStores').innerText = stores;
-    $('#repMRR').innerText = money(mrr);
-
-    // line chart
-    chartTxn?.destroy();
-    chartTxn = new Chart($('#chartTxn'), {
-      type:'line',
-      data:{
-        labels,
-        datasets:[
-          {label:'Transactions', data:tx, tension:.35},
-          {label:'Ingested MB', data:mb, tension:.35}
-        ]
-      },
-      options:{
-        responsive:true,
-        plugins:{ legend:{position:'bottom'} },
-        scales:{ y:{ beginAtZero:true } }
-      }
-    });
-
-    // doughnut
-    chartMix?.destroy();
-    chartMix = new Chart($('#chartMix'), {
-      type:'doughnut',
-      data:{ labels:['Data Packets','Enterprise','Algo Leasing'], datasets:[{ data:[55,30,15] }]},
-      options:{ plugins:{ legend:{ position:'bottom' } } }
-    });
-  }
-  $('#refreshOverview').addEventListener('click', initOverview);
-
-  // --------- Ingestion ---------
-  const ingestLog = JSON.parse(localStorage.getItem('ad_ingestLog')||'[]');
-  function renderIngestLog(){
-    const tb = $('#ingestLog'); tb.innerHTML='';
-    ingestLog.forEach(r=>{
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${r.time}</td><td>${r.source}</td><td>${r.store}</td><td>${fmt.format(r.rows)}</td><td>${r.mb}</td><td>${r.tag}</td><td><span class="badge text-bg-success">Staged</span></td>`;
-      tb.appendChild(tr);
-    });
-  }
-  renderIngestLog();
-
-  function validateRows(rows){
-    const req = ['transaction_id','sku','qty','price','store_id','timestamp'];
-    const issues = [];
-    if(!rows.length){ issues.push('No rows parsed.'); return issues; }
-    const cols = Object.keys(rows[0]);
-    req.forEach(c=>{ if(!cols.includes(c)) issues.push(`Missing column: ${c}`); });
-    if(rows.some(r=> Number(r.qty) <= 0 )) issues.push('Some rows have qty <= 0');
-    if(rows.some(r=> Number(r.price) <= 0 )) issues.push('Some rows have price <= 0');
-    return issues.length ? issues : ['All checks passed.'];
-  }
-
-  function setValidation(listItems){
-    const ul = $('#validationList'); ul.innerHTML='';
-    listItems.forEach(t=>{
-      const li = document.createElement('li');
-      li.className='list-group-item';
-      li.textContent = t;
-      ul.appendChild(li);
-    });
-  }
-
-  // In-memory parsed rows store (used by Explorer/LLM)
-  let parsedRows = [];
-
-  $('#ingestForm').addEventListener('submit', (e)=>{
-    e.preventDefault();
-    const file = $('#ingestFile').files[0];
-    if(!file){ alert('Choose a CSV file.'); return; }
-    setStatus('Parsing');
-    Papa.parse(file, {
-      header:true,
-      skipEmptyLines:true,
-      complete: (res)=>{
-        parsedRows = res.data;
-        setStatus('Validating');
-        const issues = validateRows(parsedRows);
-        setValidation(issues);
-
-        // log
-        const estKB = Math.max(1, Math.round(JSON.stringify(parsedRows).length/1024));
-        const mb = Math.round(estKB/1024*10)/10;
-        const rec = {
-          time: nowISO(),
-          source: $('#ingestSource').value,
-          store: $('#ingestStore').value || 'N/A',
-          rows: parsedRows.length,
-          mb,
-          tag: $('#ingestTag').value || '-'
-        };
-        ingestLog.unshift(rec);
-        localStorage.setItem('ad_ingestLog', JSON.stringify(ingestLog));
-        renderIngestLog();
-
-        // seed explorer
-        seedExplorerFromRows(parsedRows);
-        alert(`Parsed ${parsedRows.length} rows (${mb} MB est).`);
-        setStatus('Idle');
-      },
-      error: (err)=>{ alert('Parse error: ' + err); setStatus('Idle'); }
-    });
-  });
-
-  $('#btnIngestDemo').addEventListener('click', ()=>{
-    // Minimal demo dataset
-    parsedRows = [];
-    for(let i=0;i<200;i++){
-      parsedRows.push({
-        transaction_id: 100000+i,
-        sku: ['APPLE','BREAD','MILK','EGGS','RICE'][Math.floor(Math.random()*5)],
-        qty: [1,1,2,3,5][Math.floor(Math.random()*5)],
-        price: (Math.random()*20+1).toFixed(2),
-        store_id: ['RDU-001','ATL-104','NYC-212'][Math.floor(Math.random()*3)],
-        timestamp: new Date(Date.now()-Math.random()*7*86400000).toISOString()
-      });
-    }
-    const issues = validateRows(parsedRows);
-    setValidation(issues);
-    const rec = { time:nowISO(), source:'demo', store:'—', rows:parsedRows.length, mb: (parsedRows.length*0.003).toFixed(1), tag:'demo' };
-    ingestLog.unshift(rec);
-    localStorage.setItem('ad_ingestLog', JSON.stringify(ingestLog));
-    renderIngestLog();
-    seedExplorerFromRows(parsedRows);
-    alert('Loaded demo dataset (200 rows).');
-  });
-
-  // --------- Explorer ---------
-  function seedExplorerFromRows(rows){
-    const thead = $('#explorerTable thead'), tbody = $('#explorerTable tbody');
-    thead.innerHTML=''; tbody.innerHTML='';
-    if(!rows || !rows.length){ return; }
-    const cols = Object.keys(rows[0]);
-    // header
-    const trh = document.createElement('tr');
-    cols.forEach(c=>{
-      const th = document.createElement('th'); th.textContent = c; trh.appendChild(th);
-    });
-    thead.appendChild(trh);
-    // body
-    rows.forEach(r=>{
-      const tr = document.createElement('tr');
-      cols.forEach(c=>{
-        const td = document.createElement('td'); td.textContent = r[c]; tr.appendChild(td);
-      });
-      tbody.appendChild(tr);
-    });
-    // filter column select
-    const select = $('#explorerColumn'); select.innerHTML='';
-    cols.forEach(c=>{
-      const o = document.createElement('option'); o.value=c; o.textContent=c; select.appendChild(o);
-    });
-  }
-  $('#applyFilter').addEventListener('click', ()=>{
-    const col = $('#explorerColumn').value;
-    const val = $('#explorerFilter').value;
-    const rows = parsedRows.filter(r => val ? String(r[col])===val : true);
-    seedExplorerFromRows(rows);
-  });
-  $('#explorerSearch').addEventListener('input', (e)=>{
-    const q = e.target.value.toLowerCase();
-    const rows = parsedRows.filter(r => Object.values(r).some(v => String(v).toLowerCase().includes(q)));
-    seedExplorerFromRows(rows);
-  });
-  $('#clearExplorer').addEventListener('click', ()=>{
-    seedExplorerFromRows(parsedRows);
-    $('#explorerSearch').value=''; $('#explorerFilter').value='';
-  });
-
-  $('#exportCsv').addEventListener('click', ()=>{
-    if(!parsedRows.length) return alert('No data to export.');
-    download('aurelo_explorer.csv', toCSV(parsedRows));
-  });
-  $('#exportJsonl').addEventListener('click', ()=>{
-    if(!parsedRows.length) return alert('No data to export.');
-    const lines = parsedRows.map(r=> JSON.stringify(r));
-    download('aurelo_explorer.jsonl', lines.join('\n'));
-  });
-
-  // --------- LLM Packet Builder ---------
-  let builtPacket = [];
-  $('#btnBuildPacket').addEventListener('click', ()=>{
-    if(!parsedRows.length) return alert('Ingest or load demo data first.');
-    const sys = $('#llmSystem').value.trim() || 'You are an expert retail data assistant.';
-    const inputCols = ($('#llmInputCols').value || 'sku, qty, price, timestamp').split(',').map(s=>s.trim()).filter(Boolean);
-    const tgt = ($('#llmTargetCol').value || 'price').trim();
-
-    builtPacket = parsedRows.slice(0, 500).map(r=>{
-      const prompt = inputCols.map(c=> `${c}: ${r[c]}`).join(', ');
-      const answer = String(r[tgt] ?? '');
-      return {
-        messages: [
-          {role:'system', content: sys},
-          {role:'user', content: `Given: ${prompt}\nQuestion: What is ${tgt}?`},
-          {role:'assistant', content: answer}
-        ],
-        metadata: { store_id: r.store_id, transaction_id: r.transaction_id }
-      };
-    });
-
-    // preview
-    const previewLines = builtPacket.slice(0,10).map(o=> JSON.stringify(o));
-    $('#packetPreview').textContent = previewLines.join('\n');
-    // stats
-    const ul = $('#packetStats'); ul.innerHTML='';
-    [
-      `Examples: ${builtPacket.length}`,
-      `System prompt length: ${sys.length} chars`,
-      `Input cols: ${inputCols.join(', ')}`,
-      `Target: ${tgt}`
-    ].forEach(t=>{ const li=document.createElement('li'); li.className='list-group-item'; li.textContent=t; ul.appendChild(li); });
-    alert('Packet built (preview first 10).');
-  });
-
-  $('#btnDownloadPacket').addEventListener('click', ()=>{
-    if(!builtPacket.length) return alert('Build the packet first.');
-    download('aurelo_packet.jsonl', toJSONL(builtPacket));
-  });
-
-  $('#btnCopyPreview').addEventListener('click', ()=>{
-    const text = $('#packetPreview').textContent;
-    navigator.clipboard.writeText(text).then(()=> alert('Preview copied to clipboard.'));
-  });
-
-  // --------- Agenta AI (sim) ---------
-  $('#agentaRun').addEventListener('click', ()=>{
-    const q = $('#agentaQ').value.trim();
-    if(!q) return alert('Ask a question.');
-    setStatus('Routing');
-    const latency = Math.floor(120 + Math.random()*120);
-    const tokens  = Math.floor(50 + Math.random()*150);
-    const route = Math.random()>.5 ? 'US-East' : 'US-West';
-    setTimeout(()=>{
-      $('#agentaOut').textContent = `Simulated answer for "${q}":\nTop SKUs: APPLE, BREAD, EGGS.\nEstimated margins: APPLE 34%, BREAD 22%, EGGS 19%.\nConfidence: medium.`;
-      $('#agentaLatency').innerText = latency;
-      $('#agentaTokens').innerText = tokens;
-      $('#agentaRoute').innerText  = route;
-      setStatus('Idle');
-    }, 420);
-  });
-  $('#agentaClear').addEventListener('click', ()=>{
-    $('#agentaOut').textContent = 'Awaiting question…';
-    $('#agentaLatency').innerText = '—';
-    $('#agentaTokens').innerText = '—';
-    $('#agentaRoute').innerText  = '—';
-  });
-
-  // --------- Trading (mock backtest) ---------
-  let chartTA;
-  function simulateBacktest(days){
-    // generate price series (random walk)
-    const px = [];
-    let p = 100;
-    for(let i=0;i<days;i++){ p *= (1 + (Math.random()-0.5)*0.02); px.push(Math.max(1, p)); }
-    // equity curve (buy/hold baseline + random trade alpha)
-    let eq = 10000, trades=[];
-    for(let i=1;i<px.length;i++){
-      const edge = (px[i]-px[i-1])/px[i-1];
-      const sized = Math.sign(edge) * (0.5 + Math.random()*0.5);
-      const pnl = eq * sized * edge;
-      eq += pnl;
-      if(Math.random()<0.06){
-        trades.push({ day:i, side: sized>0?'LONG':'SHORT', pnl: Math.round(pnl) });
-      }
-    }
-    return { px, eqCurve: eqSeries(10000, trades, px.length), trades };
-    function eqSeries(start, trades, n){
-      const series = new Array(n).fill(0).map((_,i)=> start);
-      let cur = start;
-      trades.forEach(t=>{
-        for(let j=t.day; j<n; j++){ series[j] += t.pnl/3; }
-        cur += t.pnl;
-      });
-      // smooth-ish
-      return series.map((v,i)=> v + Math.sin(i/6)*50 );
-    }
-  }
-
-  function renderTAChart(series){
-    chartTA?.destroy();
-    const labels = series.eqCurve.map((_,i)=> i);
-    chartTA = new Chart($('#chartTA'), {
-      type:'line',
-      data:{ labels, datasets:[ { label:'Equity', data:series.eqCurve, tension:.3 } ] },
-      options:{ plugins:{ legend:{ position:'bottom' } }, scales:{ y:{ beginAtZero:false } } }
-    });
-  }
-
-  $('#taRun').addEventListener('click', ()=>{
-    const look = parseInt($('#taLookback').value||180,10);
-    const res = simulateBacktest(Math.max(100, Math.min(400, look)));
-    renderTAChart(res);
-    const pnl = Math.round(res.eqCurve.at(-1)-10000);
-    const win = Math.round(50 + Math.random()*30);
-    const dd  = Math.round(5 + Math.random()*10);
-    const ul = $('#taMetrics'); ul.innerHTML='';
-    [
-      `Net P&L: ${money(pnl)}`,
-      `Win rate: ${win}%`,
-      `Max Drawdown: ${dd}%`,
-      `Trades: ${res.trades.length}`
-    ].forEach(t=>{ const li=document.createElement('li'); li.className='list-group-item'; li.textContent=t; ul.appendChild(li); });
-    alert('Backtest complete (simulated).');
-  });
-  $('#taReset').addEventListener('click', ()=>{
-    chartTA?.destroy();
-    $('#taMetrics').innerHTML='<li class="list-group-item">No results yet.</li>';
-  });
-  $('#taExport').addEventListener('click', ()=>{
-    const rows = [{time:nowISO(), note:'Demo trades placeholder'}];
-    download('aurelo_trades.csv', toCSV(rows));
-  });
-
-  // --------- Revenue & Pricing ---------
-  let chartRev;
-  function calcRevenue(){
-    const stores = +$('#revStores').value||0;
-    const tx     = +$('#revTx').value||0;
-    const kbTx   = +$('#revKbPerTx').value||0;
-    const perMb  = +$('#revPerMb').value||0;
-    const aurelo = +$('#revAureloPct').value||0;
-    const mk     = +$('#revMkPct').value||0;
-
-    const kbDay  = stores * tx * kbTx;
-    const mbDay  = Math.round(kbDay/1024*10)/10;
-    const grossDay = mbDay * perMb;
-    const grossMo  = grossDay * 30;
-    const aureloMo = Math.round(grossMo * (aurelo/100));
-    const mkMo     = Math.round(grossMo * (mk/100));
-
-    $('#revMbDay').innerText = fmt.format(mbDay);
-    $('#revGrossDay').innerText = money(grossDay);
-    $('#revAureloMo').innerText = money(aureloMo);
-    $('#revMkMo').innerText = money(mkMo);
-
-    chartRev?.destroy();
-    const months = ['Sep','Oct','Nov','Dec','Jan','Feb'];
-    const proj = months.map((_,i)=> Math.round(grossMo * (0.9 + i*0.03)));
-    chartRev = new Chart($('#chartRev'), {
-      type:'bar',
-      data:{ labels: months, datasets: [ { label:'Projected Gross Revenue / mo', data: proj } ] },
-      options:{ plugins:{ legend:{position:'bottom'} }, scales:{ y:{ beginAtZero:true } } }
-    });
-
-    // Update overview MRR snapshot
-    $('#kpiMRR').innerText = money(grossMo);
-    $('#repMRR').innerText = money(grossMo);
-  }
-  $('#revCalc').addEventListener('click', calcRevenue);
-
-  // --------- Contracts & Clients ---------
-  const defaultClients = [
-    { company:'Alpha Retail Group', type:'Data Packets', value:1200000, term:'12 mo', status:'Negotiation' },
-    { company:'BroadVista Tech', type:'Enterprise', value:2700000, term:'24 mo', status:'Signed' },
-    { company:'QuantBridge Fund', type:'Algo Leasing', value:900000, term:'12 mo', status:'Pilot' }
-  ];
-  let clients = JSON.parse(localStorage.getItem('ad_clients')||'null') || defaultClients;
-  function renderClients(){
-    const tb = $('#contractsTable tbody'); tb.innerHTML='';
-    clients.forEach((c, idx)=>{
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td><input class="form-control form-control-sm" value="${c.company}"/></td>
-        <td>
-          <select class="form-select form-select-sm">
-            <option ${c.type==='Data Packets'?'selected':''}>Data Packets</option>
-            <option ${c.type==='Enterprise'?'selected':''}>Enterprise</option>
-            <option ${c.type==='Algo Leasing'?'selected':''}>Algo Leasing</option>
+  <!-- Integration Modal -->
+  <div class="modal" id="integrationModal" role="dialog" aria-modal="true" aria-labelledby="integrationTitle">
+    <div class="dialog">
+      <h3 id="integrationTitle">Add Integration</h3>
+      <div class="row">
+        <div class="field">
+          <label for="intType">Provider</label>
+          <select id="intType">
+            <option>Shopify</option>
+            <option>WooCommerce</option>
+            <option>BigCommerce</option>
+            <option>Stripe</option>
+            <option>Square</option>
+            <option>Meta Pixel</option>
+            <option>Google Ads</option>
+            <option>Custom Webhooks</option>
           </select>
-        </td>
-        <td><input class="form-control form-control-sm" value="${c.value}"/></td>
-        <td><input class="form-control form-control-sm" value="${c.term}"/></td>
-        <td>
-          <select class="form-select form-select-sm">
-            <option ${c.status==='Prospect'?'selected':''}>Prospect</option>
-            <option ${c.status==='Negotiation'?'selected':''}>Negotiation</option>
-            <option ${c.status==='Pilot'?'selected':''}>Pilot</option>
-            <option ${c.status==='Signed'?'selected':''}>Signed</option>
-          </select>
-        </td>
-        <td class="text-end"><button class="btn btn-sm btn-outline-danger" data-del="${idx}"><i class="bi bi-trash"></i></button></td>
-      `;
-      tb.appendChild(tr);
-    });
-  }
-  renderClients();
-  $('#contractsTable').addEventListener('input', ()=>{
-    // persist edits
-    const rows = $$('#contractsTable tbody tr');
-    clients = rows.map(r=>{
-      const [company,type,value,term,status] = [
-        r.children[0].querySelector('input').value,
-        r.children[1].querySelector('select').value,
-        Number(r.children[2].querySelector('input').value) || 0,
-        r.children[3].querySelector('input').value,
-        r.children[4].querySelector('select').value,
-      ];
-      return { company, type, value, term, status };
-    });
-    localStorage.setItem('ad_clients', JSON.stringify(clients));
-  });
-  $('#contractsTable').addEventListener('click', (e)=>{
-    const del = e.target.closest('[data-del]');
-    if(!del) return;
-    const idx = +del.getAttribute('data-del');
-    clients.splice(idx,1);
-    localStorage.setItem('ad_clients', JSON.stringify(clients));
-    renderClients();
-  });
-  $('#addClient').addEventListener('click', ()=>{
-    clients.unshift({ company:'New Co', type:'Data Packets', value:50000, term:'6 mo', status:'Prospect' });
-    localStorage.setItem('ad_clients', JSON.stringify(clients));
-    renderClients();
-  });
+        </div>
+        <div class="field">
+          <label for="intKey">API Key / Token</label>
+          <input id="intKey" placeholder="Paste key/token here" />
+        </div>
+        <div class="field" style="grid-column: 1 / -1;">
+          <label for="intNotes">Notes</label>
+          <textarea id="intNotes" rows="2" placeholder="Optional"></textarea>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn" id="connectIntegration">Connect</button>
+        <button class="btn ghost" data-close="#integrationModal">Close</button>
+      </div>
+    </div>
+  </div>
 
-  // --------- Reports / Export KPI JSON ---------
-  $('#exportOverviewJson').addEventListener('click', ()=>{
-    const obj = {
-      generated_at: nowISO(),
-      kpis:{
-        daily_txn: $('#kpiTxn').innerText,
-        daily_mb: $('#kpiMB').innerText,
-        active_stores: $('#kpiStores').innerText,
-        projected_mrr: $('#kpiMRR').innerText
-      }
+  <!-- Packet Progress Modal -->
+  <div class="modal" id="packetModal" role="dialog" aria-modal="true" aria-labelledby="packetTitle">
+    <div class="dialog">
+      <h3 id="packetTitle">Generating Data Packet…</h3>
+      <div class="mini"><span>Preparing LLM-ready CSV/JSONL</span><span id="packetPct">0%</span></div>
+      <div class="progress"><div class="bar" id="packetBar" style="width:0%"></div></div>
+      <div class="actions">
+        <button class="btn ghost" data-close="#packetModal">Hide</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ---------- Mock Data ----------
+    const state = {
+      range: 30,
+      statusFilter: 'all',
+      orders: [],
+      products: [
+        { name: 'Aurelo Hoodie — Black', sku: 'HD-BLK-01', units: 820, revenue: 32800, stock: 94 },
+        { name: 'Aurelo Tee — White', sku: 'TEE-WHT-02', units: 1240, revenue: 24800, stock: 120 },
+        { name: 'MK Tech Backpack', sku: 'BAG-URB-11', units: 540, revenue: 37800, stock: 42 },
+        { name: 'USB-C Hub Pro', sku: 'HUB-PRO-7', units: 410, revenue: 28700, stock: 15 },
+        { name: 'Noise-Cancel Buds', sku: 'BUD-ANC-5', units: 360, revenue: 43200, stock: 33 },
+      ],
+      channels: { Shopify: 54, Web: 22, Amazon: 16, POS: 8 }
     };
-    download('aurelo_kpis.json', JSON.stringify(obj, null, 2));
-  });
 
-  // --------- Settings ---------
-  function applyTheme(mode){
-    if(mode==='dark'){
-      document.body.style.background = '#0f0f12';
-      document.body.style.color = '#f1f3f5';
-      document.querySelectorAll('.kpi-card').forEach(c=>{
-        c.style.background = '#141418';
-        c.style.borderColor = '#2a2a30';
+    function rand(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+    function fmtMoney(n){ return n.toLocaleString(undefined, { style:'currency', currency:'USD' }); }
+
+    function seedOrders(){
+      const customers = ['Alex Kim','Jordan Lee','Taylor Singh','Sam Patel','Riley Chen','Priya Shah','Chris Johnson','Jamie Nguyen','Ava Brown','Noah Garcia','Liam Davis','Emma Wilson'];
+      const statuses = ['paid','pending','refunded'];
+      const items = ['Aurelo Hoodie','Aurelo Tee','Backpack','USB-C Hub','Buds','Desk Mat','Water Bottle','Cap'];
+      const now = new Date();
+      state.orders = [];
+      for(let i=0;i<124;i++){
+        const daysAgo = rand(0, state.range-1);
+        const dt = new Date(now); dt.setDate(now.getDate()-daysAgo);
+        const status = statuses[rand(0, statuses.length-1)];
+        const nItems = rand(1,4);
+        const total = rand(18,220) + (Math.random()>0.6? .99 : .49);
+        state.orders.push({
+          id: 'AU-' + (10000+i),
+          date: dt.toISOString().slice(0,10),
+          customer: customers[rand(0, customers.length-1)],
+          items: items.sort(()=>Math.random()-0.5).slice(0,nItems).join(', '),
+          total: total,
+          status
+        });
+      }
+    }
+
+    // ---------- Orders Table ----------
+    const ordersBody = document.getElementById('ordersBody');
+    const ordersCount = document.getElementById('ordersCount');
+
+    function renderOrders(){
+      const q = document.getElementById('search').value.toLowerCase().trim();
+      const filtered = state.orders.filter(o=>{
+        const matchesStatus = state.statusFilter==='all' ? true : (o.status===state.statusFilter);
+        const blob = `${o.id} ${o.customer} ${o.items}`.toLowerCase();
+        const matchesQ = !q || blob.includes(q);
+        return matchesStatus && matchesQ;
+      }).sort((a,b)=>b.date.localeCompare(a.date));
+      ordersCount.textContent = `${filtered.length} result${filtered.length===1?'':'s'}`;
+      ordersBody.innerHTML = filtered.map(o=>`
+        <tr role="row">
+          <td><strong>${o.id}</strong></td>
+          <td>${o.date}</td>
+          <td>${o.customer}</td>
+          <td>${o.items}</td>
+          <td>${fmtMoney(o.total)}</td>
+          <td>
+            <span class="status ${o.status}">${o.status[0].toUpperCase()+o.status.slice(1)}</span>
+          </td>
+          <td class="right">
+            <button class="btn ghost" onclick="alert('Viewing ${o.id}')">View</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    // ---------- Top Products ----------
+    function renderProducts(){
+      document.getElementById('topProducts').innerHTML = state.products.map(p=>`
+        <tr>
+          <td><strong>${p.name}</strong></td>
+          <td>${p.sku}</td>
+          <td>${p.units.toLocaleString()}</td>
+          <td>${fmtMoney(p.revenue)}</td>
+          <td>${p.stock}</td>
+        </tr>
+      `).join('');
+    }
+
+    // ---------- Charts ----------
+    let revenueChart, channelChart, ordersChart;
+
+    function genLabels(nDays){
+      const out=[]; const d=new Date();
+      for(let i=nDays-1;i>=0;i--){
+        const dd=new Date(d); dd.setDate(d.getDate()-i);
+        out.push(`${dd.getMonth()+1}/${dd.getDate()}`);
+      }
+      return out;
+    }
+    function genSeries(nDays, base=4000, spread=1500){
+      return Array.from({length:nDays}, ()=> Math.max(200, base + rand(-spread, spread)));
+    }
+    function initCharts(){
+      const days = Number(state.range);
+      const labels = genLabels(days);
+
+      const rc = document.getElementById('revenueChart');
+      revenueChart && revenueChart.destroy();
+      revenueChart = new Chart(rc, {
+        type:'line',
+        data:{
+          labels,
+          datasets:[{
+            label:'Revenue',
+            data: genSeries(days, 4200, 1800),
+            tension:.35,
+            fill:true,
+            borderColor:'#8b5cf6',
+            backgroundColor:ctx=> {
+              const g=ctx.chart.ctx.createLinearGradient(0,0,0,280);
+              g.addColorStop(0,'rgba(139,92,246,.35)');
+              g.addColorStop(1,'rgba(139,92,246,0)');
+              return g;
+            },
+            borderWidth:2,
+            pointRadius:0
+          }]
+        },
+        options:{
+          responsive:true,
+          scales:{
+            x:{ grid:{ color:'rgba(255,255,255,.06)'}, ticks:{ color:'#c4b5fd'} },
+            y:{ grid:{ color:'rgba(255,255,255,.06)'}, ticks:{ color:'#c4b5fd'}, beginAtZero:true }
+          },
+          plugins:{
+            legend:{ labels:{ color:'#c4b5fd' } },
+            tooltip:{ backgroundColor:'rgba(20,20,40,.9)', borderColor:'rgba(139,92,246,.4)', borderWidth:1 }
+          }
+        }
       });
-      document.querySelectorAll('.sidebar, .topbar').forEach(c=>{
-        c.style.background = '#101016';
-        c.style.borderColor = '#2a2a30';
+
+      const cc = document.getElementById('channelChart');
+      channelChart && channelChart.destroy();
+      channelChart = new Chart(cc, {
+        type:'doughnut',
+        data:{
+          labels:Object.keys(state.channels),
+          datasets:[{
+            data:Object.values(state.channels),
+            backgroundColor:['#8b5cf6','#22d3ee','#4f46e5','#06b6d4'],
+            borderColor:'rgba(255,255,255,.06)',
+            borderWidth:2
+          }]
+        },
+        options:{
+          plugins:{
+            legend:{ position:'bottom', labels:{ color:'#c4b5fd' } },
+            tooltip:{ backgroundColor:'rgba(20,20,40,.9)' }
+          },
+          cutout:'62%'
+        }
       });
-    } else {
-      document.body.style.background = '#fff';
-      document.body.style.color = '#000';
-      document.querySelectorAll('.kpi-card').forEach(c=>{
-        c.style.background = '#fff';
-        c.style.borderColor = '#e9ecef';
-      });
-      document.querySelectorAll('.sidebar, .topbar').forEach(c=>{
-        c.style.background = '#fff';
-        c.style.borderColor = '#e9ecef';
+
+      const oc = document.getElementById('ordersChart');
+      ordersChart && ordersChart.destroy();
+      ordersChart = new Chart(oc, {
+        type:'bar',
+        data:{
+          labels,
+          datasets:[{
+            label:'Orders',
+            data: genSeries(days, 110, 60),
+            backgroundColor:'#4f46e5',
+            borderRadius:6
+          }]
+        },
+        options:{
+          scales:{
+            x:{ grid:{ display:false }, ticks:{ color:'#c4b5fd'} },
+            y:{ grid:{ color:'rgba(255,255,255,.06)'}, ticks:{ color:'#c4b5fd'}, beginAtZero:true }
+          },
+          plugins:{ legend:{ labels:{ color:'#c4b5fd'} }, tooltip:{ backgroundColor:'rgba(20,20,40,.9)'} }
+        }
       });
     }
-  }
-  $('#applySettings').addEventListener('click', ()=>{
-    const theme = $('#themeSelect').value;
-    const persist = $('#persistSelect').value;
-    localStorage.setItem('ad_theme', theme);
-    if(persist==='session'){ localStorage.setItem('ad_keep','0'); }
-    applyTheme(theme);
-    alert('Settings applied.');
-  });
-  $('#resetApp').addEventListener('click', ()=>{
-    if(!confirm('Reset local demo data?')) return;
-    localStorage.removeItem('ad_ingestLog');
-    localStorage.removeItem('ad_clients');
-    localStorage.removeItem('ad_theme');
-    localStorage.removeItem('ad_authed');
-    localStorage.removeItem('ad_user');
-    localStorage.removeItem('ad_keep');
-    location.reload();
-  });
 
-  // --------- Init ---------
-  // default demo seed to Explorer
-  seedExplorerFromRows([]);
-  // overview charts
-  initOverview();
-  // revenue defaults
-  calcRevenue();
-  // theme
-  const savedTheme = localStorage.getItem('ad_theme') || 'light';
-  $('#themeSelect').value = savedTheme;
-  applyTheme(savedTheme);
+    // ---------- Filters & Controls ----------
+    function setActiveChip(status){
+      document.querySelectorAll('.chip').forEach(c=>{
+        c.classList.toggle('active', c.dataset.status===status);
+      });
+    }
 
-})();
-</script>
+    document.querySelectorAll('.chip').forEach(chip=>{
+      chip.addEventListener('click', ()=>{
+        state.statusFilter = chip.dataset.status;
+        setActiveChip(state.statusFilter);
+        renderOrders();
+      });
+    });
+
+    document.getElementById('search').addEventListener('input', renderOrders);
+
+    const range = document.getElementById('range');
+    range.addEventListener('change', ()=>{
+      const label = range.options[range.selectedIndex].textContent;
+      document.getElementById('rangeLabel').textContent = label;
+      if(range.value==='custom'){
+        const days = Number(prompt('Enter number of days to view (e.g., 45):', '45')) || 30;
+        state.range = Math.max(7, Math.min(365, days));
+      } else {
+        state.range = Number(range.value);
+      }
+      seedOrders();
+      renderOrders();
+      initCharts();
+    });
+
+    // Export CSV
+    document.getElementById('exportCsvBtn').addEventListener('click', ()=>{
+      const rows = [['Order','Date','Customer','Items','Total','Status']].concat(
+        state.orders.map(o=>[o.id,o.date,o.customer,o.items, o.total.toFixed(2), o.status])
+      );
+      const csv = rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+      const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `aurelo-orders-${Date.now()}.csv`;
+      document.body.appendChild(a); a.click(); a.remove();
+    });
+
+    // Packet Generation Progress (fake)
+    const packetModal = document.getElementById('packetModal');
+    const packetBar = document.getElementById('packetBar');
+    const packetPct = document.getElementById('packetPct');
+    document.getElementById('generatePacketBtn').addEventListener('click', ()=>{
+      packetModal.classList.add('show');
+      let i=0; const t = setInterval(()=>{
+        i += Math.random()*14+6;
+        if(i>=100){ i=100; clearInterval(t); }
+        packetBar.style.width = i.toFixed(0)+'%';
+        packetPct.textContent = i.toFixed(0)+'%';
+      }, 280);
+    });
+
+    // Refund Modal
+    const refundModal = document.getElementById('refundModal');
+    document.getElementById('openRefund').addEventListener('click', ()=> refundModal.classList.add('show'));
+    document.getElementById('confirmRefund').addEventListener('click', ()=>{
+      const id = document.getElementById('refundOrder').value.trim() || 'AU-00000';
+      alert('Refund created for '+id);
+      refundModal.classList.remove('show');
+    });
+
+    // Integration Modal
+    const integrationModal = document.getElementById('integrationModal');
+    document.getElementById('openIntegration').addEventListener('click', ()=> integrationModal.classList.add('show'));
+    document.getElementById('openIntegration2').addEventListener('click', ()=> integrationModal.classList.add('show'));
+    document.getElementById('connectIntegration').addEventListener('click', ()=>{
+      const provider = document.getElementById('intType').value;
+      alert(`Connected: ${provider}`);
+      integrationModal.classList.remove('show');
+    });
+
+    // Close modals
+    document.querySelectorAll('[data-close]').forEach(btn=>{
+      btn.addEventListener('click', (e)=>{
+        const sel = e.currentTarget.getAttribute('data-close');
+        document.querySelector(sel).classList.remove('show');
+      });
+    });
+    [refundModal, integrationModal, packetModal].forEach(m=>{
+      m.addEventListener('click', e=>{ if(e.target===m) m.classList.remove('show'); });
+    });
+
+    // Init
+    seedOrders();
+    renderOrders();
+    renderProducts();
+    initCharts();
+  </script>
 </body>
 </html>
-
