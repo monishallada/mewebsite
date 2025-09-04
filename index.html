@@ -1,860 +1,564 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Aurelo Data — Store Dashboard</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
-  <style>
-    :root{
-      --bg:#0a0a12;
-      --bg-2:#0e0e19;
-      --card:#121224;
-      --card-2:#14142a;
-      --elev:#1a1a33;
-      --muted:#a2a2bc;
-      --text:#ffffff;
-      --primary:#8b5cf6;         /* purple-500 */
-      --primary-600:#7c3aed;     /* purple-600 */
-      --primary-700:#6d28d9;     /* purple-700 */
-      --accent:#22d3ee;          /* cyan accent */
-      --good:#22c55e;
-      --warn:#f59e0b;
-      --bad:#ef4444;
-      --ring: rgba(139,92,246,.35);
-      --shadow: 0 10px 30px rgba(0,0,0,.35);
-      --glass: rgba(255,255,255,.04);
-      --glass-2: rgba(255,255,255,.06);
-      --radius: 16px;
-    }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0;
-      font-family:Inter,system-ui,Segoe UI,Roboto,Arial,Helvetica,sans-serif;
-      color:var(--text);
-      background:
-        radial-gradient(1200px 600px at 10% -10%, rgba(124,58,237,.28), transparent 60%),
-        radial-gradient(1000px 500px at 120% 10%, rgba(34,211,238,.18), transparent 60%),
-        linear-gradient(0deg, var(--bg), var(--bg));
-      letter-spacing:.1px;
-    }
-    a{color:inherit;text-decoration:none}
-    .app{display:grid;grid-template-columns: 280px 1fr;min-height:100vh}
-    /* Sidebar */
-    .sidebar{
-      position:sticky; top:0; height:100dvh;
-      background:linear-gradient(180deg,var(--bg-2),rgba(10,10,18,.7)), url('') no-repeat center/cover;
-      border-right:1px solid rgba(255,255,255,.06);
-      padding:24px 18px;
-    }
-    .brand{
-      display:flex;align-items:center;gap:12px;margin-bottom:28px;
-      padding:10px 12px;border-radius:12px;background:var(--glass);
-      backdrop-filter: blur(10px);
-      box-shadow:var(--shadow);
-    }
-    .brand-logo{
-      width:36px;height:36px;border-radius:10px;
-      background: conic-gradient(from 220deg at 50% 50%, var(--primary), #4c1d95 35%, #0ea5e9 60%, #9333ea 80%, var(--primary));
-      box-shadow: 0 0 0 2px rgba(139,92,246,.25), 0 10px 20px rgba(124,58,237,.3);
-    }
-    .brand h1{font-size:16px;margin:0;font-weight:800;letter-spacing:.5px}
-    .brand span{display:block;font-size:11px;color:var(--muted);margin-top:2px;font-weight:600}
-    .nav{display:grid;gap:6px}
-    .nav h3{margin:18px 8px 10px;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em}
-    .nav a{
-      display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;
-      color:#fff;border:1px solid transparent;background:transparent;
-      transition:.2s ease; font-weight:600;
-    }
-    .nav a svg{opacity:.9}
-    .nav a:hover{background:var(--glass);border-color:rgba(255,255,255,.06)}
-    .nav a.active{
-      background:linear-gradient(180deg, rgba(139,92,246,.15), rgba(139,92,246,.05));
-      border-color:rgba(139,92,246,.35);
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 8px 24px rgba(124,58,237,.25);
-    }
-    .sidebar .foot{
-      position:absolute;left:18px;right:18px;bottom:18px;
-      background:var(--glass);
-      border:1px solid rgba(255,255,255,.06);
-      border-radius:14px;padding:12px;
-    }
-    .badge{
-      display:inline-flex;align-items:center;gap:8px;
-      padding:6px 10px;border-radius:999px;font-size:12px;font-weight:700;
-      background:rgba(139,92,246,.18);border:1px solid rgba(139,92,246,.35);color:#fff;
-    }
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Aurelo Data — Store Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<style>
+  :root{
+    --bg:#ffffff;
+    --bg-2:#fafafa;
+    --card:#ffffff;
+    --border:#e8e8ef;
+    --text:#0b0b14;
+    --muted:#5b5b6b;
+    --primary:#6d28d9;     /* purple-700 */
+    --primary-600:#7c3aed; /* purple-600 */
+    --accent:#0ea5e9;
+    --good:#16a34a; --warn:#d97706; --bad:#dc2626;
+    --shadow: 0 10px 30px rgba(9,9,14,.06);
+    --radius:16px;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;
+    font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, Helvetica, sans-serif;
+    color:var(--text);
+    background:
+      radial-gradient(1200px 500px at -10% -10%, rgba(109,40,217,.06), transparent 60%),
+      radial-gradient(900px 500px at 110% 10%, rgba(14,165,233,.05), transparent 60%),
+      var(--bg);
+    letter-spacing:.1px;
+  }
+  a{color:inherit;text-decoration:none}
+  .app{display:grid;grid-template-columns: 260px 1fr;min-height:100vh}
 
-    /* Main */
-    .main{padding:22px 22px 34px}
-    .topbar{
-      display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between;margin-bottom:18px;
-    }
-    .topbar-left{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
-    .store-switch{
-      display:flex;gap:8px;align-items:center;background:var(--glass);border:1px solid rgba(255,255,255,.08);
-      border-radius:12px;padding:8px 10px;min-width:240px;
-    }
-    select, input, button{
-      font:inherit;color:inherit;background:transparent;border:none;outline:none;
-    }
-    .select, .input{
-      flex:1;background:var(--card);border:1px solid rgba(255,255,255,.07);
-      padding:10px 12px;border-radius:12px;min-width:200px;
-    }
-    .input{display:flex;align-items:center;gap:8px}
-    .input input{width:100%}
-    .kpis{display:grid;grid-template-columns: repeat(12,1fr);gap:14px;margin:12px 0 18px}
-    .card{
-      background:linear-gradient(180deg,var(--card),var(--card-2));
-      border:1px solid rgba(255,255,255,.06);
-      border-radius:var(--radius);
-      padding:16px 16px;
-      box-shadow:var(--shadow);
-    }
-    .kpi{grid-column: span 3; position:relative; overflow:hidden}
-    .kpi .title{color:var(--muted);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.12em}
-    .kpi .value{font-size:26px;font-weight:800;margin-top:6px}
-    .delta{font-size:12px;font-weight:700;margin-top:6px;display:inline-flex;gap:6px;align-items:center}
-    .delta.good{color:var(--good)} .delta.bad{color:var(--bad)}
-    .spark{position:absolute;inset:auto 0 0 0;height:52px;opacity:.5}
-    .grid{display:grid;gap:14px}
-    .grid-2{grid-template-columns: 1.5fr 1fr}
-    .grid-3{grid-template-columns: 1fr 1fr 1fr}
-    .card h2{margin:0 0 10px;font-size:14px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
-    canvas{width:100%;height:280px !important}
-    .table{
-      width:100%;border-collapse:separate;border-spacing:0 10px;
-    }
-    .table thead th{
-      font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em;text-align:left;padding:0 10px 6px;
-    }
-    .table tbody tr{
-      background:var(--elev);border:1px solid rgba(255,255,255,.06);border-radius:12px;
-    }
-    .table tbody td{padding:12px 10px;border-top:1px solid rgba(255,255,255,.06)}
-    .table tbody tr:first-child td{border-top:none}
-    .status{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:999px;font-size:12px;font-weight:700;border:1px solid}
-    .status.paid{background:rgba(34,197,94,.15);border-color:rgba(34,197,94,.5)}
-    .status.pending{background:rgba(245,158,11,.15);border-color:rgba(245,158,11,.5)}
-    .status.refunded{background:rgba(239,68,68,.15);border-color:rgba(239,68,68,.5)}
-    .btn{
-      display:inline-flex;align-items:center;gap:10px;padding:10px 14px;border-radius:12px;font-weight:800;letter-spacing:.02em;
-      background:linear-gradient(180deg, rgba(139,92,246,.25), rgba(124,58,237,.15));
-      border:1px solid rgba(139,92,246,.45);box-shadow:0 8px 24px rgba(124,58,237,.25);
-      cursor:pointer;transition:.2s ease;
-    }
-    .btn:hover{transform:translateY(-1px)}
-    .btn.ghost{
-      background:var(--glass);border-color:rgba(255,255,255,.1);box-shadow:none;font-weight:700
-    }
-    .btn.warn{background:linear-gradient(180deg, rgba(245,158,11,.25), rgba(245,158,11,.1));border-color:rgba(245,158,11,.45)}
-    .btn.bad{background:linear-gradient(180deg, rgba(239,68,68,.25), rgba(239,68,68,.1));border-color:rgba(239,68,68,.45)}
+  /* Sidebar */
+  .sidebar{
+    position:sticky; top:0; height:100dvh;
+    background:linear-gradient(180deg, var(--bg), var(--bg-2));
+    border-right:1px solid var(--border);
+    padding:22px 16px;
+  }
+  .brand{
+    display:flex;align-items:center;gap:12px;margin-bottom:24px;padding:10px 12px;border-radius:12px;
+    background:#fff;border:1px solid var(--border); box-shadow:var(--shadow);
+  }
+  .brand-logo{
+    width:36px;height:36px;border-radius:10px;
+    background: conic-gradient(from 220deg, var(--primary), #4c1d95 35%, #0ea5e9 60%, #9333ea 80%, var(--primary));
+  }
+  .brand h1{font-size:16px;margin:0;font-weight:800;letter-spacing:.4px}
+  .brand span{display:block;font-size:11px;color:var(--muted);margin-top:2px;font-weight:600}
+  .nav{display:grid;gap:4px}
+  .nav h3{margin:14px 8px 8px;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em}
+  .nav a{
+    display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;
+    color:var(--text); border:1px solid transparent; font-weight:600;
+  }
+  .nav a:hover{background:#fff;border-color:var(--border)}
+  .nav a.active{
+    background:linear-gradient(180deg, rgba(109,40,217,.08), rgba(109,40,217,.04));
+    border-color: rgba(109,40,217,.25);
+  }
+  .foot{
+    position:absolute; left:16px; right:16px; bottom:16px;
+    padding:12px;border:1px solid var(--border); border-radius:12px;background:#fff
+  }
+  .pill{
+    display:inline-flex;gap:8px;align-items:center;padding:6px 10px;border-radius:999px;
+    border:1px solid var(--border); background:#fff; font-weight:700;font-size:12px
+  }
 
-    .toolbar{display:flex;gap:10px;flex-wrap:wrap}
-    .filters{display:flex;gap:10px;flex-wrap:wrap}
-    .chip{
-      display:inline-flex;gap:8px;align-items:center;padding:8px 12px;border-radius:999px;font-weight:700;border:1px solid rgba(255,255,255,.1);
-      background:var(--glass);cursor:pointer
-    }
-    .chip.active{border-color:rgba(139,92,246,.45);background:rgba(139,92,246,.2)}
-    .progress{
-      position:relative;height:10px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden;border:1px solid rgba(255,255,255,.08)
-    }
-    .progress .bar{height:100%;background:linear-gradient(90deg, var(--primary), #4f46e5, #06b6d4)}
-    .mini{
-      font-size:12px;color:var(--muted);display:flex;justify-content:space-between;margin-top:8px
-    }
-    /* Modals */
-    .modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;padding:20px;z-index:50}
-    .modal.show{display:flex}
-    .modal .dialog{width:min(680px, 96vw);background:var(--card);border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:18px 18px 16px;box-shadow:var(--shadow)}
-    .dialog h3{margin:0 0 12px;font-size:18px}
-    .row{display:grid;grid-template-columns: 1fr 1fr; gap:10px}
-    .field{display:flex;flex-direction:column;gap:6px}
-    .field label{font-size:12px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.12em}
-    .field input, .field select, .field textarea{
-      background:var(--elev);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px;color:#fff
-    }
-    .dialog .actions{display:flex;justify-content:flex-end;gap:10px;margin-top:12px}
-    /* Responsive */
-    @media (max-width: 1100px){
-      .app{grid-template-columns: 88px 1fr}
-      .nav a span{display:none}
-      .brand span{display:none}
-    }
-    @media (max-width: 860px){
-      .kpi{grid-column: span 6}
-      .grid-2{grid-template-columns: 1fr}
-      .grid-3{grid-template-columns: 1fr}
-    }
-    @media (max-width: 540px){
-      .kpi{grid-column: span 12}
-      .topbar{gap:10px}
-    }
-    /* Focus ring */
-    .focusable:focus {outline:2px solid var(--ring); outline-offset:2px}
-    .sep{height:1px;background:linear-gradient(90deg, transparent, rgba(255,255,255,.08), transparent);margin:12px 0}
-    .muted{color:var(--muted)}
-    .right{margin-left:auto}
-    .pill{
-      padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.12);
-      background:var(--glass);font-weight:700;font-size:12px
-    }
-    .hint{font-size:12px;color:var(--muted)}
-  </style>
+  /* Main */
+  .main{padding:26px 26px 34px}
+  .topbar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-bottom:18px}
+  .topbar-left{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .select, .input{
+    display:flex;align-items:center;gap:8px; padding:10px 12px; border-radius:12px; min-width:220px;
+    border:1px solid var(--border); background:#fff;
+  }
+  select,input,button{font:inherit;color:inherit;background:transparent;border:none;outline:none}
+  .btn{
+    display:inline-flex;align-items:center;gap:10px;padding:10px 14px;border-radius:12px;font-weight:800;
+    background:#fff;border:1px solid var(--border); box-shadow:var(--shadow); cursor:pointer
+  }
+  .btn.primary{
+    background:linear-gradient(180deg, rgba(109,40,217,.12), rgba(109,40,217,.06));
+    border-color: rgba(109,40,217,.4);
+  }
+
+  /* Pages */
+  .page{display:none; animation: fade .18s ease}
+  .page.show{display:block}
+  @keyframes fade{from{opacity:.0; transform:translateY(4px)} to{opacity:1; transform:none}}
+
+  /* Cards */
+  .kpis{display:grid;grid-template-columns: repeat(12,1fr);gap:16px;margin:10px 0 18px}
+  .card{
+    background:#fff; border:1px solid var(--border); border-radius:var(--radius); padding:18px; box-shadow:var(--shadow)
+  }
+  .kpi{grid-column: span 4}
+  .title{color:var(--muted);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.12em}
+  .value{font-size:28px;font-weight:800;margin-top:6px}
+  .delta{font-size:12px;font-weight:700;margin-top:6px}
+  .delta.good{color:var(--good)} .delta.bad{color:var(--bad)}
+  h2{margin:0 0 10px;font-size:14px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+  .grid{display:grid;gap:16px}
+  .grid-2{grid-template-columns: 1fr 1fr}
+  .spacer{height:6px}
+  .muted{color:var(--muted)}
+
+  table{width:100%;border-collapse:separate;border-spacing:0 8px}
+  thead th{
+    font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em;text-align:left;padding:0 10px 6px;
+  }
+  tbody tr{background:#fff;border:1px solid var(--border);border-radius:12px}
+  td{padding:12px 10px;border-top:1px solid var(--border)}
+  tbody tr:first-child td{border-top:none}
+  .right{margin-left:auto}
+  canvas{width:100%;height:260px !important}
+
+  @media (max-width: 1100px){
+    .app{grid-template-columns: 88px 1fr}
+    .nav a span{display:none}
+    .brand span{display:none}
+  }
+  @media (max-width: 860px){
+    .kpi{grid-column: span 6}
+    .grid-2{grid-template-columns: 1fr}
+  }
+  @media (max-width: 540px){
+    .kpi{grid-column: span 12}
+  }
+</style>
 </head>
 <body>
-  <div class="app" role="application">
-    <!-- Sidebar -->
-    <aside class="sidebar" aria-label="Sidebar Navigation">
-      <div class="brand" aria-label="Aurelo brand">
-        <div class="brand-logo" aria-hidden="true"></div>
-        <div>
-          <h1>Aurelo Data</h1>
-          <span>Store Dashboard</span>
+<div class="app" role="application">
+  <!-- Sidebar -->
+  <aside class="sidebar" aria-label="Sidebar Navigation">
+    <div class="brand">
+      <div class="brand-logo" aria-hidden="true"></div>
+      <div>
+        <h1>Aurelo Data</h1>
+        <span>Store Dashboard</span>
+      </div>
+    </div>
+
+    <nav class="nav" role="navigation" id="nav">
+      <h3>Overview</h3>
+      <a href="#home" data-page="home" class="active"><span>Home</span></a>
+      <a href="#sales" data-page="sales"><span>Sales</span></a>
+      <a href="#products" data-page="products"><span>Products</span></a>
+      <a href="#inventory" data-page="inventory"><span>Inventory</span></a>
+      <a href="#customers" data-page="customers"><span>Customers</span></a>
+      <a href="#analytics" data-page="analytics"><span>Analytics</span></a>
+      <a href="#packets" data-page="packets"><span>Data Packets</span></a>
+      <a href="#integrations" data-page="integrations"><span>Integrations</span></a>
+      <a href="#billing" data-page="billing"><span>Billing & Payouts</span></a>
+      <a href="#settings" data-page="settings"><span>Settings</span></a>
+      <h3>Help</h3>
+      <a href="#support" data-page="support"><span>Support</span></a>
+    </nav>
+
+    <div class="foot">
+      <div class="pill">Pro Plan</div>
+      <div style="margin-top:8px" class="muted">All systems normal</div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main" tabindex="-1">
+    <!-- Topbar -->
+    <div class="topbar" role="region" aria-label="Top controls">
+      <div class="topbar-left">
+        <div class="select">
+          <strong>Store:</strong>
+          <select id="storeSelect" aria-label="Select store">
+            <option>Microknots Outfitters</option>
+            <option>Aurelo Gadgets</option>
+            <option>Monish & Co. Streetwear</option>
+          </select>
+        </div>
+        <div class="select">
+          <label class="muted" for="range" style="font-weight:600">Date Range</label>
+          <select id="range" aria-label="Select date range">
+            <option value="7">Last 7 days</option>
+            <option value="30" selected>Last 30 days</option>
+            <option value="90">Last 90 days</option>
+            <option value="365">Year to date</option>
+          </select>
+        </div>
+        <div class="input" role="search">
+          <input id="search" type="search" placeholder="Search…" aria-label="Search dashboard">
         </div>
       </div>
-
-      <nav class="nav" role="navigation">
-        <h3>Overview</h3>
-        <a class="active" href="#" aria-current="page">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 13l9-9 9 9" stroke="#c4b5fd" stroke-width="2" stroke-linecap="round"/><path d="M9 21V9h6v12" stroke="#c4b5fd" stroke-width="2" stroke-linecap="round"/></svg>
-          <span>Home</span>
-        </a>
-        <a href="#sales">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 3v18h18" stroke="#c4b5fd" stroke-width="2"/><path d="M7 13l3 3 7-7" stroke="#22c55e" stroke-width="2" stroke-linecap="round"/></svg>
-          <span>Sales</span>
-        </a>
-        <a href="#products">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="14" rx="3" stroke="#c4b5fd" stroke-width="2"/><path d="M8 8h8" stroke="#22d3ee" stroke-width="2" stroke-linecap="round"/></svg>
-          <span>Products</span>
-        </a>
-        <a href="#inventory">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 7h18M5 7v12h14V7" stroke="#c4b5fd" stroke-width="2"/><path d="M8 7V3h8v4" stroke="#7c3aed" stroke-width="2"/></svg>
-          <span>Inventory</span>
-        </a>
-        <a href="#customers">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="9" cy="7" r="4" stroke="#c4b5fd" stroke-width="2"/><path d="M3 21c0-4 4-7 8-7" stroke="#22d3ee" stroke-width="2"/></svg>
-          <span>Customers</span>
-        </a>
-        <a href="#analytics">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 20V10" stroke="#c4b5fd" stroke-width="2"/><path d="M10 20V4" stroke="#7c3aed" stroke-width="2"/><path d="M16 20v-6" stroke="#22d3ee" stroke-width="2"/></svg>
-          <span>Analytics</span>
-        </a>
-        <a href="#packets">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="3" stroke="#c4b5fd" stroke-width="2"/><path d="M7 9h10M7 13h6" stroke="#7c3aed" stroke-width="2" stroke-linecap="round"/></svg>
-          <span>Data Packets</span>
-        </a>
-        <a href="#integrations">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="7" cy="12" r="3" stroke="#c4b5fd" stroke-width="2"/><circle cx="17" cy="6" r="3" stroke="#22d3ee" stroke-width="2"/><circle cx="17" cy="18" r="3" stroke="#7c3aed" stroke-width="2"/><path d="M9 11l6-4M9 13l6 4" stroke="#c4b5fd" stroke-width="2"/></svg>
-          <span>Integrations</span>
-        </a>
-        <a href="#billing">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3" y="6" width="18" height="12" rx="3" stroke="#c4b5fd" stroke-width="2"/><path d="M7 10h10" stroke="#7c3aed" stroke-width="2" stroke-linecap="round"/></svg>
-          <span>Billing & Payouts</span>
-        </a>
-        <a href="#settings">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" stroke="#c4b5fd" stroke-width="2"/><path d="M19.4 15a7.97 7.97 0 0 0 .1-6l2-1-2-3-2 1a8 8 0 0 0-5.2-2l-.4-2H10l-.4 2A8 8 0 0 0 4.4 6l-2-1-2 3 2 1a7.97 7.97 0 0 0 .1 6l-2 1 2 3 2-1a8 8 0 0 0 5.2 2l.4 2h3l.4-2a8 8 0 0 0 5.2-2l2 1 2-3-2-1Z" stroke="#7c3aed" stroke-width="2"/></svg>
-          <span>Settings</span>
-        </a>
-      </nav>
-
-      <div class="foot">
-        <div class="badge">Pro Plan • <span class="muted">Unlimited data exports</span></div>
-        <div class="mini"><span>API status</span><span class="pill">All systems normal</span></div>
+      <div class="topbar-right">
+        <button class="btn">Export CSV</button>
+        <button class="btn primary">Generate Data Packet</button>
       </div>
-    </aside>
+    </div>
 
-    <!-- Main -->
-    <main class="main" id="home" tabindex="-1">
-      <!-- Topbar -->
-      <div class="topbar" role="region" aria-label="Top controls">
-        <div class="topbar-left">
-          <div class="store-switch">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 10l8-6 8 6v8a2 2 0 0 1-2 2h-12a2 2 0 0 1-2-2z" stroke="#7c3aed" stroke-width="2"/></svg>
-            <strong>Store:</strong>
-            <select id="storeSelect" class="focusable" aria-label="Select store">
-              <option>Microknots Outfitters</option>
-              <option>Aurelo Gadgets</option>
-              <option>Monish & Co. Streetwear</option>
-            </select>
-          </div>
-
-          <div class="select">
-            <label class="hint" for="range">Date Range</label>
-            <select id="range" class="focusable" aria-label="Select date range">
-              <option value="7">Last 7 days</option>
-              <option value="30" selected>Last 30 days</option>
-              <option value="90">Last 90 days</option>
-              <option value="365">Year to date</option>
-              <option value="custom">Custom…</option>
-            </select>
-          </div>
-
-          <div class="input" role="search">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="7" stroke="#a78bfa" stroke-width="2"/><path d="M21 21l-4-4" stroke="#a78bfa" stroke-width="2" stroke-linecap="round"/></svg>
-            <input id="search" class="focusable" type="search" placeholder="Search orders, customers, products…" aria-label="Search dashboard">
-          </div>
-        </div>
-
-        <div class="toolbar">
-          <button class="btn" id="exportCsvBtn" title="Export orders CSV">Export CSV</button>
-          <button class="btn" id="generatePacketBtn" title="Create data packet">Generate Data Packet</button>
-          <button class="btn ghost" id="openRefund" title="Issue refund">Issue Refund</button>
-          <button class="btn ghost" id="openIntegration" title="Add integration">Add Integration</button>
-          <span class="pill">Viewing: <span id="rangeLabel">Last 30 days</span></span>
-        </div>
-      </div>
-
-      <!-- KPIs -->
-      <section class="kpis" aria-label="Key performance metrics">
-        <!-- Revenue -->
+    <!-- PAGES -->
+    <!-- HOME -->
+    <section id="page-home" class="page show" aria-labelledby="homeTitle">
+      <div class="spacer"></div>
+      <div class="kpis">
         <article class="card kpi">
           <div class="title">Revenue</div>
           <div class="value" id="kpiRevenue">$128,420</div>
-          <div class="delta good"><span>▲</span><span id="kpiRevenueDelta">+8.4%</span> vs prev.</div>
-          <svg class="spark" viewBox="0 0 300 52" preserveAspectRatio="none" aria-hidden="true">
-            <path d="M0,40 L30,30 L60,33 L90,22 L120,28 L150,18 L180,26 L210,12 L240,18 L270,9 L300,16"
-                  fill="none" stroke="url(#g1)" stroke-width="3" />
-            <defs>
-              <linearGradient id="g1" x1="0" y1="0" x2="1" y2="0">
-                <stop offset="0%" stop-color="#8b5cf6"/><stop offset="100%" stop-color="#22d3ee"/>
-              </linearGradient>
-            </defs>
-          </svg>
+          <div class="delta good">+8.4% vs last period</div>
         </article>
-
-        <!-- Orders -->
         <article class="card kpi">
           <div class="title">Orders</div>
           <div class="value" id="kpiOrders">2,914</div>
-          <div class="delta good"><span>▲</span><span id="kpiOrdersDelta">+5.1%</span></div>
-          <svg class="spark" viewBox="0 0 300 52" preserveAspectRatio="none" aria-hidden="true">
-            <path d="M0,36 L30,34 L60,29 L90,26 L120,20 L150,18 L180,16 L210,14 L240,12 L270,15 L300,10"
-                  fill="none" stroke="url(#g1)" stroke-width="3" />
-          </svg>
+          <div class="delta good">+5.1%</div>
         </article>
-
-        <!-- AOV -->
         <article class="card kpi">
           <div class="title">Avg. Order Value</div>
           <div class="value" id="kpiAov">$44.05</div>
-          <div class="delta bad"><span>▼</span><span id="kpiAovDelta">-1.2%</span></div>
-          <svg class="spark" viewBox="0 0 300 52" preserveAspectRatio="none" aria-hidden="true">
-            <path d="M0,16 L30,18 L60,20 L90,24 L120,28 L150,26 L180,30 L210,34 L240,36 L270,40 L300,42"
-                  fill="none" stroke="url(#g1)" stroke-width="3" />
-          </svg>
+          <div class="delta bad">-1.2%</div>
         </article>
-
-        <!-- Conversion -->
-        <article class="card kpi">
-          <div class="title">Conversion Rate</div>
-          <div class="value" id="kpiCv">3.21%</div>
-          <div class="delta good"><span>▲</span><span id="kpiCvDelta">+0.3 pts</span></div>
-          <svg class="spark" viewBox="0 0 300 52" preserveAspectRatio="none" aria-hidden="true">
-            <path d="M0,42 L40,40 L80,35 L120,34 L160,28 L200,25 L240,20 L280,16 L300,14"
-                  fill="none" stroke="url(#g1)" stroke-width="3" />
-          </svg>
-        </article>
-
-        <!-- Customers -->
-        <article class="card kpi">
-          <div class="title">New Customers</div>
-          <div class="value" id="kpiCust">742</div>
-          <div class="delta good"><span>▲</span><span id="kpiCustDelta">+9.8%</span></div>
-          <svg class="spark" viewBox="0 0 300 52" preserveAspectRatio="none" aria-hidden="true">
-            <path d="M0,44 L30,42 L60,36 L90,32 L120,28 L150,26 L180,20 L210,16 L240,14 L270,12 L300,10"
-                  fill="none" stroke="url(#g1)" stroke-width="3" />
-          </svg>
-        </article>
-
-        <!-- Refunds -->
-        <article class="card kpi">
-          <div class="title">Refund Rate</div>
-          <div class="value" id="kpiRefunds">1.14%</div>
-          <div class="delta good"><span>▲</span><span id="kpiRefundDelta">-0.2 pts</span></div>
-          <svg class="spark" viewBox="0 0 300 52" preserveAspectRatio="none" aria-hidden="true">
-            <path d="M0,10 L60,14 L120,18 L180,20 L240,22 L300,24"
-                  fill="none" stroke="url(#g1)" stroke-width="3" />
-          </svg>
-        </article>
-      </section>
-
-      <!-- Charts -->
-      <section class="grid grid-2" aria-label="Analytics charts">
+      </div>
+      <div class="grid grid-2">
         <article class="card">
-          <h2>Revenue Trend</h2>
-          <canvas id="revenueChart" aria-label="Revenue line chart" role="img"></canvas>
+          <h2 id="homeTitle">Revenue Trend</h2>
+          <canvas id="revenueChart"></canvas>
         </article>
         <article class="card">
           <h2>Orders by Channel</h2>
-          <canvas id="channelChart" aria-label="Orders by channel chart" role="img"></canvas>
+          <canvas id="channelChart"></canvas>
         </article>
-      </section>
+      </div>
+    </section>
 
-      <section class="grid grid-2" style="margin-top:14px">
-        <article class="card">
-          <h2>Orders by Day</h2>
-          <canvas id="ordersChart" aria-label="Orders bar chart" role="img"></canvas>
-        </article>
+    <!-- SALES -->
+    <section id="page-sales" class="page" aria-labelledby="salesTitle">
+      <div class="kpis">
+        <article class="card kpi"><div class="title">Gross Sales</div><div class="value" id="grossSales">$154,980</div></article>
+        <article class="card kpi"><div class="title">Refunds</div><div class="value" id="refunds">$1,770</div></article>
+        <article class="card kpi"><div class="title">Net Sales</div><div class="value" id="netSales">$153,210</div></article>
+      </div>
+      <article class="card">
+        <h2 id="salesTitle">Sales by Day</h2>
+        <canvas id="salesChart"></canvas>
+      </article>
+      <div class="spacer"></div>
+      <article class="card">
+        <h2>Recent Orders (condensed)</h2>
+        <table>
+          <thead><tr><th>Order</th><th>Date</th><th>Customer</th><th>Total</th></tr></thead>
+          <tbody id="ordersBody"></tbody>
+        </table>
+      </article>
+    </section>
 
-        <article class="card">
-          <h2>Data Packet Usage</h2>
-          <div class="mini"><span>API Requests (this period)</span><span id="apiReqsLabel">62,140 / 100k</span></div>
-          <div class="progress" aria-label="API request usage"><div class="bar" id="apiReqsBar" style="width:62%"></div></div>
+    <!-- PRODUCTS -->
+    <section id="page-products" class="page" aria-labelledby="productsTitle">
+      <article class="card">
+        <h2 id="productsTitle">Top Products</h2>
+        <table>
+          <thead><tr><th>Product</th><th>SKU</th><th>Units</th><th>Revenue</th></tr></thead>
+          <tbody id="topProducts"></tbody>
+        </table>
+      </article>
+      <div class="spacer"></div>
+      <article class="card">
+        <h2>Product Mix</h2>
+        <canvas id="productMixChart"></canvas>
+      </article>
+    </section>
 
-          <div class="mini" style="margin-top:12px"><span>Storage (LLM-ready data)</span><span id="storageLabel">38.4 GB / 80 GB</span></div>
-          <div class="progress"><div class="bar" id="storageBar" style="width:48%"></div></div>
+    <!-- INVENTORY -->
+    <section id="page-inventory" class="page" aria-labelledby="inventoryTitle">
+      <article class="card">
+        <h2 id="inventoryTitle">Low Stock</h2>
+        <table>
+          <thead><tr><th>Product</th><th>SKU</th><th>On Hand</th><th>Reorder Point</th></tr></thead>
+          <tbody id="lowStock"></tbody>
+        </table>
+      </article>
+    </section>
 
-          <div class="mini" style="margin-top:12px"><span>Exports Generated</span><span id="exportsLabel">142</span></div>
-          <div class="sep"></div>
-          <div class="mini"><span>Last Packet</span><span id="lastPacketLabel">#DP-2025-0904-1842 (2.6 GB)</span></div>
-          <div class="mini"><span>Status</span><span class="pill">Ready for marketplace</span></div>
-        </article>
-      </section>
+    <!-- CUSTOMERS -->
+    <section id="page-customers" class="page" aria-labelledby="customersTitle">
+      <div class="kpis">
+        <article class="card kpi"><div class="title">New Customers</div><div class="value">742</div></article>
+        <article class="card kpi"><div class="title">Returning Rate</div><div class="value">32%</div></article>
+        <article class="card kpi"><div class="title">CLV (est.)</div><div class="value">$218</div></article>
+      </div>
+      <article class="card">
+        <h2 id="customersTitle">Customer Activity</h2>
+        <canvas id="customersChart"></canvas>
+      </article>
+    </section>
 
-      <!-- Orders Table -->
-      <section class="card" style="margin-top:14px" aria-label="Recent orders">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
-          <h2 style="margin:0">Recent Orders</h2>
-          <div class="filters">
-            <button class="chip active" data-status="all">All</button>
-            <button class="chip" data-status="paid">Paid</button>
-            <button class="chip" data-status="pending">Pending</button>
-            <button class="chip" data-status="refunded">Refunded</button>
-          </div>
-          <span class="right pill" id="ordersCount">124 results</span>
-        </div>
+    <!-- ANALYTICS -->
+    <section id="page-analytics" class="page" aria-labelledby="analyticsTitle">
+      <article class="card">
+        <h2 id="analyticsTitle">Conversion Funnel</h2>
+        <canvas id="funnelChart"></canvas>
+      </article>
+      <div class="spacer"></div>
+      <article class="card">
+        <h2>Attribution Snapshot</h2>
+        <canvas id="attrChart"></canvas>
+      </article>
+    </section>
 
-        <table class="table" role="table" aria-label="Orders">
-          <thead>
-            <tr>
-              <th scope="col">Order</th>
-              <th scope="col">Date</th>
-              <th scope="col">Customer</th>
-              <th scope="col">Items</th>
-              <th scope="col">Total</th>
-              <th scope="col">Status</th>
-              <th scope="col" class="right">Actions</th>
-            </tr>
-          </thead>
-          <tbody id="ordersBody" role="rowgroup">
-            <!-- rows injected via JS -->
+    <!-- DATA PACKETS -->
+    <section id="page-packets" class="page" aria-labelledby="packetsTitle">
+      <article class="card">
+        <h2 id="packetsTitle">Data Packet Summary</h2>
+        <p class="muted">LLM-ready exports generated this period.</p>
+        <table>
+          <thead><tr><th>Packet ID</th><th>Size</th><th>Status</th><th>Created</th></tr></thead>
+          <tbody>
+            <tr><td>#DP-2025-0904-1842</td><td>2.6 GB</td><td>Ready</td><td>2025-09-04</td></tr>
+            <tr><td>#DP-2025-0830-1021</td><td>1.9 GB</td><td>Published</td><td>2025-08-30</td></tr>
           </tbody>
         </table>
-      </section>
+      </article>
+    </section>
 
-      <!-- Product & Integrations -->
-      <section class="grid grid-2" style="margin-top:14px">
-        <article class="card" id="products">
-          <h2>Top Products</h2>
-          <table class="table" aria-label="Top products">
-            <thead><tr><th>Product</th><th>SKU</th><th>Units</th><th>Revenue</th><th>Inventory</th></tr></thead>
-            <tbody id="topProducts"></tbody>
-          </table>
-        </article>
+    <!-- INTEGRATIONS -->
+    <section id="page-integrations" class="page" aria-labelledby="integrationsTitle">
+      <article class="card">
+        <h2 id="integrationsTitle">Connected Integrations</h2>
+        <table>
+          <thead><tr><th>Provider</th><th>Status</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td>Shopify</td><td>Connected</td><td>Catalog & orders syncing</td></tr>
+            <tr><td>Stripe</td><td>Connected</td><td>Payouts enabled</td></tr>
+            <tr><td>Google Ads</td><td>Syncing</td><td>Audience export weekly</td></tr>
+          </tbody>
+        </table>
+      </article>
+    </section>
 
-        <article class="card" id="integrations">
-          <h2>Integrations</h2>
-          <div class="mini"><span>Shopify</span><span class="pill">Connected</span></div>
-          <div class="mini"><span>Stripe</span><span class="pill">Connected</span></div>
-          <div class="mini"><span>Square</span><span class="pill">Connected</span></div>
-          <div class="mini"><span>Google Ads</span><span class="pill">Syncing</span></div>
-          <div class="mini"><span>Meta Pixel</span><span class="pill">Connected</span></div>
-          <div style="margin-top:10px"><button class="btn" id="openIntegration2">Add Integration</button></div>
-        </article>
-      </section>
-
-      <!-- Billing & Payouts -->
-      <section class="grid grid-3" id="billing" style="margin-top:14px">
-        <article class="card">
-          <h2>Payouts</h2>
-          <div class="mini"><span>Next Payout</span><strong>$18,204 • Sep 06</strong></div>
-          <div class="mini"><span>Method</span><span class="pill">Stripe • **** 8123</span></div>
-          <div class="mini"><span>Last Payout</span><span>$12,940 • Aug 30</span></div>
-          <div class="sep"></div>
-          <button class="btn">View Payouts</button>
-        </article>
-
-        <article class="card">
-          <h2>Subscription</h2>
-          <div class="mini"><span>Plan</span><span class="pill">Pro</span></div>
-          <div class="mini"><span>Seats</span><span>3 / 5</span></div>
-          <div class="mini"><span>Renews</span><span>Oct 1, 2025</span></div>
-          <div class="sep"></div>
-          <button class="btn ghost">Manage Plan</button>
-        </article>
-
-        <article class="card">
-          <h2>Alerts</h2>
-          <div class="mini"><span>Chargeback Risk</span><span class="pill" style="border-color:rgba(245,158,11,.45)">Medium</span></div>
-          <div class="mini"><span>Low Stock (7 SKUs)</span><span class="pill" style="border-color:rgba(239,68,68,.45)">Action needed</span></div>
-          <div class="mini"><span>Webhook Retries</span><span class="pill">0</span></div>
-          <div class="sep"></div>
-          <button class="btn warn">Review Risks</button>
-        </article>
-      </section>
-
-      <!-- Footer -->
-      <footer class="mini" style="margin-top:16px">
-        <span>© 2025 Aurelo Data. Built by Microknots.</span>
-        <span class="right">Need help? <a href="#support" class="pill">Contact Support</a></span>
-      </footer>
-    </main>
-  </div>
-
-  <!-- Refund Modal -->
-  <div class="modal" id="refundModal" role="dialog" aria-modal="true" aria-labelledby="refundTitle">
-    <div class="dialog">
-      <h3 id="refundTitle">Issue Refund</h3>
-      <div class="row">
-        <div class="field">
-          <label for="refundOrder">Order ID</label>
-          <input id="refundOrder" placeholder="e.g., AU-10483" />
-        </div>
-        <div class="field">
-          <label for="refundAmount">Amount</label>
-          <input id="refundAmount" type="number" step="0.01" placeholder="e.g., 29.99" />
-        </div>
-        <div class="field" style="grid-column: 1 / -1;">
-          <label for="refundReason">Reason</label>
-          <textarea id="refundReason" rows="3" placeholder="Notes for customer and internal records"></textarea>
-        </div>
+    <!-- BILLING -->
+    <section id="page-billing" class="page" aria-labelledby="billingTitle">
+      <div class="kpis">
+        <article class="card kpi"><div class="title">Next Payout</div><div class="value">$18,204</div></article>
+        <article class="card kpi"><div class="title">Last Payout</div><div class="value">$12,940</div></article>
+        <article class="card kpi"><div class="title">Plan</div><div class="value">Pro</div></article>
       </div>
-      <div class="actions">
-        <button class="btn bad" id="confirmRefund">Confirm Refund</button>
-        <button class="btn ghost" data-close="#refundModal">Cancel</button>
-      </div>
-    </div>
-  </div>
+      <article class="card">
+        <h2 id="billingTitle">Invoices</h2>
+        <table>
+          <thead><tr><th>Date</th><th>Invoice</th><th>Amount</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td>2025-09-01</td><td>INV-2041</td><td>$99.00</td><td>Paid</td></tr>
+            <tr><td>2025-08-01</td><td>INV-2009</td><td>$99.00</td><td>Paid</td></tr>
+          </tbody>
+        </table>
+      </article>
+    </section>
 
-  <!-- Integration Modal -->
-  <div class="modal" id="integrationModal" role="dialog" aria-modal="true" aria-labelledby="integrationTitle">
-    <div class="dialog">
-      <h3 id="integrationTitle">Add Integration</h3>
-      <div class="row">
-        <div class="field">
-          <label for="intType">Provider</label>
-          <select id="intType">
-            <option>Shopify</option>
-            <option>WooCommerce</option>
-            <option>BigCommerce</option>
-            <option>Stripe</option>
-            <option>Square</option>
-            <option>Meta Pixel</option>
-            <option>Google Ads</option>
-            <option>Custom Webhooks</option>
-          </select>
+    <!-- SETTINGS -->
+    <section id="page-settings" class="page" aria-labelledby="settingsTitle">
+      <article class="card">
+        <h2 id="settingsTitle">Store Settings</h2>
+        <p class="muted">Basic preferences for your store dashboard.</p>
+        <div style="display:grid; gap:12px; grid-template-columns: 1fr 1fr">
+          <div class="select"><label for="currency" class="muted" style="font-weight:600">Currency</label>
+            <select id="currency"><option>USD</option><option>EUR</option><option>GBP</option></select>
+          </div>
+          <div class="select"><label for="timezone" class="muted" style="font-weight:600">Timezone</label>
+            <select id="timezone"><option>America/New_York</option><option>UTC</option><option>Europe/London</option></select>
+          </div>
         </div>
-        <div class="field">
-          <label for="intKey">API Key / Token</label>
-          <input id="intKey" placeholder="Paste key/token here" />
-        </div>
-        <div class="field" style="grid-column: 1 / -1;">
-          <label for="intNotes">Notes</label>
-          <textarea id="intNotes" rows="2" placeholder="Optional"></textarea>
-        </div>
-      </div>
-      <div class="actions">
-        <button class="btn" id="connectIntegration">Connect</button>
-        <button class="btn ghost" data-close="#integrationModal">Close</button>
-      </div>
-    </div>
-  </div>
+        <div class="spacer"></div>
+        <button class="btn primary">Save Changes</button>
+      </article>
+    </section>
 
-  <!-- Packet Progress Modal -->
-  <div class="modal" id="packetModal" role="dialog" aria-modal="true" aria-labelledby="packetTitle">
-    <div class="dialog">
-      <h3 id="packetTitle">Generating Data Packet…</h3>
-      <div class="mini"><span>Preparing LLM-ready CSV/JSONL</span><span id="packetPct">0%</span></div>
-      <div class="progress"><div class="bar" id="packetBar" style="width:0%"></div></div>
-      <div class="actions">
-        <button class="btn ghost" data-close="#packetModal">Hide</button>
-      </div>
-    </div>
-  </div>
+    <!-- SUPPORT -->
+    <section id="page-support" class="page" aria-labelledby="supportTitle">
+      <article class="card">
+        <h2 id="supportTitle">Support</h2>
+        <p class="muted">Need a hand? Reach us at <strong>support@aurelodata.com</strong>.</p>
+        <p class="muted">Docs & Guides coming soon.</p>
+      </article>
+    </section>
 
-  <script>
-    // ---------- Mock Data ----------
-    const state = {
-      range: 30,
-      statusFilter: 'all',
-      orders: [],
-      products: [
-        { name: 'Aurelo Hoodie — Black', sku: 'HD-BLK-01', units: 820, revenue: 32800, stock: 94 },
-        { name: 'Aurelo Tee — White', sku: 'TEE-WHT-02', units: 1240, revenue: 24800, stock: 120 },
-        { name: 'MK Tech Backpack', sku: 'BAG-URB-11', units: 540, revenue: 37800, stock: 42 },
-        { name: 'USB-C Hub Pro', sku: 'HUB-PRO-7', units: 410, revenue: 28700, stock: 15 },
-        { name: 'Noise-Cancel Buds', sku: 'BUD-ANC-5', units: 360, revenue: 43200, stock: 33 },
-      ],
-      channels: { Shopify: 54, Web: 22, Amazon: 16, POS: 8 }
-    };
+    <footer class="muted" style="margin-top:16px">© 2025 Aurelo Data. Built by Microknots.</footer>
+  </main>
+</div>
 
-    function rand(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
-    function fmtMoney(n){ return n.toLocaleString(undefined, { style:'currency', currency:'USD' }); }
+<script>
+/* ----------------- Simple Router ----------------- */
+const PAGES = [
+  'home','sales','products','inventory','customers',
+  'analytics','packets','integrations','billing','settings','support'
+];
 
-    function seedOrders(){
-      const customers = ['Alex Kim','Jordan Lee','Taylor Singh','Sam Patel','Riley Chen','Priya Shah','Chris Johnson','Jamie Nguyen','Ava Brown','Noah Garcia','Liam Davis','Emma Wilson'];
-      const statuses = ['paid','pending','refunded'];
-      const items = ['Aurelo Hoodie','Aurelo Tee','Backpack','USB-C Hub','Buds','Desk Mat','Water Bottle','Cap'];
-      const now = new Date();
-      state.orders = [];
-      for(let i=0;i<124;i++){
-        const daysAgo = rand(0, state.range-1);
-        const dt = new Date(now); dt.setDate(now.getDate()-daysAgo);
-        const status = statuses[rand(0, statuses.length-1)];
-        const nItems = rand(1,4);
-        const total = rand(18,220) + (Math.random()>0.6? .99 : .49);
-        state.orders.push({
-          id: 'AU-' + (10000+i),
-          date: dt.toISOString().slice(0,10),
-          customer: customers[rand(0, customers.length-1)],
-          items: items.sort(()=>Math.random()-0.5).slice(0,nItems).join(', '),
-          total: total,
-          status
-        });
-      }
+function setActive(page){
+  // show page
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('show'));
+  const el = document.getElementById(`page-${page}`) || document.getElementById('page-home');
+  el.classList.add('show');
+  // highlight nav
+  document.querySelectorAll('#nav a').forEach(a=>{
+    a.classList.toggle('active', a.dataset.page===page);
+  });
+  // (re)draw charts for the page if needed
+  if (page === 'home') drawHomeCharts();
+  if (page === 'sales') drawSalesChart();
+  if (page === 'products') drawProductMixChart();
+  if (page === 'customers') drawCustomersChart();
+  if (page === 'analytics') { drawFunnelChart(); drawAttrChart(); }
+}
+
+function route(){
+  const hash = (location.hash || '#home').replace('#','');
+  const page = PAGES.includes(hash) ? hash : 'home';
+  setActive(page);
+}
+window.addEventListener('hashchange', route);
+window.addEventListener('load', route);
+
+/* ----------------- Mock Data & Helpers ----------------- */
+const state = { range: 30 };
+const fmtMoney = n => n.toLocaleString(undefined,{style:'currency',currency:'USD'});
+function labelsDays(n=30){
+  const out=[], d=new Date();
+  for(let i=n-1;i>=0;i--){ const dd=new Date(d); dd.setDate(d.getDate()-i); out.push(`${dd.getMonth()+1}/${dd.getDate()}`); }
+  return out;
+}
+function series(n=30, base=4000, spread=1500){
+  const r=()=> Math.max(50, base + (Math.random()*2-1)*spread);
+  return Array.from({length:n}, r);
+}
+
+/* ----------------- Charts ----------------- */
+let revenueChart, channelChart, salesChart, productMixChart, customersChart, funnelChart, attrChart;
+
+function drawHomeCharts(){
+  const labels = labelsDays(state.range);
+
+  revenueChart?.destroy();
+  revenueChart = new Chart(document.getElementById('revenueChart'), {
+    type:'line',
+    data:{ labels, datasets:[{
+      label:'Revenue', data: series(state.range, 4200, 1800), tension:.35, fill:true,
+      borderColor:'#6d28d9',
+      backgroundColor:(ctx)=>{const g=ctx.chart.ctx.createLinearGradient(0,0,0,260); g.addColorStop(0,'rgba(109,40,217,.20)'); g.addColorStop(1,'rgba(109,40,217,0)'); return g;},
+      borderWidth:2, pointRadius:0
+    }]},
+    options:{ plugins:{ legend:{display:false}}, scales:{ x:{grid:{display:false}}, y:{beginAtZero:true}}}
+  });
+
+  channelChart?.destroy();
+  channelChart = new Chart(document.getElementById('channelChart'), {
+    type:'doughnut',
+    data:{ labels:['Shopify','Web','Amazon','POS'], datasets:[{ data:[54,22,16,8], backgroundColor:['#6d28d9','#7c3aed','#a78bfa','#0ea5e9'], borderWidth:0 }]},
+    options:{ plugins:{legend:{position:'bottom'}} , cutout:'62%'}
+  });
+}
+
+function drawSalesChart(){
+  const labels = labelsDays(state.range);
+  salesChart?.destroy();
+  salesChart = new Chart(document.getElementById('salesChart'), {
+    type:'bar',
+    data:{ labels, datasets:[{ label:'Orders', data: series(state.range, 100, 60), backgroundColor:'#7c3aed', borderRadius:6 }]},
+    options:{ plugins:{legend:{display:false}}, scales:{ x:{grid:{display:false}}, y:{beginAtZero:true}}}
+  });
+}
+
+function drawProductMixChart(){
+  productMixChart?.destroy();
+  productMixChart = new Chart(document.getElementById('productMixChart'), {
+    type:'pie',
+    data:{ labels:['Apparel','Accessories','Electronics','Other'], datasets:[{ data:[42,26,22,10], backgroundColor:['#6d28d9','#7c3aed','#a78bfa','#0ea5e9']}]},
+    options:{ plugins:{legend:{position:'bottom'}} }
+  });
+}
+
+function drawCustomersChart(){
+  customersChart?.destroy();
+  customersChart = new Chart(document.getElementById('customersChart'), {
+    type:'line',
+    data:{ labels:labelsDays(30), datasets:[{ label:'New Customers', data: series(30, 20, 12), borderColor:'#6d28d9', backgroundColor:'rgba(109,40,217,.12)', fill:true, tension:.35, pointRadius:0 }]},
+    options:{ plugins:{legend:{display:false}}, scales:{ x:{grid:{display:false}}, y:{beginAtZero:true}}}
+  });
+}
+
+function drawFunnelChart(){
+  funnelChart?.destroy();
+  // Simple horizontal bars to mimic funnel levels
+  const ctx = document.getElementById('funnelChart').getContext('2d');
+  funnelChart = new Chart(ctx, {
+    type:'bar',
+    data:{ labels:['Visits','Product Views','Adds to Cart','Checkouts','Purchases'],
+      datasets:[{ label:'Users', data:[10000, 5200, 2100, 1400, 950], backgroundColor:'#6d28d9', borderRadius:8 }]},
+    options:{
+      indexAxis:'y',
+      plugins:{legend:{display:false}},
+      scales:{ x:{beginAtZero:true, grid:{display:false}}, y:{grid:{display:false}}}
     }
+  });
+}
 
-    // ---------- Orders Table ----------
-    const ordersBody = document.getElementById('ordersBody');
-    const ordersCount = document.getElementById('ordersCount');
+function drawAttrChart(){
+  attrChart?.destroy();
+  attrChart = new Chart(document.getElementById('attrChart'), {
+    type:'radar',
+    data:{
+      labels:['Organic','Paid Search','Social','Email','Referral','Direct'],
+      datasets:[{ label:'Contribution %', data:[22,28,18,14,8,10], borderColor:'#7c3aed', backgroundColor:'rgba(124,58,237,.15)' }]
+    },
+    options:{ plugins:{legend:{display:false}}, scales:{ r:{ beginAtZero:true, angleLines:{color:'#eee'}, grid:{color:'#eee'} } } }
+  });
+}
 
-    function renderOrders(){
-      const q = document.getElementById('search').value.toLowerCase().trim();
-      const filtered = state.orders.filter(o=>{
-        const matchesStatus = state.statusFilter==='all' ? true : (o.status===state.statusFilter);
-        const blob = `${o.id} ${o.customer} ${o.items}`.toLowerCase();
-        const matchesQ = !q || blob.includes(q);
-        return matchesStatus && matchesQ;
-      }).sort((a,b)=>b.date.localeCompare(a.date));
-      ordersCount.textContent = `${filtered.length} result${filtered.length===1?'':'s'}`;
-      ordersBody.innerHTML = filtered.map(o=>`
-        <tr role="row">
-          <td><strong>${o.id}</strong></td>
-          <td>${o.date}</td>
-          <td>${o.customer}</td>
-          <td>${o.items}</td>
-          <td>${fmtMoney(o.total)}</td>
-          <td>
-            <span class="status ${o.status}">${o.status[0].toUpperCase()+o.status.slice(1)}</span>
-          </td>
-          <td class="right">
-            <button class="btn ghost" onclick="alert('Viewing ${o.id}')">View</button>
-          </td>
-        </tr>
-      `).join('');
-    }
+/* ----------------- Tables (simple, condensed) ----------------- */
+function seedOrders(){
+  const rows = [];
+  const customers = ['Alex Kim','Jordan Lee','Taylor Singh','Sam Patel','Riley Chen','Priya Shah','Chris Johnson','Jamie Nguyen'];
+  for(let i=0;i<8;i++){
+    const total = (Math.random()*180 + 20).toFixed(2);
+    const d = new Date(); d.setDate(d.getDate()-Math.floor(Math.random()*state.range));
+    rows.push(`<tr><td>AU-${10500+i}</td><td>${d.toISOString().slice(0,10)}</td><td>${customers[i%customers.length]}</td><td>${fmtMoney(Number(total))}</td></tr>`);
+  }
+  document.getElementById('ordersBody').innerHTML = rows.join('');
+}
+function seedProducts(){
+  const items = [
+    ['Aurelo Hoodie — Black','HD-BLK-01',820,32800],
+    ['Aurelo Tee — White','TEE-WHT-02',1240,24800],
+    ['MK Tech Backpack','BAG-URB-11',540,37800],
+    ['USB-C Hub Pro','HUB-PRO-7',410,28700],
+  ];
+  document.getElementById('topProducts').innerHTML =
+    items.map(p=>`<tr><td><strong>${p[0]}</strong></td><td>${p[1]}</td><td>${p[2].toLocaleString()}</td><td>${fmtMoney(p[3])}</td></tr>`).join('');
+}
+function seedLowStock(){
+  const rows = [
+    ['USB-C Hub Pro','HUB-PRO-7',15,40],
+    ['MK Tech Backpack','BAG-URB-11',42,60],
+    ['Noise-Cancel Buds','BUD-ANC-5',33,50]
+  ].map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td></tr>`).join('');
+  document.getElementById('lowStock').innerHTML = rows;
+}
 
-    // ---------- Top Products ----------
-    function renderProducts(){
-      document.getElementById('topProducts').innerHTML = state.products.map(p=>`
-        <tr>
-          <td><strong>${p.name}</strong></td>
-          <td>${p.sku}</td>
-          <td>${p.units.toLocaleString()}</td>
-          <td>${fmtMoney(p.revenue)}</td>
-          <td>${p.stock}</td>
-        </tr>
-      `).join('');
-    }
+/* ----------------- UI wire-up ----------------- */
+document.getElementById('range').addEventListener('change', e=>{
+  state.range = Number(e.target.value);
+  // Redraw charts if current page needs it
+  route();
+});
 
-    // ---------- Charts ----------
-    let revenueChart, channelChart, ordersChart;
-
-    function genLabels(nDays){
-      const out=[]; const d=new Date();
-      for(let i=nDays-1;i>=0;i--){
-        const dd=new Date(d); dd.setDate(d.getDate()-i);
-        out.push(`${dd.getMonth()+1}/${dd.getDate()}`);
-      }
-      return out;
-    }
-    function genSeries(nDays, base=4000, spread=1500){
-      return Array.from({length:nDays}, ()=> Math.max(200, base + rand(-spread, spread)));
-    }
-    function initCharts(){
-      const days = Number(state.range);
-      const labels = genLabels(days);
-
-      const rc = document.getElementById('revenueChart');
-      revenueChart && revenueChart.destroy();
-      revenueChart = new Chart(rc, {
-        type:'line',
-        data:{
-          labels,
-          datasets:[{
-            label:'Revenue',
-            data: genSeries(days, 4200, 1800),
-            tension:.35,
-            fill:true,
-            borderColor:'#8b5cf6',
-            backgroundColor:ctx=> {
-              const g=ctx.chart.ctx.createLinearGradient(0,0,0,280);
-              g.addColorStop(0,'rgba(139,92,246,.35)');
-              g.addColorStop(1,'rgba(139,92,246,0)');
-              return g;
-            },
-            borderWidth:2,
-            pointRadius:0
-          }]
-        },
-        options:{
-          responsive:true,
-          scales:{
-            x:{ grid:{ color:'rgba(255,255,255,.06)'}, ticks:{ color:'#c4b5fd'} },
-            y:{ grid:{ color:'rgba(255,255,255,.06)'}, ticks:{ color:'#c4b5fd'}, beginAtZero:true }
-          },
-          plugins:{
-            legend:{ labels:{ color:'#c4b5fd' } },
-            tooltip:{ backgroundColor:'rgba(20,20,40,.9)', borderColor:'rgba(139,92,246,.4)', borderWidth:1 }
-          }
-        }
-      });
-
-      const cc = document.getElementById('channelChart');
-      channelChart && channelChart.destroy();
-      channelChart = new Chart(cc, {
-        type:'doughnut',
-        data:{
-          labels:Object.keys(state.channels),
-          datasets:[{
-            data:Object.values(state.channels),
-            backgroundColor:['#8b5cf6','#22d3ee','#4f46e5','#06b6d4'],
-            borderColor:'rgba(255,255,255,.06)',
-            borderWidth:2
-          }]
-        },
-        options:{
-          plugins:{
-            legend:{ position:'bottom', labels:{ color:'#c4b5fd' } },
-            tooltip:{ backgroundColor:'rgba(20,20,40,.9)' }
-          },
-          cutout:'62%'
-        }
-      });
-
-      const oc = document.getElementById('ordersChart');
-      ordersChart && ordersChart.destroy();
-      ordersChart = new Chart(oc, {
-        type:'bar',
-        data:{
-          labels,
-          datasets:[{
-            label:'Orders',
-            data: genSeries(days, 110, 60),
-            backgroundColor:'#4f46e5',
-            borderRadius:6
-          }]
-        },
-        options:{
-          scales:{
-            x:{ grid:{ display:false }, ticks:{ color:'#c4b5fd'} },
-            y:{ grid:{ color:'rgba(255,255,255,.06)'}, ticks:{ color:'#c4b5fd'}, beginAtZero:true }
-          },
-          plugins:{ legend:{ labels:{ color:'#c4b5fd'} }, tooltip:{ backgroundColor:'rgba(20,20,40,.9)'} }
-        }
-      });
-    }
-
-    // ---------- Filters & Controls ----------
-    function setActiveChip(status){
-      document.querySelectorAll('.chip').forEach(c=>{
-        c.classList.toggle('active', c.dataset.status===status);
-      });
-    }
-
-    document.querySelectorAll('.chip').forEach(chip=>{
-      chip.addEventListener('click', ()=>{
-        state.statusFilter = chip.dataset.status;
-        setActiveChip(state.statusFilter);
-        renderOrders();
-      });
-    });
-
-    document.getElementById('search').addEventListener('input', renderOrders);
-
-    const range = document.getElementById('range');
-    range.addEventListener('change', ()=>{
-      const label = range.options[range.selectedIndex].textContent;
-      document.getElementById('rangeLabel').textContent = label;
-      if(range.value==='custom'){
-        const days = Number(prompt('Enter number of days to view (e.g., 45):', '45')) || 30;
-        state.range = Math.max(7, Math.min(365, days));
-      } else {
-        state.range = Number(range.value);
-      }
-      seedOrders();
-      renderOrders();
-      initCharts();
-    });
-
-    // Export CSV
-    document.getElementById('exportCsvBtn').addEventListener('click', ()=>{
-      const rows = [['Order','Date','Customer','Items','Total','Status']].concat(
-        state.orders.map(o=>[o.id,o.date,o.customer,o.items, o.total.toFixed(2), o.status])
-      );
-      const csv = rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
-      const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = `aurelo-orders-${Date.now()}.csv`;
-      document.body.appendChild(a); a.click(); a.remove();
-    });
-
-    // Packet Generation Progress (fake)
-    const packetModal = document.getElementById('packetModal');
-    const packetBar = document.getElementById('packetBar');
-    const packetPct = document.getElementById('packetPct');
-    document.getElementById('generatePacketBtn').addEventListener('click', ()=>{
-      packetModal.classList.add('show');
-      let i=0; const t = setInterval(()=>{
-        i += Math.random()*14+6;
-        if(i>=100){ i=100; clearInterval(t); }
-        packetBar.style.width = i.toFixed(0)+'%';
-        packetPct.textContent = i.toFixed(0)+'%';
-      }, 280);
-    });
-
-    // Refund Modal
-    const refundModal = document.getElementById('refundModal');
-    document.getElementById('openRefund').addEventListener('click', ()=> refundModal.classList.add('show'));
-    document.getElementById('confirmRefund').addEventListener('click', ()=>{
-      const id = document.getElementById('refundOrder').value.trim() || 'AU-00000';
-      alert('Refund created for '+id);
-      refundModal.classList.remove('show');
-    });
-
-    // Integration Modal
-    const integrationModal = document.getElementById('integrationModal');
-    document.getElementById('openIntegration').addEventListener('click', ()=> integrationModal.classList.add('show'));
-    document.getElementById('openIntegration2').addEventListener('click', ()=> integrationModal.classList.add('show'));
-    document.getElementById('connectIntegration').addEventListener('click', ()=>{
-      const provider = document.getElementById('intType').value;
-      alert(`Connected: ${provider}`);
-      integrationModal.classList.remove('show');
-    });
-
-    // Close modals
-    document.querySelectorAll('[data-close]').forEach(btn=>{
-      btn.addEventListener('click', (e)=>{
-        const sel = e.currentTarget.getAttribute('data-close');
-        document.querySelector(sel).classList.remove('show');
-      });
-    });
-    [refundModal, integrationModal, packetModal].forEach(m=>{
-      m.addEventListener('click', e=>{ if(e.target===m) m.classList.remove('show'); });
-    });
-
-    // Init
-    seedOrders();
-    renderOrders();
-    renderProducts();
-    initCharts();
-  </script>
+window.addEventListener('load', ()=>{
+  seedOrders();
+  seedProducts();
+  seedLowStock();
+  drawHomeCharts();
+});
+</script>
 </body>
 </html>
