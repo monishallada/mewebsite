@@ -3,341 +3,398 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Magenta — Microknots Data Packet Builder</title>
+<title>Magenta • Microknots — Chat UI Packetizer</title>
 
-<!-- External libs (CDN) -->
+<!-- libs -->
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
 
 <style>
   :root{
-    --bg:#0b0b0f;
-    --card:#12121a;
-    --ink:#e9e9ef;
-    --muted:#b7b7c6;
-    --brand1:#7c3aed; /* purple */
-    --brand2:#00b3ff; /* blue */
-    --brand3:#ff00cc; /* magenta */
-    --ring:0 0 0 2px rgba(124,58,237,.35),0 0 35px rgba(0,179,255,.25);
+    --bg:#f7f7f8;         /* ChatGPT light */
+    --pane:#ffffff;
+    --ink:#0b0b0c;
+    --muted:#6b6f76;
+    --line:#e5e7eb;
+    --hl:#10a37f;         /* subtle green accent */
+    --radius:14px;
   }
   *{box-sizing:border-box}
+  html,body{height:100%}
   body{
     margin:0;
-    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, "Helvetica Neue", Arial, "Apple Color Emoji","Segoe UI Emoji";
+    font-family: ui-sans-serif, -apple-system, Segoe UI, Roboto, Inter, "Helvetica Neue", Arial;
     color:var(--ink);
-    background:
-      radial-gradient(1200px 600px at -10% 110%, rgba(124,58,237,.25), transparent 60%),
-      radial-gradient(900px 500px at 120% -10%, rgba(0,179,255,.2), transparent 50%),
-      linear-gradient(180deg, #0a0a0e 0%, #0d0d14 100%);
+    background:var(--bg);
+  }
+  .app{
+    display:grid;
+    grid-template-columns: 260px 1fr;
     min-height:100vh;
   }
-  header{
-    display:flex; align-items:center; gap:16px;
-    padding:24px 28px; position:sticky; top:0; z-index:5;
-    backdrop-filter:saturate(140%) blur(8px);
-    background:linear-gradient(180deg, rgba(12,12,18,.9), rgba(12,12,18,.6));
-    border-bottom:1px solid rgba(255,255,255,.06);
+  /* Sidebar (ChatGPT-ish) */
+  aside{
+    background:#fafafa;
+    border-right:1px solid var(--line);
+    display:flex; flex-direction:column; gap:14px; padding:14px;
   }
-  header img{height:44px; width:auto; border-radius:8px; box-shadow:0 6px 30px rgba(124,58,237,.35)}
-  .title{
-    line-height:1.1;
+  .brand{
+    display:flex; align-items:center; gap:10px; padding:10px; border-radius:12px;
+    background:#fff; border:1px solid var(--line);
   }
-  .title h1{margin:0; font-weight:800; letter-spacing:.2px; font-size:24px}
-  .title p{margin:2px 0 0; color:var(--muted); font-size:13px}
-  .container{padding:28px; max-width:1200px; margin:0 auto}
-  .grid{display:grid; grid-template-columns: 320px 1fr; gap:24px}
-  .card{
-    background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
-    border:1px solid rgba(255,255,255,.08);
-    border-radius:18px; padding:18px;
-    box-shadow: 0 12px 40px rgba(0,0,0,.35);
+  .brand img{height:32px; width:auto; border-radius:8px}
+  .brand h1{font-size:15px; margin:0}
+  .nav-btn{
+    appearance:none; border:1px dashed #d7d9df; background:#fff; color:#111;
+    border-radius:12px; padding:10px 12px; text-align:left; cursor:pointer;
   }
-  .card h3{margin:0 0 10px; font-size:14px; text-transform:uppercase; letter-spacing:.14em; color:#cfcfe7}
-  .sub{color:var(--muted); font-size:12px; margin-top:6px}
-  label{font-size:13px; color:#d6d6ea; display:block; margin:12px 0 6px}
-  input[type="text"], input[type="number"], textarea, select{
-    width:100%; background:#0f0f15; color:var(--ink);
-    border:1px solid rgba(255,255,255,.1); border-radius:12px; padding:10px 12px;
-    outline:none; transition:.2s border, .2s box-shadow;
+  .credits{
+    margin-top:auto; font-size:12px; color:var(--muted); padding:0 4px 6px 4px;
   }
-  input[type="text"]:focus, textarea:focus, select:focus{
-    border-color: var(--brand1); box-shadow: var(--ring);
+
+  /* Main pane */
+  main{display:flex; flex-direction:column; height:100vh}
+  header.top{
+    border-bottom:1px solid var(--line);
+    background:#fff;
+    padding:14px 18px;
+    display:flex; align-items:center; gap:12px;
+    position:sticky; top:0; z-index:10;
   }
-  input[type="file"]{width:100%}
+  .upload{
+    flex:1; display:flex; align-items:center; gap:10px;
+    border:1.5px dashed #cfd3da; background:#fff; padding:10px 12px; border-radius:14px;
+  }
+  .upload input{display:none}
+  .upload .hint{color:var(--muted); font-size:13px}
   .btn{
-    appearance:none; border:none; cursor:pointer;
-    padding:10px 14px; border-radius:12px; font-weight:700;
-    color:#0b0b0f; background:linear-gradient(90deg, var(--brand1), var(--brand2) 50%, var(--brand3));
-    transition:.15s transform, .15s filter; will-change:transform;
+    appearance:none; border:none; background:var(--hl); color:#fff; padding:10px 14px;
+    border-radius:12px; font-weight:700; cursor:pointer;
   }
-  .btn:active{transform:translateY(1px)}
-  .btn.secondary{
-    background:transparent; color:var(--ink);
-    border:1px solid rgba(255,255,255,.14)
+  .btn.ghost{background:#fff; color:#111; border:1px solid var(--line)}
+  .select{
+    border:1px solid var(--line); background:#fff; border-radius:12px; padding:8px 10px; font-weight:600;
   }
-  .muted{color:var(--muted)}
-  .row{display:flex; gap:10px; align-items:center}
-  .pill{
-    display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:999px;
-    font-size:12px; border:1px solid rgba(255,255,255,.12); color:#dcdcf0;
+
+  /* Chat feed */
+  .feed{
+    flex:1; overflow:auto; padding:24px; display:flex; flex-direction:column; gap:16px;
   }
-  .map-grid{display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:12px}
-  table{width:100%; border-collapse:collapse; font-size:12px}
-  th, td{border-bottom:1px solid rgba(255,255,255,.08); padding:8px 10px; text-align:left}
-  .footer-actions{display:flex; gap:12px; justify-content:flex-end; padding-top:18px}
-  .switch{display:inline-flex; align-items:center; gap:8px; font-size:12px; color:var(--muted)}
-  .switch input{accent-color:var(--brand1)}
-  .tag{display:inline-block; padding:2px 8px; border:1px solid rgba(255,255,255,.15); border-radius:999px; font-size:11px; margin-right:6px}
-  .badge{background:rgba(124,58,237,.18); border:1px solid rgba(124,58,237,.36); color:#e7dcff}
-  .hint{font-size:11px; color:#9ea0b6}
-  .hr{height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.12),transparent); margin:14px 0}
-  .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace}
-  .danger{color:#ff6b9e}
-  .ok{color:#50e3a4}
-  .flex{display:flex; gap:12px; align-items:center; flex-wrap:wrap}
-  .kpi{display:grid; grid-template-columns: repeat(4, 1fr); gap:12px}
-  .kpi .card{padding:16px}
-  .kpi h4{margin:0; font-size:12px; color:#bdbddb; text-transform:uppercase; letter-spacing:.14em}
-  .kpi p{margin:6px 0 0; font-weight:800; font-size:18px}
-  .tiny{font-size:10px; color:#a7a7bf}
-  .notice{padding:10px 12px; background:rgba(0,179,255,.1); border:1px solid rgba(0,179,255,.25); border-radius:12px; font-size:12px}
-  .footer-note{margin-top:16px; color:#9aa0b3; font-size:11px}
-  .hidden{display:none}
-  .shadow-disc{
-    position:absolute; width:300px; height:300px; border-radius:999px; filter:blur(40px);
-    background:conic-gradient(from 30deg, rgba(124,58,237,.95), rgba(0,179,255,.8), rgba(255,0,204,.9), rgba(124,58,237,.95));
-    opacity:.12; pointer-events:none; mix-blend:screen;
+  .msg{
+    display:flex; gap:12px; align-items:flex-start;
   }
+  .msg .avatar{
+    width:28px; height:28px; border-radius:8px; background:#111; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:800; font-size:12px;
+  }
+  .msg.user .avatar{background:#e5e7eb; color:#111}
+  .bubble{
+    background:#fff; border:1px solid var(--line); border-radius:14px; padding:12px 14px; max-width:900px;
+    box-shadow: 0 2px 0 rgba(0,0,0,0.02);
+  }
+  .bubble h4{margin:0 0 8px; font-size:14px}
+  .bubble .tiny{color:var(--muted); font-size:12px}
+  .code{
+    background:#0f172a; color:#e6eaf5; border-radius:12px; padding:10px 12px; overflow:auto; font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:12px;
+  }
+  .row{display:flex; gap:10px; flex-wrap:wrap}
+  table{width:100%; border-collapse:collapse; font-size:13px}
+  th,td{border-bottom:1px solid var(--line); padding:7px 6px; text-align:left}
+
+  footer.input{
+    border-top:1px solid var(--line); background:#fff; padding:14px 18px;
+    display:flex; gap:10px; align-items:center;
+  }
+  .pill{font-size:12px; color:var(--muted)}
+
+  .drop-active{outline:2px solid var(--hl); outline-offset:2px}
 </style>
 </head>
 <body>
-  <div class="shadow-disc" style="top:-100px; left:-120px;"></div>
-  <div class="shadow-disc" style="bottom:-120px; right:-100px; width:380px; height:380px;"></div>
-
-  <header>
-    <img src="microknots-logo.png" alt="microknots logo" onerror="this.style.display='none'">
-    <div class="title">
-      <h1>Magenta — Data Packet Builder</h1>
-      <p>Convert raw sheets into LLM-ready JSONL with labeling, PII scrubbing, and normalization — themed by Microknots.</p>
-    </div>
-    <div style="margin-left:auto" class="flex">
-      <span class="pill"><span>Theme</span><span class="mono">microknots</span></span>
-      <span class="pill badge">v1.0</span>
-    </div>
-  </header>
-
-  <main class="container">
-    <div class="kpi">
-      <div class="card">
-        <h4>Rows</h4><p id="kpi-rows">0</p><div class="tiny" id="kpi-cols">—</div>
-      </div>
-      <div class="card">
-        <h4>Packet Type</h4><p id="kpi-type">—</p><div class="tiny" id="kpi-mapped">0 mapped fields</div>
-      </div>
-      <div class="card">
-        <h4>Labels</h4><p id="kpi-labels">0</p><div class="tiny">class balance chart below</div>
-      </div>
-      <div class="card">
-        <h4>Quality</h4><p id="kpi-quality" class="ok">Ready</p><div class="tiny">PII scrub & dedupe optional</div>
+<div class="app">
+  <!-- Sidebar -->
+  <aside>
+    <div class="brand">
+      <img src="microknots-logo.png" alt="microknots" onerror="this.style.display='none'">
+      <div>
+        <h1>Magenta Packetizer</h1>
+        <div style="font-size:12px;color:var(--muted)">Microknots</div>
       </div>
     </div>
 
-    <div class="grid" style="margin-top:22px">
-      <!-- LEFT: Controls -->
-      <section class="card">
-        <h3>1 • Load Data</h3>
-        <label>Upload file (.csv, .xlsx, .json)</label>
-        <input type="file" id="fileInput" accept=".csv,.xlsx,.xls,.json" />
-        <div class="sub">We process locally in your browser. Nothing leaves your machine.</div>
+    <button class="nav-btn" id="newSession">➕ New Session</button>
+    <button class="nav-btn" id="downloadJsonl" disabled>⬇️ Download JSONL</button>
+    <button class="nav-btn" id="downloadZip" disabled>⬇️ Download ZIP (JSONL+manifest)</button>
 
-        <div class="hr"></div>
+    <div class="credits">Made in a ChatGPT-style UI. <br>© Microknots • <strong>by Monish Allada</strong></div>
+  </aside>
 
-        <h3>2 • Packet Template</h3>
-        <label>Choose packet type</label>
-        <select id="packetType">
-          <option value="classification">Classification (text + label)</option>
-          <option value="chat">Chat/Instruction (input → expected_output)</option>
-          <option value="rag">RAG Chunk (content + source metadata)</option>
-        </select>
-        <div id="ragOpts" class="notice hidden">
-          <div class="row">
-            <label style="margin:0">Chunk size (chars)</label>
-            <input type="number" id="chunkSize" value="900" min="200" max="4000" style="width:110px">
-            <label style="margin:0">Overlap</label>
-            <input type="number" id="chunkOverlap" value="120" min="0" max="1000" style="width:110px">
-          </div>
-          <div class="tiny">RAG mode will split long text into overlapping chunks.</div>
+  <!-- Main -->
+  <main>
+    <header class="top">
+      <div id="drop" class="upload" tabindex="0">
+        <label for="file" class="btn ghost">Choose file</label>
+        <input id="file" type="file" accept=".csv,.xlsx,.xls,.json" />
+        <div class="hint">or drag & drop CSV / XLSX / JSON here. We process locally.</div>
+      </div>
+      <select id="packetType" class="select" title="packet type">
+        <option value="classification">Classification (text + label)</option>
+        <option value="chat">Chat/Instruction (input → expected_output)</option>
+        <option value="rag">RAG Chunk (content + source)</option>
+      </select>
+    </header>
+
+    <section id="feed" class="feed">
+      <div class="msg">
+        <div class="avatar">M</div>
+        <div class="bubble">
+          <h4>Welcome to Magenta</h4>
+          Drop a file above and I’ll turn it into LLM-ready <b>JSONL</b>. You’ll get a preview and download buttons.
+          <div class="tiny" style="margin-top:8px">Supports: CSV, XLSX, JSON • All processing is in your browser.</div>
         </div>
+      </div>
+    </section>
 
-        <div class="hr"></div>
-
-        <h3>3 • Column Mapping</h3>
-        <div id="mapping" class="map-grid"></div>
-        <div class="sub">We auto-suggest roles after loading. You can change any dropdown.</div>
-
-        <div class="hr"></div>
-
-        <h3>4 • Quality & Privacy</h3>
-        <div class="switch"><input type="checkbox" id="lowercase"> <label for="lowercase" style="margin:0">Lowercase text</label></div>
-        <div class="switch"><input type="checkbox" id="collapseWS" checked> <label for="collapseWS" style="margin:0">Collapse whitespace & trim</label></div>
-        <div class="switch"><input type="checkbox" id="stripHtml" checked> <label for="stripHtml" style="margin:0">Strip HTML tags</label></div>
-        <div class="switch"><input type="checkbox" id="dedupe"> <label for="dedupe" style="margin:0">Deduplicate by text</label></div>
-        <div class="switch"><input type="checkbox" id="scrubPII" checked> <label for="scrubPII" style="margin:0">Scrub PII (emails, phones, SSN, CC#)</label></div>
-
-        <div class="hr"></div>
-
-        <h3>5 • Labeling Rules (optional)</h3>
-        <div class="sub">Auto-annotate by keywords/regex. Example regex: <span class="mono">/refund|chargeback/i</span></div>
-        <div class="row">
-          <input type="text" id="ruleLabel" placeholder="Label name (e.g., Support)" />
-        </div>
-        <div class="row">
-          <input type="text" id="ruleQuery" placeholder="Keywords (comma) or /regex/i" />
-          <button class="btn secondary" id="addRule">Add Rule</button>
-        </div>
-        <div id="rules" class="flex" style="margin-top:6px"></div>
-        <div class="sub">Rules only apply if your label column is not already mapped.</div>
-
-        <div class="hr"></div>
-
-        <h3>Export</h3>
-        <div class="footer-actions">
-          <button class="btn secondary" id="btnPreview">Preview 30 rows</button>
-          <button class="btn" id="btnGenerate">Generate Packet (JSONL + ZIP)</button>
-        </div>
-        <div class="footer-note">Output includes: <span class="tag">data.jsonl</span> <span class="tag">manifest.json</span> <span class="tag">schema.json</span> <span class="tag">README.md</span></div>
-      </section>
-
-      <!-- RIGHT: Preview & Charts -->
-      <section class="card">
-        <h3>Dataset Preview</h3>
-        <div id="preview">Load a file to see rows…</div>
-        <div class="hr"></div>
-        <h3>Label Balance</h3>
-        <canvas id="lblChart" height="160"></canvas>
-        <div class="hr"></div>
-        <h3>Packet JSONL Sample</h3>
-        <pre id="jsonlSample" class="mono" style="white-space:pre-wrap; font-size:12px; background:#0f0f15; padding:12px; border-radius:12px; border:1px solid rgba(255,255,255,.08)">—</pre>
-      </section>
-    </div>
-
-    <div class="footer-note">© Microknots • Magenta packetizer runs entirely in-browser.</div>
+    <footer class="input">
+      <span class="pill">Tip: name your logo file <code style="background:#f1f5f9;padding:2px 4px;border-radius:6px">microknots-logo.png</code> to show it in the sidebar.</span>
+    </footer>
   </main>
+</div>
 
 <script>
-/* ======= State ======= */
-let rawRows = [];       // array of objects
-let columns = [];       // column names
-let rules = [];         // [{label, type:'keywords'|'regex', query:RegExp|string[]}]
-let mapping = {};       // role -> column
-let packetType = 'classification';
+/* ====== Simple Chat helpers ====== */
+const feed = document.getElementById('feed');
+function addMsg(role, html){
+  const msg = document.createElement('div'); msg.className = 'msg ' + (role==='user'?'user':'assistant');
+  msg.innerHTML = `
+    <div class="avatar">${role==='user'?'U':'M'}</div>
+    <div class="bubble">${html}</div>
+  `;
+  feed.appendChild(msg);
+  feed.scrollTop = feed.scrollHeight;
+  return msg.querySelector('.bubble');
+}
+function addCodeBlock(parent, text){
+  const pre = document.createElement('pre'); pre.className = 'code'; pre.textContent = text; parent.appendChild(pre);
+}
+function addTable(parent, rows, cols){
+  const t = document.createElement('table');
+  t.innerHTML = `<thead><tr>${cols.map(c=>`<th>${escapeHtml(c)}</th>`).join('')}</tr></thead>
+                 <tbody>${rows.map(r=>`<tr>${cols.map(c=>`<td>${escapeHtml(String(r[c] ?? '')).slice(0,140)}</td>`).join('')}</tr>`).join('')}</tbody>`;
+  parent.appendChild(t);
+}
+const escapeHtml = (s)=> s.replace(/[&<>"]/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[m]));
 
-const els = {
-  file: document.getElementById('fileInput'),
-  map:  document.getElementById('mapping'),
-  pkt:  document.getElementById('packetType'),
-  ragOpts: document.getElementById('ragOpts'),
-  chunkSize: document.getElementById('chunkSize'),
-  chunkOverlap: document.getElementById('chunkOverlap'),
-  preview: document.getElementById('preview'),
-  kRows: document.getElementById('kpi-rows'),
-  kCols: document.getElementById('kpi-cols'),
-  kType: document.getElementById('kpi-type'),
-  kMap: document.getElementById('kpi-mapped'),
-  kLabels: document.getElementById('kpi-labels'),
-  kQuality: document.getElementById('kpi-quality'),
-  lblChart: document.getElementById('lblChart'),
-  jsonlSample: document.getElementById('jsonlSample'),
-  btnPreview: document.getElementById('btnPreview'),
-  btnGen: document.getElementById('btnGenerate'),
-  ruleLabel: document.getElementById('ruleLabel'),
-  ruleQuery: document.getElementById('ruleQuery'),
-  addRule: document.getElementById('addRule'),
-  rules: document.getElementById('rules'),
-  toggles:{
-    lowercase: document.getElementById('lowercase'),
-    collapseWS: document.getElementById('collapseWS'),
-    stripHtml: document.getElementById('stripHtml'),
-    dedupe: document.getElementById('dedupe'),
-    scrubPII: document.getElementById('scrubPII'),
+/* ====== Parsing / Transform ====== */
+let rawRows=[], columns=[], packetType='classification', builtRows=[];
+const pktSel = document.getElementById('packetType');
+pktSel.addEventListener('change', ()=>{ packetType = pktSel.value; if(rawRows.length){ processAndShow(); }});
+
+async function parseFile(file){
+  const name = file.name.toLowerCase();
+  if(name.endsWith('.csv')){
+    return new Promise((res)=>{
+      Papa.parse(file, {header:true, dynamicTyping:false, skipEmptyLines:true,
+        complete: (r)=> res(r.data)
+      });
+    });
   }
-};
+  if(name.endsWith('.xlsx') || name.endsWith('.xls')){
+    const buf = await file.arrayBuffer();
+    const wb = XLSX.read(buf, {type:'array'});
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    return XLSX.utils.sheet_to_json(ws, {defval:''});
+  }
+  if(name.endsWith('.json')){
+    const txt = await file.text();
+    const data = JSON.parse(txt);
+    return Array.isArray(data)? data : data.data || [];
+  }
+  throw new Error('Unsupported file type.');
+}
 
-/* ======= Helpers ======= */
-const isRegexLiteral = (s)=> /^\/.*\/[a-z]*$/.test(s.trim());
-const toRegex = (s)=> {
-  const m = s.trim().match(/^\/(.*)\/([a-z]*)$/);
-  return new RegExp(m[1], m[2]||'');
-};
-const stripHTML = (s)=> s.replace(/<[^>]+>/g,' ');
-const collapseWS = (s)=> s.replace(/\s+/g,' ').trim();
-const lower = (s)=> s.toLowerCase();
-const scrubPII = (s)=>{
-  return s
-    // emails
-    .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi,'<EMAIL>')
-    // phones
-    .replace(/(?:\+?\d{1,3}[-.\s]?)?(?:\(?\d{2,4}\)?[-.\s]?){2,3}\d{3,4}/g, (m)=> m.replace(/\d/g,'#'))
-    // SSN
-    .replace(/\b\d{3}-?\d{2}-?\d{4}\b/g,'<SSN>')
-    // credit cards (simplified)
-    .replace(/\b(?:\d[ -]*?){13,19}\b/g,'<CARD>');
-};
-const applyQuality = (s)=>{
-  if(typeof s !== 'string') return s;
-  if(els.toggles.stripHtml.checked) s = stripHTML(s);
-  if(els.toggles.collapseWS.checked) s = collapseWS(s);
-  if(els.toggles.lowercase.checked) s = lower(s);
-  if(els.toggles.scrubPII.checked) s = scrubPII(s);
+function guessMapping(cols, type){
+  const lc = cols.map(c=>[c,c.toLowerCase()]);
+  const find = (keys)=> lc.find(([c,l])=> keys.some(k=> l.includes(k)))?.[0];
+  if(type==='classification') return {
+    text:  find(['text','content','message','review','body','comment','description']) || cols[0],
+    label: find(['label','class','category','intent','tag']),
+    id:    find(['id','uuid','guid','key']) || null
+  };
+  if(type==='chat') return {
+    input:  find(['input','question','prompt','query','source']) || cols[0],
+    output: find(['output','answer','response','completion','target']),
+    id:     find(['id','uuid','guid','key']) || null
+  };
+  if(type==='rag') return {
+    text:   find(['text','content','body','article','document','chunk']) || cols[0],
+    source: find(['source','url','path','doc','file']) || null,
+    id:     find(['id','uuid','guid','key']) || null
+  };
+  return {};
+}
+
+function applyQuality(s){
+  if(typeof s!=='string') s = String(s ?? '');
+  s = s.replace(/<[^>]+>/g,' ');         // strip HTML
+  s = s.replace(/\s+/g,' ').trim();      // collapse WS
+  // basic PII mask
+  s = s.replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi,'<EMAIL>')
+       .replace(/\b\d{3}-?\d{2}-?\d{4}\b/g,'<SSN>')
+       .replace(/\b(?:\d[ -]*?){13,19}\b/g,'<CARD>');
   return s;
-};
-const uniqBy = (arr, keyFn)=> {
-  const seen = new Set(); return arr.filter(r=>{const k=keyFn(r); if(seen.has(k)) return false; seen.add(k); return true;});
-};
-const guessRoles = ()=>{
-  const lc = columns.map(c=>[c, c.toLowerCase()]);
-  const find = (words)=> lc.find(([c,l])=>words.some(w=> l.includes(w)))?.[0];
-  const roles = needRolesFor(packetType);
-  const m = {};
-  if(roles.includes('text')) m.text = find(['text','message','content','review','body','comment','description']) || columns[0];
-  if(roles.includes('label')) m.label = find(['label','class','category','intent','tag']);
-  if(roles.includes('input')) m.input = find(['input','question','prompt','query','source']) || columns[0];
-  if(roles.includes('output')) m.output = find(['output','answer','response','completion','target']);
-  if(roles.includes('source')) m.source = find(['source','url','path','doc','file']);
-  if(roles.includes('id')) m.id = find(['id','uuid','guid','key']);
-  mapping = m;
-};
-const needRolesFor = (type)=>{
-  if(type==='classification') return ['text','label','id'];
-  if(type==='chat') return ['input','output','id'];
-  if(type==='rag') return ['text','source','id'];
+}
+
+function chunkText(str, size=900, overlap=120){
+  const out=[]; let i=0, idx=1; while(i<str.length){ const end=Math.min(str.length, i+size); out.push({idx, text:str.slice(i,end)}); idx++; i = end - overlap; if(i<=0) i=end; }
+  return out;
+}
+
+function assemble(rows, map, type){
+  if(type==='classification'){
+    let arr = rows.map((r,i)=>({
+      id: r[map.id] ?? (i+1),
+      text: applyQuality(r[map.text] ?? ''),
+      label: r[map.label] ?? null,
+      _meta: Object.fromEntries(Object.keys(r).filter(k=> !Object.values(map).includes(k)).map(k=>[k,r[k]]))
+    }));
+    // dedupe by text
+    const seen=new Set(); arr = arr.filter(x=>{ const k=x.text; if(seen.has(k)) return false; seen.add(k); return true;});
+    return arr;
+  }
+  if(type==='chat'){
+    let arr = rows.map((r,i)=>({
+      id: r[map.id] ?? (i+1),
+      input: applyQuality(r[map.input] ?? ''),
+      expected_output: applyQuality(r[map.output] ?? ''),
+      _meta: Object.fromEntries(Object.keys(r).filter(k=> !Object.values(map).includes(k)).map(k=>[k,r[k]]))
+    }));
+    const seen=new Set(); arr = arr.filter(x=>{ const k=x.input+'→'+x.expected_output; if(seen.has(k)) return false; seen.add(k); return true;});
+    return arr;
+  }
+  if(type==='rag'){
+    const out=[];
+    rows.forEach((r,i)=>{
+      const baseId = r[map.id] ?? (i+1);
+      const text = applyQuality(r[map.text] ?? '');
+      const src  = r[map.source] ?? ('row:'+ (i+1));
+      for(const piece of chunkText(text)){
+        out.push({
+          id: baseId+':'+piece.idx,
+          content: piece.text,
+          source: src,
+          _meta: Object.fromEntries(Object.keys(r).filter(k=> !Object.values(map).includes(k)).map(k=>[k,r[k]]))
+        });
+      }
+    });
+    const seen=new Set(); return out.filter(x=>{ if(seen.has(x.content)) return false; seen.add(x.content); return true;});
+  }
   return [];
-};
-const renderMapping = ()=>{
-  const roles = needRolesFor(packetType);
-  els.map.innerHTML = roles.map(role=>{
-    const sel = `<select data-role="${role}">` + ['—', ...columns].map(c=>`<option ${mapping[role]===c?'selected':''}>${c||'—'}</option>`).join('') + `</select>`;
-    const hint = role==='text' ? 'text field' :
-                 role==='label'? 'class/category' :
-                 role==='input'? 'prompt/question' :
-                 role==='output'? 'expected answer' :
-                 role==='source'? 'url/filename' : 'stable unique id';
-    return `<div>
-      <label>${role.toUpperCase()} <span class="hint">(${hint})</span></label>
-      ${sel}
-    </div>`;
-  }).join('');
-  els.map.querySelectorAll('select').forEach(s=>{
-    s.addEventListener('change', e=>{ const r=e.target.dataset.role; mapping[r] = e.target.value==='—'?null:e.target.value; refreshKPIs(); });
-  });
-};
-const refreshKPIs = ()=>{
-  els.kRows.textContent = rawRows.length.toLocaleString();
-  els.kCols.textContent = columns.length ? `${columns.length} columns` : '—';
-  els.kType.textContent = packetType.toUpperCase();
-  els.kMap.textContent = Object.values(mapping).filter(Boolean).length + '
+}
+
+function toJSONL(arr){ return arr.map(o=>JSON.stringify(o)).join('\n'); }
+
+/* ====== ZIP bundle ====== */
+function schemaFor(type){
+  if(type==='classification'){
+    return {type:'jsonl', item:{required:['id','text'], optional:['label','_meta']}};
+  } else if(type==='chat'){
+    return {type:'jsonl', item:{required:['id','input','expected_output'], optional:['_meta']}};
+  } else {
+    return {type:'jsonl', item:{required:['id','content','source'], optional:['_meta']}};
+  }
+}
+async function makeZip(jsonl, type, map, rowsCount){
+  const zip = new JSZip();
+  zip.file('data.jsonl', jsonl);
+  zip.file('schema.json', JSON.stringify(schemaFor(type), null, 2));
+  zip.file('manifest.json', JSON.stringify({
+    name:'magenta-packet',
+    packet_type:type,
+    created_at:new Date().toISOString(),
+    rows:rowsCount,
+    roles:map
+  }, null, 2));
+  zip.file('README.md', `# Magenta Data Packet
+
+Type: **${type}**
+Rows: **${rowsCount}**
+
+## Roles
+${Object.entries(map).map(([k,v])=>`- ${k}: \`${v}\``).join('\n')}
+`);
+  return await zip.generateAsync({type:'blob'});
+}
+
+/* ====== Upload handling (ChatGPT-like top bar) ====== */
+const fileInput = document.getElementById('file');
+const dropArea = document.getElementById('drop');
+['dragenter','dragover'].forEach(evt=> dropArea.addEventListener(evt, e=>{ e.preventDefault(); e.stopPropagation(); dropArea.classList.add('drop-active'); }));
+['dragleave','drop'].forEach(evt=> dropArea.addEventListener(evt, e=>{ e.preventDefault(); e.stopPropagation(); dropArea.classList.remove('drop-active'); }));
+dropArea.addEventListener('drop', e=>{ const f = e.dataTransfer.files[0]; if(f) handleFile(f); });
+fileInput.addEventListener('change', ()=>{ const f=fileInput.files[0]; if(f) handleFile(f); });
+
+document.getElementById('newSession').addEventListener('click', ()=>{
+  rawRows=[]; columns=[]; builtRows=[]; feed.innerHTML=''; addMsg('assistant', `<h4>New session</h4>Drop a file above to begin.`); 
+  document.getElementById('downloadJsonl').disabled = true;
+  document.getElementById('downloadZip').disabled = true;
+});
+
+async function handleFile(file){
+  addMsg('user', `<strong>Uploaded:</strong> ${file.name}`);
+  const thinking = addMsg('assistant', `Parsing <b>${file.name}</b>…`);
+  try{
+    rawRows = await parseFile(file);
+    columns = Object.keys(rawRows[0] || {});
+    thinking.innerHTML = `Parsed <b>${rawRows.length.toLocaleString()}</b> rows, <b>${columns.length}</b> columns. Inferring roles for <b>${packetType}</b>…`;
+    await processAndShow();
+  }catch(err){
+    thinking.innerHTML = `<span style="color:#b91c1c">Error:</span> ${err.message}`;
+  }
+}
+
+async function processAndShow(){
+  const bubble = addMsg('assistant', `Mapping columns & building packet…`);
+  const map = guessMapping(columns, packetType);
+  bubble.innerHTML = `
+    <div><strong>Role mapping</strong></div>
+    <div class="row" style="margin:8px 0">
+      ${Object.entries(map).map(([k,v])=>`<span style="background:#eef2f7;border:1px solid #e3e6eb;border-radius:999px;padding:4px 10px;font-size:12px">${k}: <b>${escapeHtml(String(v||'—'))}</b></span>`).join(' ')}
+    </div>
+    Assembling rows…`;
+  builtRows = assemble(rawRows, map, packetType);
+
+  // Preview
+  const prev = addMsg('assistant', `<strong>Preview (${Math.min(5, builtRows.length)} of ${builtRows.length.toLocaleString()})</strong>`);
+  const sample = builtRows.slice(0,5);
+  addCodeBlock(prev, toJSONL(sample));
+
+  // Original head preview
+  const srcPrev = addMsg('assistant', `<strong>Source sample</strong>`);
+  addTable(srcPrev, rawRows.slice(0,8), columns);
+
+  // Enable downloads
+  const jsonl = toJSONL(builtRows);
+  const dlJsonlBtn = document.getElementById('downloadJsonl');
+  const dlZipBtn   = document.getElementById('downloadZip');
+  dlJsonlBtn.disabled = false;
+  dlZipBtn.disabled   = false;
+
+  dlJsonlBtn.onclick = ()=> {
+    const blob = new Blob([jsonl], {type:'application/jsonl'});
+    saveAs(blob, `magenta_${packetType}_${Date.now()}.jsonl`);
+  };
+  dlZipBtn.onclick = async ()=> {
+    const zipBlob = await makeZip(jsonl, packetType, map, builtRows.length);
+    saveAs(zipBlob, `magenta_packet_${packetType}_${Date.now()}.zip`);
+  };
+
+  addMsg('assistant', `✅ Packet ready. Use the buttons in the left sidebar to download <b>JSONL</b> or a full <b>ZIP</b> bundle.`);
+}
+</script>
+</body>
+</html>
+
 
