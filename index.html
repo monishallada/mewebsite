@@ -3,75 +3,170 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Aurelo Data — Store Dashboard (Microknots Theme, Expanded)</title>
+<title>Aurelo Data — Store Dashboard (Microknots Theme)</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 <style>
   :root{
-    --bg:#0a0a0f; --panel:#11111b; --panel-2:#141424; --border:rgba(255,255,255,.08);
-    --muted:#a6a6bf; --text:#ffffff; --primary:#8b5cf6; --accent:#22d3ee; --blue:#4f46e5;
-    --good:#22c55e; --warn:#f59e0b; --bad:#ef4444; --shadow:0 12px 40px rgba(0,0,0,.45); --radius:16px;
+    /* Microknots dark / neon theme sampled from logo */
+    --bg:#0a0a0f;
+    --panel:#11111b;
+    --panel-2:#141424;
+    --border:rgba(255,255,255,.08);
+    --muted:#a6a6bf;
+    --text:#ffffff;
+    --primary:#8b5cf6;     /* purple */
+    --primary-600:#7c3aed; /* deeper purple */
+    --accent:#22d3ee;      /* cyan */
+    --blue:#4f46e5;
+    --good:#22c55e; --warn:#f59e0b; --bad:#ef4444;
+    --shadow:0 12px 40px rgba(0,0,0,.45);
+    --radius:16px;
   }
-  *{box-sizing:border-box} html,body{height:100%}
+  *{box-sizing:border-box}
+  html,body{height:100%}
   body{
-    margin:0;font-family:"Plus Jakarta Sans",system-ui,-apple-system,Segoe UI,Roboto,Arial,Helvetica,sans-serif;color:var(--text);
-    background:radial-gradient(1200px 700px at -10% -10%, rgba(139,92,246,.18), transparent 60%),
-               radial-gradient(900px 500px at 120% 10%, rgba(34,211,238,.12), transparent 60%), linear-gradient(0deg,var(--bg),var(--bg));
+    margin:0;
+    font-family:"Plus Jakarta Sans", system-ui, -apple-system, Segoe UI, Roboto, Arial, Helvetica, sans-serif;
+    color:var(--text);
+    background:
+      radial-gradient(1200px 700px at -10% -10%, rgba(139,92,246,.18), transparent 60%),
+      radial-gradient(900px 500px at 120% 10%, rgba(34,211,238,.12), transparent 60%),
+      linear-gradient(0deg,var(--bg),var(--bg));
+    letter-spacing:.1px;
   }
-  a{color:inherit;text-decoration:none} .app{display:grid;grid-template-columns:280px 1fr;min-height:100vh}
-  .sidebar{position:sticky;top:0;height:100dvh;background:linear-gradient(180deg,var(--panel),rgba(10,10,17,.85));border-right:1px solid var(--border);padding:22px 16px}
-  .brand{display:flex;align-items:center;gap:12px;margin-bottom:22px;padding:10px 12px;border-radius:14px;background:rgba(255,255,255,.03);border:1px solid var(--border);box-shadow:var(--shadow)}
-  .brand-logo{width:38px;height:38px;border-radius:12px;overflow:hidden;display:grid;place-items:center;background:conic-gradient(from 220deg,var(--primary),#4c1d95 35%,#0ea5e9 60%,#9333ea 80%,var(--primary))}
+  a{color:inherit;text-decoration:none}
+  .app{display:grid;grid-template-columns: 280px 1fr;min-height:100vh}
+
+  /* Sidebar */
+  .sidebar{
+    position:sticky; top:0; height:100dvh;
+    background:linear-gradient(180deg,var(--panel),rgba(10,10,17,.85));
+    border-right:1px solid var(--border);
+    padding:22px 16px;
+  }
+  .brand{
+    display:flex;align-items:center;gap:12px;margin-bottom:22px;padding:10px 12px;border-radius:14px;
+    background:rgba(255,255,255,.03); border:1px solid var(--border); box-shadow:var(--shadow);
+  }
+  .brand-logo{
+    width:38px;height:38px;border-radius:12px;overflow:hidden;display:grid;place-items:center;
+    background: conic-gradient(from 220deg at 50% 50%, var(--primary), #4c1d95 35%, #0ea5e9 60%, #9333ea 80%, var(--primary));
+  }
   .brand-logo img{width:100%;height:100%;object-fit:cover;display:block}
-  .brand h1{font-size:16px;margin:0;font-weight:800} .brand span{display:block;font-size:11px;color:var(--muted);margin-top:2px;font-weight:600}
-  .nav{display:grid;gap:6px} .nav h3{margin:14px 8px 8px;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em}
-  .nav a{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;color:var(--text);border:1px solid transparent;font-weight:700;transition:.18s ease}
+  .brand h1{font-size:16px;margin:0;font-weight:800;letter-spacing:.4px}
+  .brand span{display:block;font-size:11px;color:var(--muted);margin-top:2px;font-weight:600}
+  .nav{display:grid;gap:6px}
+  .nav h3{margin:14px 8px 8px;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em}
+  .nav a{
+    display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;
+    color:var(--text); border:1px solid transparent; font-weight:700;
+    background:transparent; transition:.18s ease;
+  }
   .nav a:hover{background:rgba(255,255,255,.04);border-color:var(--border)}
-  .nav a.active{background:linear-gradient(180deg, rgba(139,92,246,.18), rgba(139,92,246,.08));border-color:rgba(139,92,246,.35);box-shadow:0 8px 24px rgba(124,58,237,.25)}
-  .foot{position:absolute;left:16px;right:16px;bottom:16px;padding:12px;border:1px solid var(--border);border-radius:12px;background:rgba(255,255,255,.03)}
-  .pill{display:inline-flex;gap:8px;align-items:center;padding:6px 10px;border-radius:999px;border:1px solid var(--border);background:rgba(255,255,255,.04);font-weight:800;font-size:12px}
+  .nav a.active{
+    background:linear-gradient(180deg, rgba(139,92,246,.18), rgba(139,92,246,.08));
+    border-color: rgba(139,92,246,.35);
+    box-shadow:0 8px 24px rgba(124,58,237,.25);
+  }
+  .foot{
+    position:absolute; left:16px; right:16px; bottom:16px;
+    padding:12px;border:1px solid var(--border); border-radius:12px;background:rgba(255,255,255,.03)
+  }
+  .pill{
+    display:inline-flex;gap:8px;align-items:center;padding:6px 10px;border-radius:999px;
+    border:1px solid var(--border); background:rgba(255,255,255,.04); font-weight:800;font-size:12px
+  }
 
-  .main{padding:26px} .topbar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-bottom:18px}
+  /* Main */
+  .main{padding:26px 26px 34px}
+  .topbar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-bottom:18px}
   .topbar-left{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-  .select,.input{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:12px;min-width:220px;border:1px solid var(--border);background:var(--panel-2)}
+  .select, .input{
+    display:flex;align-items:center;gap:8px; padding:10px 12px; border-radius:12px; min-width:220px;
+    border:1px solid var(--border); background:var(--panel-2);
+  }
   select,input,button{font:inherit;color:inherit;background:transparent;border:none;outline:none}
-  .btn{display:inline-flex;align-items:center;gap:10px;padding:10px 14px;border-radius:12px;font-weight:900;letter-spacing:.02em;background:linear-gradient(180deg, rgba(139,92,246,.22), rgba(124,58,237,.12));border:1px solid rgba(139,92,246,.45);box-shadow:0 8px 24px rgba(124,58,237,.25);cursor:pointer}
-  .btn.ghost{background:rgba(255,255,255,.04);border-color:var(--border);box-shadow:none} .btn.warn{background:linear-gradient(180deg, rgba(245,158,11,.25), rgba(245,158,11,.1));border-color:rgba(245,158,11,.45)}
+  .btn{
+    display:inline-flex;align-items:center;gap:10px;padding:10px 14px;border-radius:12px;font-weight:900;letter-spacing:.02em;
+    background:linear-gradient(180deg, rgba(139,92,246,.22), rgba(124,58,237,.12));
+    border:1px solid rgba(139,92,246,.45); box-shadow:0 8px 24px rgba(124,58,237,.25); cursor:pointer
+  }
+  .btn.ghost{background:rgba(255,255,255,.04); border-color:var(--border); box-shadow:none}
+  .btn.warn{background:linear-gradient(180deg, rgba(245,158,11,.25), rgba(245,158,11,.1));border-color:rgba(245,158,11,.45)}
 
-  .page{display:none;animation:fade .18s ease}.page.show{display:block}@keyframes fade{from{opacity:.0;transform:translateY(4px)}to{opacity:1;transform:none}}
-  .kpis{display:grid;grid-template-columns:repeat(12,1fr);gap:16px;margin:10px 0 18px}
-  .card{background:linear-gradient(180deg,var(--panel),var(--panel-2));border:1px solid var(--border);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow)}
-  .kpi{grid-column:span 3} .title{color:var(--muted);font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.12em}
-  .value{font-size:28px;font-weight:900;margin-top:6px} .delta{font-size:12px;font-weight:800;margin-top:6px}
-  .delta.good{color:var(--good)} .delta.bad{color:var(--bad)} h2{margin:0 0 10px;font-size:14px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
-  .grid{display:grid;gap:16px}.grid-2{grid-template-columns:1fr 1fr}.grid-3{grid-template-columns:1fr 1fr 1fr}.grid-4{grid-template-columns:1fr 1fr 1fr 1fr}
-  .muted{color:var(--muted)} .right{margin-left:auto} canvas{width:100%;height:260px!important}
+  /* Pages */
+  .page{display:none; animation: fade .18s ease}
+  .page.show{display:block}
+  @keyframes fade{from{opacity:.0; transform:translateY(4px)} to{opacity:1; transform:none}}
+
+  /* Cards / layout */
+  .kpis{display:grid;grid-template-columns: repeat(12,1fr);gap:16px;margin:10px 0 18px}
+  .card{
+    background:linear-gradient(180deg,var(--panel),var(--panel-2));
+    border:1px solid var(--border); border-radius:var(--radius); padding:18px; box-shadow:var(--shadow)
+  }
+  .kpi{grid-column: span 4}
+  .title{color:var(--muted);font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.12em}
+  .value{font-size:28px;font-weight:900;margin-top:6px}
+  .delta{font-size:12px;font-weight:800;margin-top:6px}
+  .delta.good{color:var(--good)} .delta.bad{color:var(--bad)}
+  h2{margin:0 0 10px;font-size:14px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+  .grid{display:grid;gap:16px}
+  .grid-2{grid-template-columns: 1fr 1fr}
+  .grid-3{grid-template-columns: 1fr 1fr 1fr}
+  .spacer{height:6px}
+  .muted{color:var(--muted)}
+  .right{margin-left:auto}
+  canvas{width:100%;height:260px !important}
+
   table{width:100%;border-collapse:separate;border-spacing:0 8px}
-  thead th{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em;text-align:left;padding:0 10px 6px}
+  thead th{
+    font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em;text-align:left;padding:0 10px 6px;
+  }
   tbody tr{background:var(--panel-2);border:1px solid var(--border);border-radius:12px}
-  td{padding:12px 10px;border-top:1px solid var(--border)} tbody tr:first-child td{border-top:none}
-  .chips{display:flex;gap:8px;flex-wrap:wrap}.chip{padding:8px 12px;border-radius:999px;border:1px solid var(--border);background:rgba(255,255,255,.04);font-weight:800;cursor:pointer}
+  td{padding:12px 10px;border-top:1px solid var(--border)}
+  tbody tr:first-child td{border-top:none}
+
+  /* Chip row (filters) */
+  .chips{display:flex;gap:8px;flex-wrap:wrap}
+  .chip{padding:8px 12px;border-radius:999px;border:1px solid var(--border);background:rgba(255,255,255,.04);font-weight:800;cursor:pointer}
   .chip.active{border-color:rgba(139,92,246,.45);background:rgba(139,92,246,.20)}
-  .progress{height:10px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden;border:1px solid var(--border)} .progress .bar{height:100%;background:linear-gradient(90deg,var(--primary),#4f46e5,#06b6d4)}
 
-  .split{display:grid;grid-template-columns:1.2fr .8fr;gap:16px}
-  .accordion .item{border:1px solid var(--border);border-radius:12px;margin-bottom:10px;overflow:hidden;background:var(--panel-2)}
-  .accordion .head{padding:12px 14px;display:flex;justify-content:space-between;cursor:pointer;font-weight:800}
-  .accordion .body{display:none;padding:12px 14px;border-top:1px solid var(--border)} .accordion .item.open .body{display:block}
+  /* Progress bars (subtle neon) */
+  .progress{height:10px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden;border:1px solid var(--border)}
+  .progress .bar{height:100%;background:linear-gradient(90deg, var(--primary), #4f46e5, #06b6d4)}
 
-  @media(max-width:1100px){.app{grid-template-columns:88px 1fr}.nav a span{display:none}.brand span{display:none}}
-  @media(max-width:860px){.kpi{grid-column:span 6}.grid-2,.split{grid-template-columns:1fr}}
-  @media(max-width:540px){.kpi{grid-column:span 12}}
+  @media (max-width: 1100px){
+    .app{grid-template-columns: 88px 1fr}
+    .nav a span{display:none}
+    .brand span{display:none}
+  }
+  @media (max-width: 860px){
+    .kpi{grid-column: span 6}
+    .grid-2{grid-template-columns: 1fr}
+  }
+  @media (max-width: 540px){
+    .kpi{grid-column: span 12}
+  }
 </style>
 </head>
 <body>
 <div class="app" role="application">
+  <!-- Sidebar -->
   <aside class="sidebar" aria-label="Sidebar Navigation">
     <div class="brand">
-      <div class="brand-logo"><img src="microknots-logo.jpg" alt="Microknots" onerror="this.style.display='none'"></div>
-      <div><h1>microknots</h1><span>Aurelo Data • Store Dashboard</span></div>
+      <div class="brand-logo" aria-hidden="true">
+        <!-- Swap src to your real file if needed -->
+        <img src="microknots-logo.jpg" alt="Microknots" onerror="this.style.display='none'">
+      </div>
+      <div>
+        <h1>microknots</h1>
+        <span>Aurelo Data • Store Dashboard</span>
+      </div>
     </div>
-    <nav class="nav" id="nav">
+
+    <nav class="nav" role="navigation" id="nav">
       <h3>Overview</h3>
       <a href="#home" data-page="home" class="active"><span>Home</span></a>
       <a href="#sales" data-page="sales"><span>Sales</span></a>
@@ -87,37 +182,56 @@
       <h3>Help</h3>
       <a href="#support" data-page="support"><span>Support</span></a>
     </nav>
-    <div class="foot"><div class="pill">Pro Plan</div><div class="muted" style="margin-top:8px">All systems normal</div></div>
+
+    <div class="foot">
+      <div class="pill">Pro Plan</div>
+      <div style="margin-top:8px" class="muted">All systems normal</div>
+    </div>
   </aside>
 
+  <!-- Main -->
   <main class="main" tabindex="-1">
+    <!-- Topbar -->
     <div class="topbar" role="region" aria-label="Top controls">
       <div class="topbar-left">
-        <div class="select"><strong>Store:</strong>
-          <select id="storeSelect"><option>Microknots Outfitters</option><option>Aurelo Gadgets</option><option>Monish & Co. Streetwear</option></select>
+        <div class="select">
+          <strong>Store:</strong>
+          <select id="storeSelect" aria-label="Select store">
+            <option>Microknots Outfitters</option>
+            <option>Aurelo Gadgets</option>
+            <option>Monish & Co. Streetwear</option>
+          </select>
         </div>
-        <div class="select"><label class="muted" for="range" style="font-weight:800">Date</label>
-          <select id="range"><option value="7">Last 7 days</option><option value="30" selected>Last 30 days</option><option value="90">Last 90 days</option><option value="365">Year to date</option></select>
+        <div class="select">
+          <label class="muted" for="range" style="font-weight:800">Date</label>
+          <select id="range" aria-label="Select date range">
+            <option value="7">Last 7 days</option>
+            <option value="30" selected>Last 30 days</option>
+            <option value="90">Last 90 days</option>
+            <option value="365">Year to date</option>
+          </select>
         </div>
-        <div class="input" role="search"><input id="search" type="search" placeholder="Search orders, customers, SKUs…"></div>
+        <div class="input" role="search">
+          <input id="search" type="search" placeholder="Search orders, customers, SKUs…" aria-label="Search">
+        </div>
       </div>
       <div class="topbar-right">
         <button class="btn">Export CSV</button>
         <button class="btn">Generate Data Packet</button>
-        <button class="btn ghost" id="tourBtn">Quick Tour</button>
+        <button class="btn ghost">Quick Tutorial</button>
       </div>
     </div>
 
+    <!-- PAGES -->
     <!-- HOME -->
-    <section id="page-home" class="page show">
+    <section id="page-home" class="page show" aria-labelledby="homeTitle">
       <div class="kpis">
         <article class="card kpi"><div class="title">Revenue</div><div class="value" id="kpiRevenue">$128,420</div><div class="delta good">+8.4%</div></article>
         <article class="card kpi"><div class="title">Orders</div><div class="value" id="kpiOrders">2,914</div><div class="delta good">+5.1%</div></article>
         <article class="card kpi"><div class="title">AOV</div><div class="value" id="kpiAov">$44.05</div><div class="delta bad">-1.2%</div></article>
-        <article class="card kpi"><div class="title">Conversion</div><div class="value">3.21%</div><div class="delta good">+0.3 pts</div></article>
       </div>
       <div class="grid grid-2">
-        <article class="card"><h2>Revenue Trend</h2><canvas id="revenueChart"></canvas></article>
+        <article class="card"><h2 id="homeTitle">Revenue Trend</h2><canvas id="revenueChart"></canvas></article>
         <article class="card"><h2>Orders by Channel</h2><canvas id="channelChart"></canvas></article>
       </div>
       <div class="grid grid-3" style="margin-top:16px">
@@ -125,42 +239,23 @@
         <article class="card"><h2>Storage</h2><div class="muted">LLM-ready data</div><div class="progress"><div class="bar" style="width:48%"></div></div></article>
         <article class="card"><h2>Risk</h2><div class="muted">Chargeback risk:</div><div class="pill" style="border-color:rgba(245,158,11,.45)">Medium</div></article>
       </div>
-      <div class="grid grid-2" style="margin-top:16px">
-        <article class="card"><h2>Top Insights</h2>
-          <ul class="muted" style="margin:0 0 6px 18px;line-height:1.8">
-            <li>Hoodie Black drives 25% of apparel revenue.</li>
-            <li>POS returns down 12% vs. last month.</li>
-            <li>Paid Search CPA decreased to $9.12.</li>
-          </ul>
-        </article>
-        <article class="card"><h2>Tasks</h2>
-          <ul style="margin:0 0 6px 18px;line-height:1.8">
-            <li>Reprice HUB-PRO-7 to match competitor drop.</li>
-            <li>Approve PO-1182 inbound (ETA +4 days).</li>
-            <li>Publish Packet #DP-2025-0904-1842.</li>
-          </ul>
-        </article>
-      </div>
     </section>
 
     <!-- SALES -->
-    <section id="page-sales" class="page">
+    <section id="page-sales" class="page" aria-labelledby="salesTitle">
       <div class="kpis">
         <article class="card kpi"><div class="title">Gross Sales</div><div class="value" id="grossSales">$154,980</div></article>
-        <article class="card kpi"><div class="title">Discounts</div><div class="value">$3,240</div></article>
         <article class="card kpi"><div class="title">Refunds</div><div class="value" id="refunds">$1,770</div></article>
         <article class="card kpi"><div class="title">Net Sales</div><div class="value" id="netSales">$153,210</div></article>
       </div>
-      <div class="split">
-        <article class="card"><h2>Sales by Day</h2><canvas id="salesChart"></canvas></article>
-        <article class="card"><h2>Refunds by Reason</h2><canvas id="refundsChart"></canvas></article>
-      </div>
+      <article class="card"><h2 id="salesTitle">Sales by Day</h2><canvas id="salesChart"></canvas></article>
       <div class="card" style="margin-top:16px">
         <h2>Recent Orders</h2>
         <div class="chips">
-          <button class="chip active" data-status="all">All</button><button class="chip" data-status="paid">Paid</button>
-          <button class="chip" data-status="pending">Pending</button><button class="chip" data-status="refunded">Refunded</button>
-          <span class="pill right" id="ordersCount">—</span>
+          <button class="chip active" data-status="all">All</button>
+          <button class="chip" data-status="paid">Paid</button>
+          <button class="chip" data-status="pending">Pending</button>
+          <button class="chip" data-status="refunded">Refunded</button>
         </div>
         <table style="margin-top:10px">
           <thead><tr><th>Order</th><th>Date</th><th>Customer</th><th>Total</th><th>Status</th></tr></thead>
@@ -170,226 +265,171 @@
     </section>
 
     <!-- PRODUCTS -->
-    <section id="page-products" class="page">
+    <section id="page-products" class="page" aria-labelledby="productsTitle">
+      <article class="card">
+        <h2 id="productsTitle">Top Products</h2>
+        <table>
+          <thead><tr><th>Product</th><th>SKU</th><th>Units</th><th>Revenue</th><th>Inventory</th></tr></thead>
+          <tbody id="topProducts"></tbody>
+        </table>
+      </article>
+      <div class="spacer"></div>
       <div class="grid grid-2">
-        <article class="card">
-          <h2>Top Products</h2>
-          <table>
-            <thead><tr><th>Product</th><th>SKU</th><th>Units</th><th>Revenue</th><th>Inventory</th></tr></thead>
-            <tbody id="topProducts"></tbody>
-          </table>
-        </article>
-        <article class="card">
-          <h2>Variants Snapshot</h2>
-          <table>
-            <thead><tr><th>Parent</th><th>Variant</th><th>SKU</th><th>Units</th><th>Rating</th></tr></thead>
-            <tbody id="variantBody">
-              <tr><td>Hoodie</td><td>Black / M</td><td>HD-BLK-M</td><td>410</td><td>4.6</td></tr>
-              <tr><td>Hoodie</td><td>Black / L</td><td>HD-BLK-L</td><td>320</td><td>4.7</td></tr>
-              <tr><td>Tee</td><td>White / L</td><td>TEE-WHT-L</td><td>620</td><td>4.3</td></tr>
-            </tbody>
-          </table>
-        </article>
-      </div>
-      <div class="grid grid-2" style="margin-top:16px">
         <article class="card"><h2>Product Mix</h2><canvas id="productMixChart"></canvas></article>
-        <article class="card"><h2>Ratings Radar</h2><canvas id="productRatingChart"></canvas></article>
-      </div>
-      <div class="accordion" style="margin-top:16px">
-        <div class="item open"><div class="head">Bulk Actions<span>▼</span></div>
-          <div class="body">
-            <div class="chips"><button class="chip" id="btnReprice10">+10% price</button><button class="chip" id="btnMarkdown5">-5% price</button><button class="chip" id="btnExportCatalog">Export Catalog CSV</button></div>
-            <p class="muted" style="margin-top:8px">These actions are simulated for demo purposes.</p>
-          </div>
-        </div>
+        <article class="card"><h2>Ratings Snapshot</h2><canvas id="productRatingChart"></canvas></article>
       </div>
     </section>
 
     <!-- INVENTORY -->
-    <section id="page-inventory" class="page">
-      <div class="grid grid-2">
-        <article class="card">
-          <h2>Low Stock</h2>
-          <table><thead><tr><th>Product</th><th>SKU</th><th>On Hand</th><th>Reorder Point</th><th>ETA</th></tr></thead>
-            <tbody id="lowStock"></tbody></table>
-        </article>
-        <article class="card">
-          <h2>ABC Classification</h2>
-          <table>
-            <thead><tr><th>Class</th><th>Share of Value</th><th>SKUs</th><th>Policy</th></tr></thead>
-            <tbody>
-              <tr><td>A</td><td>70%</td><td>15%</td><td>Weekly review</td></tr>
-              <tr><td>B</td><td>20%</td><td>35%</td><td>Bi-weekly review</td></tr>
-              <tr><td>C</td><td>10%</td><td>50%</td><td>Monthly review</td></tr>
-            </tbody>
-          </table>
-        </article>
-      </div>
-      <div class="split" style="margin-top:16px">
-        <article class="card">
-          <h2>Reorder Calculator</h2>
-          <div class="grid grid-2">
-            <div class="select"><label class="muted" style="font-weight:800">SKU</label>
-              <select id="roiSku"><option value="HUB-PRO-7">HUB-PRO-7</option><option value="BAG-URB-11">BAG-URB-11</option><option value="HD-BLK-01">HD-BLK-01</option></select>
-            </div>
-            <div class="select"><label class="muted" style="font-weight:800">Lead Time (days)</label><input id="leadTime" type="number" value="12"></div>
-            <div class="select"><label class="muted" style="font-weight:800">Daily Demand</label><input id="dailyDemand" type="number" value="20"></div>
-            <div class="select"><label class="muted" style="font-weight:800">Safety Stock</label><input id="safetyStock" type="number" value="60"></div>
-          </div>
-          <div style="margin-top:10px"><button class="btn" id="calcReorder">Compute</button> <span class="pill" id="reorderOut">EOQ / ROP: —</span></div>
-        </article>
-        <article class="card">
-          <h2>Inbound Shipments</h2>
-          <table><thead><tr><th>PO</th><th>Supplier</th><th>Items</th><th>Status</th><th>Expected</th></tr></thead>
-            <tbody><tr><td>PO-1182</td><td>MK Logistics</td><td>1,200</td><td>In Transit</td><td>+4 days</td></tr>
-                   <tr><td>PO-1175</td><td>Shenzhen Hub</td><td>800</td><td>Customs</td><td>+7 days</td></tr></tbody></table>
-        </article>
-      </div>
+    <section id="page-inventory" class="page" aria-labelledby="inventoryTitle">
+      <article class="card">
+        <h2 id="inventoryTitle">Low Stock</h2>
+        <table>
+          <thead><tr><th>Product</th><th>SKU</th><th>On Hand</th><th>Reorder Point</th><th>ETA</th></tr></thead>
+          <tbody id="lowStock"></tbody>
+        </table>
+      </article>
+      <div class="spacer"></div>
+      <article class="card">
+        <h2>Inbound Shipments</h2>
+        <table>
+          <thead><tr><th>PO</th><th>Supplier</th><th>Items</th><th>Status</th><th>Expected</th></tr></thead>
+          <tbody>
+            <tr><td>PO-1182</td><td>MK Logistics</td><td>1,200</td><td>In Transit</td><td>+4 days</td></tr>
+            <tr><td>PO-1175</td><td>Shenzhen Hub</td><td>800</td><td>Customs</td><td>+7 days</td></tr>
+          </tbody>
+        </table>
+      </article>
     </section>
 
     <!-- CUSTOMERS -->
-    <section id="page-customers" class="page">
+    <section id="page-customers" class="page" aria-labelledby="customersTitle">
       <div class="kpis">
         <article class="card kpi"><div class="title">New Customers</div><div class="value">742</div></article>
         <article class="card kpi"><div class="title">Returning Rate</div><div class="value">32%</div></article>
         <article class="card kpi"><div class="title">CLV (est.)</div><div class="value">$218</div></article>
-        <article class="card kpi"><div class="title">NPS</div><div class="value">57</div></article>
       </div>
-      <div class="split">
-        <article class="card"><h2>Customer Activity</h2><canvas id="customersChart"></canvas></article>
-        <article class="card"><h2>Top Customers</h2>
-          <table><thead><tr><th>Name</th><th>Orders</th><th>LTV</th></tr></thead>
-            <tbody><tr><td>Alex Kim</td><td>18</td><td>$1,920</td></tr><tr><td>Priya Shah</td><td>14</td><td>$1,380</td></tr><tr><td>Riley Chen</td><td>12</td><td>$1,210</td></tr></tbody></table>
-        </article>
-      </div>
-      <div class="card" style="margin-top:16px">
-        <h2>RFM Matrix</h2>
-        <table><thead><tr><th>Segment</th><th>Recency</th><th>Frequency</th><th>Monetary</th><th>Action</th></tr></thead>
-          <tbody><tr><td>Champions</td><td>1–7d</td><td>8+</td><td>$250+</td><td>VIP early access</td></tr>
-                 <tr><td>At Risk</td><td>30–60d</td><td>2–4</td><td>$80–$200</td><td>Winback coupon</td></tr>
-                 <tr><td>New</td><td>0–3d</td><td>1</td><td>$30–$80</td><td>Welcome flow</td></tr></tbody></table>
-      </div>
-    </section>
-
-    <!-- ANALYTICS -->
-    <section id="page-analytics" class="page">
-      <article class="card"><h2>Conversion Funnel</h2><canvas id="funnelChart"></canvas></article>
-      <div class="grid grid-2" style="margin-top:16px">
-        <article class="card"><h2>Attribution</h2><canvas id="attrChart"></canvas></article>
-        <article class="card"><h2>Cohorts (90d)</h2><canvas id="cohortChart"></canvas></article>
-      </div>
-      <div class="grid grid-2" style="margin-top:16px">
-        <article class="card"><h2>LTV by Channel</h2><canvas id="ltvChart"></canvas></article>
-        <article class="card"><h2>Traffic Heatmap</h2>
+      <div class="grid grid-2">
+        <article class="card"><h2 id="customersTitle">Customer Activity</h2><canvas id="customersChart"></canvas></article>
+        <article class="card"><h2>Segments</h2>
           <table>
-            <thead><tr><th>Hour</th><th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th><th>Fri</th><th>Sat</th><th>Sun</th></tr></thead>
-            <tbody id="heatBody"></tbody>
+            <thead><tr><th>Segment</th><th>Share</th><th>CLV</th></tr></thead>
+            <tbody>
+              <tr><td>High-Value Repeat</td><td>15%</td><td>$462</td></tr>
+              <tr><td>Deal Hunters</td><td>28%</td><td>$142</td></tr>
+              <tr><td>First-Time</td><td>40%</td><td>$96</td></tr>
+              <tr><td>VIP</td><td>2%</td><td>$920</td></tr>
+            </tbody>
           </table>
         </article>
       </div>
     </section>
 
-    <!-- PRICES -->
-    <section id="page-prices" class="page">
+    <!-- ANALYTICS -->
+    <section id="page-analytics" class="page" aria-labelledby="analyticsTitle">
+      <article class="card"><h2 id="analyticsTitle">Conversion Funnel</h2><canvas id="funnelChart"></canvas></article>
+      <div class="spacer"></div>
+      <div class="grid grid-2">
+        <article class="card"><h2>Attribution Snapshot</h2><canvas id="attrChart"></canvas></article>
+        <article class="card"><h2>Cohorts (90d)</h2><canvas id="cohortChart"></canvas></article>
+      </div>
+    </section>
+
+    <!-- PRICES (NEW) -->
+    <section id="page-prices" class="page" aria-labelledby="pricesTitle">
       <article class="card">
-        <h2>SKU Pricing Strategy</h2>
-        <p class="muted">Edit <strong>Cost</strong> or <strong>Competitor</strong> to recompute margin and profit. Suggested prices target <span id="targetMarginLabel">45%</span> unless undercutting competitor by ~2%.</p>
+        <h2 id="pricesTitle">SKU Pricing Strategy</h2>
+        <p class="muted">Edit <strong>Cost</strong> or <strong>Competitor</strong> to recompute margin and profit. Suggested prices assume target margin of <span id="targetMarginLabel">45%</span>.</p>
         <div class="chips" style="margin:8px 0 10px">
           <button class="chip active" data-margin="45">Target 45%</button>
           <button class="chip" data-margin="50">Target 50%</button>
           <button class="chip" data-margin="60">Target 60%</button>
-          <span class="pill right" id="priceSummary">—</span>
         </div>
         <table>
-          <thead><tr><th>SKU</th><th>Product</th><th>Cost</th><th>Competitor</th><th>Suggested</th><th>Margin %</th><th>Profit/Unit</th><th>Strategy</th></tr></thead>
+          <thead>
+            <tr>
+              <th>SKU</th><th>Product</th><th>Cost</th><th>Competitor</th>
+              <th>Suggested</th><th>Margin %</th><th>Profit/Unit</th><th>Strategy</th>
+            </tr>
+          </thead>
           <tbody id="priceBody"></tbody>
         </table>
       </article>
-      <div class="grid grid-2" style="margin-top:16px">
-        <article class="card"><h2>Elasticity Sandbox</h2>
-          <p class="muted">Move the slider to simulate price elasticity (slope factor). Lower is more elastic.</p>
-          <div class="select"><label class="muted" style="font-weight:800">Elasticity</label><input id="elastic" type="range" min="0.3" max="1.2" value="0.7" step="0.1" oninput="document.getElementById('elasticVal').textContent=this.value"></div>
-          <p class="muted">Current: <strong id="elasticVal">0.7</strong></p>
-          <canvas id="elasticChart"></canvas>
-        </article>
-        <article class="card"><h2>Margin Distribution</h2><canvas id="marginChart"></canvas></article>
-      </div>
     </section>
 
-    <!-- PACKETS -->
-    <section id="page-packets" class="page">
-      <div class="grid grid-2">
-        <article class="card"><h2>Data Packets</h2>
-          <table><thead><tr><th>Packet ID</th><th>Size</th><th>Status</th><th>Created</th><th>Notes</th></tr></thead>
-            <tbody id="packetBody"><tr><td>#DP-2025-0904-1842</td><td>2.6 GB</td><td>Ready</td><td>2025-09-04</td><td>Marketplace listing drafted</td></tr>
-              <tr><td>#DP-2025-0830-1021</td><td>1.9 GB</td><td>Published</td><td>2025-08-30</td><td>Monthly retail cohort</td></tr></tbody></table>
-          <div class="chips" style="margin-top:8px"><button class="chip" id="btnGenPacket">Generate New</button><button class="chip" id="btnPublish">Publish to Marketplace</button></div>
-        </article>
-        <article class="card"><h2>Throughput</h2><canvas id="packetChart"></canvas></article>
-      </div>
+    <!-- DATA PACKETS -->
+    <section id="page-packets" class="page" aria-labelledby="packetsTitle">
+      <article class="card">
+        <h2 id="packetsTitle">Data Packet Summary</h2>
+        <table>
+          <thead><tr><th>Packet ID</th><th>Size</th><th>Status</th><th>Created</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td>#DP-2025-0904-1842</td><td>2.6 GB</td><td>Ready</td><td>2025-09-04</td><td>Marketplace listing drafted</td></tr>
+            <tr><td>#DP-2025-0830-1021</td><td>1.9 GB</td><td>Published</td><td>2025-08-30</td><td>Monthly retail cohort</td></tr>
+          </tbody>
+        </table>
+      </article>
     </section>
 
     <!-- INTEGRATIONS -->
-    <section id="page-integrations" class="page">
-      <div class="split">
-        <article class="card"><h2>Connected Integrations</h2>
-          <table><thead><tr><th>Provider</th><th>Status</th><th>Notes</th></tr></thead>
-            <tbody id="intBody"><tr><td>Shopify</td><td>Connected</td><td>Catalog & orders syncing</td></tr>
-              <tr><td>Stripe</td><td>Connected</td><td>Payouts enabled</td></tr>
-              <tr><td>Google Ads</td><td>Syncing</td><td>Weekly audiences</td></tr>
-              <tr><td>Meta Pixel</td><td>Connected</td><td>Event dedupe on</td></tr></tbody></table>
-          <div class="chips" style="margin-top:8px"><button class="chip" id="btnAddInt">Add Integration</button><button class="chip" id="btnRefreshInt">Refresh</button></div>
-        </article>
-        <article class="card"><h2>Webhook Health</h2>
-          <table><thead><tr><th>Endpoint</th><th>5xx</th><th>Latency</th><th>Retries</th></tr></thead>
-            <tbody><tr><td>/orders/create</td><td>0.2%</td><td>120ms</td><td>3</td></tr><tr><td>/inventory/update</td><td>0.0%</td><td>95ms</td><td>0</td></tr></tbody></table>
-        </article>
-      </div>
+    <section id="page-integrations" class="page" aria-labelledby="integrationsTitle">
+      <article class="card">
+        <h2 id="integrationsTitle">Connected Integrations</h2>
+        <table>
+          <thead><tr><th>Provider</th><th>Status</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td>Shopify</td><td>Connected</td><td>Catalog & orders syncing</td></tr>
+            <tr><td>Stripe</td><td>Connected</td><td>Payouts enabled</td></tr>
+            <tr><td>Google Ads</td><td>Syncing</td><td>Weekly audiences</td></tr>
+            <tr><td>Meta Pixel</td><td>Connected</td><td>Event dedupe on</td></tr>
+          </tbody>
+        </table>
+      </article>
     </section>
 
     <!-- BILLING -->
-    <section id="page-billing" class="page">
+    <section id="page-billing" class="page" aria-labelledby="billingTitle">
       <div class="kpis">
         <article class="card kpi"><div class="title">Next Payout</div><div class="value">$18,204</div></article>
         <article class="card kpi"><div class="title">Last Payout</div><div class="value">$12,940</div></article>
         <article class="card kpi"><div class="title">Plan</div><div class="value">Pro</div></article>
-        <article class="card kpi"><div class="title">Fees (30d)</div><div class="value">$1,214</div></article>
       </div>
-      <div class="grid grid-2">
-        <article class="card"><h2>Payout Schedule</h2><canvas id="payoutChart"></canvas></article>
-        <article class="card"><h2>Invoices</h2>
-          <table><thead><tr><th>Date</th><th>Invoice</th><th>Amount</th><th>Status</th></tr></thead>
-            <tbody><tr><td>2025-09-01</td><td>INV-2041</td><td>$99.00</td><td>Paid</td></tr><tr><td>2025-08-01</td><td>INV-2009</td><td>$99.00</td><td>Paid</td></tr></tbody></table>
-        </article>
-      </div>
+      <article class="card">
+        <h2 id="billingTitle">Invoices</h2>
+        <table>
+          <thead><tr><th>Date</th><th>Invoice</th><th>Amount</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td>2025-09-01</td><td>INV-2041</td><td>$99.00</td><td>Paid</td></tr>
+            <tr><td>2025-08-01</td><td>INV-2009</td><td>$99.00</td><td>Paid</td></tr>
+          </tbody>
+        </table>
+      </article>
     </section>
 
     <!-- SETTINGS -->
-    <section id="page-settings" class="page">
-      <div class="grid grid-2">
-        <article class="card"><h2>Preferences</h2>
-          <div class="grid grid-2">
-            <div class="select"><label class="muted" style="font-weight:800">Currency</label><select id="currency"><option>USD</option><option>EUR</option><option>GBP</option></select></div>
-            <div class="select"><label class="muted" style="font-weight:800">Timezone</label><select id="timezone"><option>America/New_York</option><option>UTC</option><option>Europe/London</option></select></div>
+    <section id="page-settings" class="page" aria-labelledby="settingsTitle">
+      <article class="card">
+        <h2 id="settingsTitle">Preferences</h2>
+        <div style="display:grid; gap:12px; grid-template-columns: 1fr 1fr">
+          <div class="select"><label for="currency" class="muted" style="font-weight:800">Currency</label>
+            <select id="currency"><option>USD</option><option>EUR</option><option>GBP</option></select>
           </div>
-          <div style="margin-top:10px"><button class="btn">Save Changes</button></div>
-        </article>
-        <article class="card"><h2>Team</h2>
-          <table><thead><tr><th>Name</th><th>Role</th><th>Status</th></tr></thead>
-            <tbody id="teamBody"><tr><td>Monish Allada</td><td>Owner</td><td>Active</td></tr><tr><td>Alex Kim</td><td>Manager</td><td>Active</td></tr><tr><td>Priya Shah</td><td>Analyst</td><td>Invited</td></tr></tbody></table>
-          <div class="chips" style="margin-top:8px"><button class="chip" id="btnInvite">Invite Member</button><button class="chip" id="btnRemove">Remove Selected</button></div>
-        </article>
-      </div>
+          <div class="select"><label for="timezone" class="muted" style="font-weight:800">Timezone</label>
+            <select id="timezone"><option>America/New_York</option><option>UTC</option><option>Europe/London</option></select>
+          </div>
+        </div>
+        <div class="spacer"></div>
+        <button class="btn">Save Changes</button>
+      </article>
     </section>
 
     <!-- SUPPORT -->
-    <section id="page-support" class="page">
-      <div class="accordion">
-        <div class="item open"><div class="head">How do I connect Shopify?<span>▼</span></div><div class="body">Go to <strong>Integrations → Add</strong> and paste your private app token. Sync starts within minutes.</div></div>
-        <div class="item"><div class="head">Where do data packets export?<span>▼</span></div><div class="body">CSV/JSONL downloads locally and optionally publish to the Aurelo Marketplace.</div></div>
-        <div class="item"><div class="head">Can I change my plan later?<span>▼</span></div><div class="body">Yes—Billing → Manage Plan. Upgrades prorate immediately.</div></div>
-      </div>
-      <div class="card" style="margin-top:12px"><h2>Contact</h2><p class="muted">support@aurelodata.com • Average reply <strong>&lt;4h</strong></p></div>
+    <section id="page-support" class="page" aria-labelledby="supportTitle">
+      <article class="card">
+        <h2 id="supportTitle">Support</h2>
+        <p class="muted">Need a hand? Reach us at <strong>support@aurelodata.com</strong>.</p>
+        <p class="muted">Docs & Guides coming soon.</p>
+      </article>
     </section>
 
     <footer class="muted" style="margin-top:16px">© 2025 Aurelo Data. Built by Microknots.</footer>
@@ -397,107 +437,225 @@
 </div>
 
 <script>
-/* ---------- Router ---------- */
-const PAGES=['home','sales','products','inventory','customers','analytics','prices','packets','integrations','billing','settings','support'];
-function setActive(p){document.querySelectorAll('.page').forEach(x=>x.classList.remove('show'));(document.getElementById(`page-${p}`)||document.getElementById('page-home')).classList.add('show');document.querySelectorAll('#nav a').forEach(a=>a.classList.toggle('active',a.dataset.page===p));
-  if(p==='home') drawHome();
-  if(p==='sales') drawSales();
-  if(p==='products') drawProductsCharts();
-  if(p==='customers') drawCustomersChart();
-  if(p==='analytics'){drawFunnel();drawAttribution();drawCohort();drawLTV();renderHeat();}
-  if(p==='prices'){renderPrices();drawElastic();drawMargin();}
-  if(p==='packets') drawPackets();
-  if(p==='billing') drawPayouts();
+/* ----------------- Router ----------------- */
+const PAGES = ['home','sales','products','inventory','customers','analytics','prices','packets','integrations','billing','settings','support'];
+function setActive(page){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('show'));
+  (document.getElementById(`page-${page}`)||document.getElementById('page-home')).classList.add('show');
+  document.querySelectorAll('#nav a').forEach(a=>a.classList.toggle('active', a.dataset.page===page));
+  // draw on demand
+  if (page === 'home') drawHome();
+  if (page === 'sales') drawSales();
+  if (page === 'products') drawProductsCharts();
+  if (page === 'customers') drawCustomersChart();
+  if (page === 'analytics') { drawFunnel(); drawAttribution(); drawCohort(); }
 }
-function route(){const h=(location.hash||'#home').slice(1);setActive(PAGES.includes(h)?h:'home');}
-addEventListener('hashchange',route);addEventListener('load',route);
+function route(){ const hash=(location.hash||'#home').slice(1); setActive(PAGES.includes(hash)?hash:'home'); }
+window.addEventListener('hashchange', route);
+window.addEventListener('load', route);
 
-/* ---------- Utils & Data ---------- */
-const state={range:30,status:'all',targetMargin:45};
-const fmtMoney=n=>n.toLocaleString(undefined,{style:'currency',currency:'USD'});
+/* ----------------- Data & Helpers ----------------- */
+const state = { range: 30, status:'all', targetMargin:45 };
+const fmtMoney = n => n.toLocaleString(undefined,{style:'currency',currency:'USD'});
 const clamp=(n,min,max)=>Math.max(min,Math.min(max,n));
-function labelsDays(n=30){const out=[],d=new Date();for(let i=n-1;i>=0;i--){const dd=new Date(d);dd.setDate(d.getDate()-i);out.push(`${dd.getMonth()+1}/${dd.getDate()}`)}return out;}
-function series(n=30,b=4000,s=1500){const r=()=>Math.max(50,b+(Math.random()*2-1)*s);return Array.from({length:n},r);}
+function labelsDays(n=30){ const out=[], d=new Date(); for(let i=n-1;i>=0;i--){ const dd=new Date(d); dd.setDate(d.getDate()-i); out.push(`${dd.getMonth()+1}/${dd.getDate()}`);} return out;}
+function series(n=30, base=4000, spread=1500){ const r=()=> Math.max(50, base + (Math.random()*2-1)*spread); return Array.from({length:n}, r);}
 
-/* ---------- Seed tables ---------- */
+/* ----------------- Seed tables ----------------- */
 function seedOrders(){
-  const list=[];const names=['Alex Kim','Jordan Lee','Taylor Singh','Sam Patel','Riley Chen','Priya Shah','Chris Johnson','Jamie Nguyen'];
+  const list=[];
+  const names=['Alex Kim','Jordan Lee','Taylor Singh','Sam Patel','Riley Chen','Priya Shah','Chris Johnson','Jamie Nguyen'];
   const statuses=['paid','pending','refunded'];
-  let shown=0;
-  for(let i=0;i<20;i++){
-    const total=(Math.random()*180+20).toFixed(2);const d=new Date();d.setDate(d.getDate()-Math.floor(Math.random()*state.range));
+  for(let i=0;i<14;i++){
+    const total=(Math.random()*180+20).toFixed(2);
+    const d=new Date(); d.setDate(d.getDate()-Math.floor(Math.random()*state.range));
     const st=statuses[Math.floor(Math.random()*statuses.length)];
-    if(state.status!=='all' && st!==state.status) continue;
-    shown++;
     list.push(`<tr><td>AU-${10500+i}</td><td>${d.toISOString().slice(0,10)}</td><td>${names[i%names.length]}</td><td>${fmtMoney(Number(total))}</td><td>${st}</td></tr>`);
   }
-  document.getElementById('ordersBody').innerHTML=list.join('');document.getElementById('ordersCount').textContent=`${shown} shown`;
+  document.getElementById('ordersBody').innerHTML=list.join('');
 }
+
 function seedProducts(){
-  const data=[['Aurelo Hoodie — Black','HD-BLK-01',820,32800,94],['Aurelo Tee — White','TEE-WHT-02',1240,24800,120],['MK Tech Backpack','BAG-URB-11',540,37800,42],['USB-C Hub Pro','HUB-PRO-7',410,28700,15],['Noise-Cancel Buds','BUD-ANC-5',360,43200,33]];
-  document.getElementById('topProducts').innerHTML=data.map(r=>`<tr><td><strong>${r[0]}</strong></td><td>${r[1]}</td><td>${r[2].toLocaleString()}</td><td>${fmtMoney(r[3])}</td><td>${r[4]}</td></tr>`).join('');
-  document.getElementById('lowStock').innerHTML=[['USB-C Hub Pro','HUB-PRO-7',15,40,'+9 days'],['MK Tech Backpack','BAG-URB-11',42,60,'+12 days'],['Noise-Cancel Buds','BUD-ANC-5',33,50,'+6 days']].map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td><td>${r[4]}</td></tr>`).join('');
+  const data=[
+    ['Aurelo Hoodie — Black','HD-BLK-01',820,32800,94],
+    ['Aurelo Tee — White','TEE-WHT-02',1240,24800,120],
+    ['MK Tech Backpack','BAG-URB-11',540,37800,42],
+    ['USB-C Hub Pro','HUB-PRO-7',410,28700,15],
+    ['Noise-Cancel Buds','BUD-ANC-5',360,43200,33],
+  ];
+  document.getElementById('topProducts').innerHTML = data.map(r=>
+    `<tr><td><strong>${r[0]}</strong></td><td>${r[1]}</td><td>${r[2].toLocaleString()}</td><td>${fmtMoney(r[3])}</td><td>${r[4]}</td></tr>`
+  ).join('');
+  document.getElementById('lowStock').innerHTML = [
+    ['USB-C Hub Pro','HUB-PRO-7',15,40,'+9 days'],
+    ['MK Tech Backpack','BAG-URB-11',42,60,'+12 days'],
+    ['Noise-Cancel Buds','BUD-ANC-5',33,50,'+6 days']
+  ].map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td><td>${r[4]}</td></tr>`).join('');
 }
 
-/* ---------- Pricing ---------- */
-const priceRows=[{sku:'HD-BLK-01',name:'Aurelo Hoodie — Black',cost:18.00,competitor:49.00},{sku:'TEE-WHT-02',name:'Aurelo Tee — White',cost:6.50,competitor:22.00},{sku:'BAG-URB-11',name:'MK Tech Backpack',cost:24.00,competitor:69.00},{sku:'HUB-PRO-7',name:'USB-C Hub Pro',cost:17.50,competitor:39.99},{sku:'BUD-ANC-5',name:'Noise-Cancel Buds',cost:28.00,competitor:99.00}];
-const calcSuggested=(c,target)=>+(c/(1-target/100)).toFixed(2);
+const priceRows = [
+  { sku:'HD-BLK-01', name:'Aurelo Hoodie — Black', cost:18.00, competitor:49.00 },
+  { sku:'TEE-WHT-02', name:'Aurelo Tee — White', cost:6.50, competitor:22.00 },
+  { sku:'BAG-URB-11', name:'MK Tech Backpack', cost:24.00, competitor:69.00 },
+  { sku:'HUB-PRO-7', name:'USB-C Hub Pro', cost:17.50, competitor:39.99 },
+  { sku:'BUD-ANC-5', name:'Noise-Cancel Buds', cost:28.00, competitor:99.00 },
+];
+function calcSuggested(cost, targetMarginPct){ return +(cost/(1-targetMarginPct/100)).toFixed(2); }
 function renderPrices(){
-  const body=document.getElementById('priceBody');const tgt=state.targetMargin;let totalProfit=0;
-  body.innerHTML=priceRows.map(p=>{const suggested=calcSuggested(p.cost,tgt);const price=Math.min(suggested,p.competitor*0.98);const profit=+(price-p.cost).toFixed(2);totalProfit+=profit;const marginPct=+((profit/price)*100).toFixed(1);const strategy=price<p.competitor?'Undercut':'Match';
-    return `<tr>
-      <td>${p.sku}</td><td><strong>${p.name}</strong></td>
-      <td contenteditable="true" data-edit="cost" data-sku="${p.sku}">$${p.cost.toFixed(2)}</td>
-      <td contenteditable="true" data-edit="competitor" data-sku="${p.sku}">$${p.competitor.toFixed(2)}</td>
-      <td>$${price.toFixed(2)}</td><td>${marginPct}%</td><td>${fmtMoney(profit)}</td><td>${strategy}</td></tr>`}).join('');
-  document.getElementById('priceSummary').textContent=`Avg Profit/Unit: ${fmtMoney(totalProfit/priceRows.length)}`;
+  const body=document.getElementById('priceBody');
+  const target=state.targetMargin;
+  const rows = priceRows.map(p=>{
+    const suggested = calcSuggested(p.cost, target);
+    const price = Math.min(suggested, p.competitor*0.98); // undercut competitor by ~2% if needed
+    const profit = +(price - p.cost).toFixed(2);
+    const marginPct = +((profit/price)*100).toFixed(1);
+    const strategy = price < p.competitor ? 'Undercut' : 'Match';
+    return `
+      <tr>
+        <td>${p.sku}</td>
+        <td><strong>${p.name}</strong></td>
+        <td contenteditable="true" data-edit="cost" data-sku="${p.sku}">$${p.cost.toFixed(2)}</td>
+        <td contenteditable="true" data-edit="competitor" data-sku="${p.sku}">$${p.competitor.toFixed(2)}</td>
+        <td>$${price.toFixed(2)}</td>
+        <td>${marginPct}%</td>
+        <td>${fmtMoney(profit)}</td>
+        <td>${strategy}</td>
+      </tr>`;
+  });
+  body.innerHTML = rows.join('');
 }
 
-/* ---------- Charts ---------- */
-let revenueChart,channelChart,salesChart,refundsChart,productMixChart,productRatingChart,customersChart,funnelChart,attrChart,cohortChart,ltvChart,elasticChart,marginChart,packetChart,payoutChart;
+/* ----------------- Charts ----------------- */
+let revenueChart, channelChart, salesChart, productMixChart, productRatingChart, customersChart, funnelChart, attrChart, cohortChart;
+
 function drawHome(){
-  const labels=labelsDays(state.range);
-  revenueChart?.destroy();revenueChart=new Chart(revenueChart||document.getElementById('revenueChart'),{type:'line',data:{labels,datasets:[{label:'Revenue',data:series(state.range,4200,1800),tension:.35,fill:true,borderColor:'#8b5cf6',backgroundColor:c=>{const g=c.chart.ctx.createLinearGradient(0,0,0,260);g.addColorStop(0,'rgba(139,92,246,.28)');g.addColorStop(1,'rgba(139,92,246,0)');return g;},borderWidth:2,pointRadius:0}]},options:{plugins:{legend:{display:false}},scales:{x:{grid:{color:'rgba(255,255,255,.06)'}},y:{beginAtZero:true,grid:{color:'rgba(255,255,255,.06)'}}}});
-  channelChart?.destroy();channelChart=new Chart(document.getElementById('channelChart'),{type:'doughnut',data:{labels:['Shopify','Web','Amazon','POS'],datasets:[{data:[54,22,16,8],backgroundColor:['#8b5cf6','#22d3ee','#4f46e5','#06b6d4'],borderWidth:0}]},options:{plugins:{legend:{position:'bottom'}},cutout:'62%'}});
+  const labels = labelsDays(state.range);
+  revenueChart?.destroy();
+  revenueChart = new Chart(document.getElementById('revenueChart'), {
+    type:'line',
+    data:{ labels, datasets:[{
+      label:'Revenue', data: series(state.range, 4200, 1800), tension:.35, fill:true,
+      borderColor:'#8b5cf6',
+      backgroundColor:(ctx)=>{const g=ctx.chart.ctx.createLinearGradient(0,0,0,260); g.addColorStop(0,'rgba(139,92,246,.28)'); g.addColorStop(1,'rgba(139,92,246,0)'); return g;},
+      borderWidth:2, pointRadius:0
+    }]},
+    options:{ plugins:{ legend:{display:false}}, scales:{ x:{grid:{color:'rgba(255,255,255,.06)'}}, y:{beginAtZero:true, grid:{color:'rgba(255,255,255,.06)'}}}}
+  });
+
+  channelChart?.destroy();
+  channelChart = new Chart(document.getElementById('channelChart'), {
+    type:'doughnut',
+    data:{ labels:['Shopify','Web','Amazon','POS'], datasets:[{ data:[54,22,16,8], backgroundColor:['#8b5cf6','#22d3ee','#4f46e5','#06b6d4'], borderWidth:0 }]},
+    options:{ plugins:{legend:{position:'bottom'}} , cutout:'62%'}
+  });
 }
+
 function drawSales(){
-  const labels=labelsDays(state.range);
-  salesChart?.destroy();salesChart=new Chart(document.getElementById('salesChart'),{type:'bar',data:{labels,datasets:[{label:'Orders',data:series(state.range,100,60),backgroundColor:'#7c3aed',borderRadius:6}]},options:{plugins:{legend:{display:false}},scales:{x:{grid:{display:false}},y:{beginAtZero:true,grid:{color:'rgba(255,255,255,.06)'}}}});
-  refundsChart?.destroy();refundsChart=new Chart(document.getElementById('refundsChart'),{type:'pie',data:{labels:['Damaged','Late','Buyer Remorse','Other'],datasets:[{data:[22,18,36,14],backgroundColor:['#ef4444','#f59e0b','#22d3ee','#8b5cf6']}]},options:{plugins:{legend:{position:'bottom'}}}});
+  const labels = labelsDays(state.range);
+  salesChart?.destroy();
+  salesChart = new Chart(document.getElementById('salesChart'), {
+    type:'bar',
+    data:{ labels, datasets:[{ label:'Orders', data: series(state.range, 100, 60), backgroundColor:'#7c3aed', borderRadius:6 }]},
+    options:{ plugins:{legend:{display:false}}, scales:{ x:{grid:{display:false}}, y:{beginAtZero:true, grid:{color:'rgba(255,255,255,.06)'}}}}
+  });
 }
+
 function drawProductsCharts(){
-  productMixChart?.destroy();productMixChart=new Chart(document.getElementById('productMixChart'),{type:'pie',data:{labels:['Apparel','Accessories','Electronics','Other'],datasets:[{data:[42,26,22,10],backgroundColor:['#8b5cf6','#22d3ee','#4f46e5','#06b6d4']}]},options:{plugins:{legend:{position:'bottom'}}}});
-  productRatingChart?.destroy();productRatingChart=new Chart(document.getElementById('productRatingChart'),{type:'radar',data:{labels:['Hoodie','Tee','Backpack','Hub','Buds'],datasets:[{label:'Avg Rating',data:[4.6,4.3,4.1,4.0,4.2],borderColor:'#22d3ee',backgroundColor:'rgba(34,211,238,.18)'}]},options:{plugins:{legend:{display:false}},scales:{r:{beginAtZero:true,min:0,max:5,ticks:{display:false},grid:{color:'rgba(255,255,255,.1)'},angleLines:{color:'rgba(255,255,255,.1)'}}}});}
-function drawCustomersChart(){customersChart?.destroy();customersChart=new Chart(document.getElementById('customersChart'),{type:'line',data:{labels:labelsDays(30),datasets:[{label:'New Customers',data:series(30,20,12),borderColor:'#22d3ee',backgroundColor:'rgba(34,211,238,.14)',fill:true,tension:.35,pointRadius:0}]},options:{plugins:{legend:{display:false}},scales:{x:{grid:{display:false}},y:{beginAtZero:true,grid:{color:'rgba(255,255,255,.06)'}}}});}
-function drawFunnel(){funnelChart?.destroy();funnelChart=new Chart(document.getElementById('funnelChart'),{type:'bar',data:{labels:['Visits','Product Views','Adds to Cart','Checkouts','Purchases'],datasets:[{label:'Users',data:[10000,5200,2100,1400,950],backgroundColor:'#8b5cf6',borderRadius:8}]},options:{indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,grid:{display:false}},y:{grid:{display:false}}}});}
-function drawAttribution(){attrChart?.destroy();attrChart=new Chart(document.getElementById('attrChart'),{type:'radar',data:{labels:['Organic','Paid Search','Social','Email','Referral','Direct'],datasets:[{data:[22,28,18,14,8,10],borderColor:'#7c3aed',backgroundColor:'rgba(124,58,237,.18)'}]},options:{plugins:{legend:{display:false}},scales:{r:{beginAtZero:true,grid:{color:'rgba(255,255,255,.1)'},angleLines:{color:'rgba(255,255,255,.1)'}}}});}
-function drawCohort(){cohortChart?.destroy();cohortChart=new Chart(document.getElementById('cohortChart'),{type:'line',data:{labels:['W1','W2','W3','W4','W5','W6','W7','W8','W9','W10','W11','W12'],datasets:[{label:'Retention %',data:[100,62,49,42,36,33,30,28,26,25,24,23],borderColor:'#06b6d4',backgroundColor:'rgba(6,182,212,.18)',fill:true,tension:.35,pointRadius:0}]},options:{plugins:{legend:{display:false}},scales:{x:{grid:{display:false}},y:{beginAtZero:true,suggestedMax:100,grid:{color:'rgba(255,255,255,.06)'}}}});}
-function drawLTV(){ltvChart?.destroy();ltvChart=new Chart(document.getElementById('ltvChart'),{type:'bar',data:{labels:['Organic','Paid','Social','Email','Referral','Direct'],datasets:[{label:'LTV',data:[210,186,142,168,156,174],backgroundColor:'#4f46e5',borderRadius:6}]},options:{plugins:{legend:{display:false}},scales:{x:{grid:{display:false}},y:{beginAtZero:true,grid:{color:'rgba(255,255,255,.06)'}}}});}
-function renderHeat(){const body=document.getElementById('heatBody');if(!body)return;const hours=[8,10,12,14,16,18,20];body.innerHTML=hours.map(h=>{const row=[`<td>${h}:00</td>`];for(let d=0;d<7;d++){const v=Math.floor(Math.random()*100);const alpha=(0.2+v/140).toFixed(2);row.push(`<td style="background:rgba(139,92,246,${alpha})">${v}</td>`)}return `<tr>${row.join('')}</tr>`}).join('');}
-function drawElastic(){elasticChart?.destroy();const e=parseFloat(document.getElementById('elastic').value||'0.7');const prices=[10,20,30,40,50,60,70,80,90,100];const demand=prices.map(p=>Math.max(10,Math.round(800/(p**e))));elasticChart=new Chart(document.getElementById('elasticChart'),{type:'line',data:{labels:prices.map(p=>`$${p}`),datasets:[{label:'Demand',data:demand,borderColor:'#22d3ee',backgroundColor:'rgba(34,211,238,.14)',fill:true,tension:.35,pointRadius:0}]},options:{plugins:{legend:{display:false}},scales:{x:{grid:{display:false}},y:{beginAtZero:true,grid:{color:'rgba(255,255,255,.06)'}}}});}
-function drawMargin(){marginChart?.destroy();const margins=priceRows.map(p=>{const price=Math.min(calcSuggested(p.cost,state.targetMargin),p.competitor*0.98);return Math.round(((price-p.cost)/price)*100)});marginChart=new Chart(document.getElementById('marginChart'),{type:'bar',data:{labels:priceRows.map(p=>p.sku),datasets:[{label:'Margin %',data:margins,backgroundColor:'#8b5cf6',borderRadius:6}]},options:{plugins:{legend:{display:false}},scales:{x:{grid:{display:false}},y:{beginAtZero:true,grid:{color:'rgba(255,255,255,.06)'}}}});}
-function drawPackets(){packetChart?.destroy();packetChart=new Chart(document.getElementById('packetChart'),{type:'line',data:{labels:['May','Jun','Jul','Aug','Sep'],datasets:[{label:'GB Processed',data:[6.2,8.1,7.9,9.4,10.8],borderColor:'#22d3ee',backgroundColor:'rgba(34,211,238,.14)',fill:true,tension:.35,pointRadius:0}]},options:{plugins:{legend:{display:false}},scales:{x:{grid:{display:false}},y:{beginAtZero:true,grid:{color:'rgba(255,255,255,.06)'}}}});}
-function drawPayouts(){payoutChart?.destroy();payoutChart=new Chart(document.getElementById('payoutChart'),{type:'bar',data:{labels:['Aug 2','Aug 9','Aug 16','Aug 23','Aug 30','Sep 6'],datasets:[{label:'Payout $',data:[8200,9100,10540,9800,12940,18204],backgroundColor:'#7c3aed',borderRadius:6}]},options:{plugins:{legend:{display:false}},scales:{x:{grid:{display:false}},y:{beginAtZero:true,grid:{color:'rgba(255,255,255,.06)'}}}});}
+  productMixChart?.destroy();
+  productRatingChart?.destroy();
+  productMixChart = new Chart(document.getElementById('productMixChart'), {
+    type:'pie',
+    data:{ labels:['Apparel','Accessories','Electronics','Other'], datasets:[{ data:[42,26,22,10], backgroundColor:['#8b5cf6','#22d3ee','#4f46e5','#06b6d4']}]},
+    options:{ plugins:{legend:{position:'bottom'}} }
+  });
+  productRatingChart = new Chart(document.getElementById('productRatingChart'), {
+    type:'radar',
+    data:{ labels:['Hoodie','Tee','Backpack','Hub','Buds'], datasets:[{ label:'Avg Rating', data:[4.6,4.3,4.1,4.0,4.2], borderColor:'#22d3ee', backgroundColor:'rgba(34,211,238,.18)' }]},
+    options:{ plugins:{legend:{display:false}}, scales:{ r:{ beginAtZero:true, min:0, max:5, ticks:{display:false}, grid:{color:'rgba(255,255,255,.1)'}, angleLines:{color:'rgba(255,255,255,.1)'} } } }
+  });
+}
 
-/* ---------- Controls ---------- */
-document.getElementById('range').addEventListener('change',e=>{state.range=+e.target.value;route();});
-document.querySelectorAll('.chip[data-status]').forEach(c=>c.addEventListener('click',()=>{document.querySelectorAll('.chip[data-status]').forEach(x=>x.classList.remove('active'));c.classList.add('active');state.status=c.dataset.status;seedOrders();}));
-document.querySelectorAll('.chip[data-margin]').forEach(c=>c.addEventListener('click',()=>{document.querySelectorAll('.chip[data-margin]').forEach(x=>x.classList.remove('active'));c.classList.add('active');state.targetMargin=+c.dataset.margin;document.getElementById('targetMarginLabel').textContent=state.targetMargin+'%';renderPrices();drawMargin();}));
-document.addEventListener('input',e=>{if(e.target.id==='elastic') {drawElastic();}});
-document.addEventListener('blur',e=>{const cell=e.target;if(cell?.dataset?.edit){const sku=cell.dataset.sku;const row=priceRows.find(r=>r.sku===sku);const val=parseFloat(String(cell.textContent).replace(/[^0-9.]/g,''));if(!isNaN(val)){if(cell.dataset.edit==='cost') row.cost=clamp(val,0.01,9999);if(cell.dataset.edit==='competitor') row.competitor=clamp(val,0.01,9999);renderPrices();drawMargin();}}},true);
-document.getElementById('calcReorder').addEventListener('click',()=>{const L=+document.getElementById('leadTime').value||0;const d=+document.getElementById('dailyDemand').value||0;const s=+document.getElementById('safetyStock').value||0;const ROP=Math.round(d*L+s);const EOQ=Math.round(Math.sqrt((2*500*d)/(2)));document.getElementById('reorderOut').textContent=`EOQ ~ ${EOQ} • ROP ${ROP}`;});
-document.getElementById('btnGenPacket')?.addEventListener('click',()=>alert('Generating new packet… (demo)'));
-document.getElementById('btnPublish')?.addEventListener('click',()=>alert('Publishing to marketplace… (demo)'));
-document.getElementById('btnAddInt')?.addEventListener('click',()=>alert('Add Integration modal (demo)'));
-document.getElementById('btnRefreshInt')?.addEventListener('click',()=>alert('Refreshed (demo)'));
-document.getElementById('btnReprice10')?.addEventListener('click',()=>alert('Repriced +10% (demo)'));
-document.getElementById('btnMarkdown5')?.addEventListener('click',()=>alert('Markdown -5% (demo)'));
-document.getElementById('btnExportCatalog')?.addEventListener('click',()=>alert('Catalog CSV created (demo)'));
-document.querySelectorAll('.accordion .head').forEach(h=>h.addEventListener('click',()=>h.parentElement.classList.toggle('open')));
+function drawCustomersChart(){
+  customersChart?.destroy();
+  customersChart = new Chart(document.getElementById('customersChart'), {
+    type:'line',
+    data:{ labels:labelsDays(30), datasets:[{ label:'New Customers', data: series(30, 20, 12), borderColor:'#22d3ee', backgroundColor:'rgba(34,211,238,.14)', fill:true, tension:.35, pointRadius:0 }]},
+    options:{ plugins:{legend:{display:false}}, scales:{ x:{grid:{display:false}}, y:{beginAtZero:true, grid:{color:'rgba(255,255,255,.06)'}}}}
+  });
+}
 
-/* ---------- Init ---------- */
-addEventListener('load',()=>{seedOrders();seedProducts();renderPrices();drawHome();});
+function drawFunnel(){
+  funnelChart?.destroy();
+  funnelChart = new Chart(document.getElementById('funnelChart'), {
+    type:'bar',
+    data:{ labels:['Visits','Product Views','Adds to Cart','Checkouts','Purchases'],
+      datasets:[{ label:'Users', data:[10000, 5200, 2100, 1400, 950], backgroundColor:'#8b5cf6', borderRadius:8 }]},
+    options:{ indexAxis:'y', plugins:{legend:{display:false}}, scales:{ x:{beginAtZero:true, grid:{display:false}}, y:{grid:{display:false}}}}
+  });
+}
+function drawAttribution(){
+  attrChart?.destroy();
+  attrChart = new Chart(document.getElementById('attrChart'), {
+    type:'radar',
+    data:{ labels:['Organic','Paid Search','Social','Email','Referral','Direct'], datasets:[{ data:[22,28,18,14,8,10], borderColor:'#7c3aed', backgroundColor:'rgba(124,58,237,.18)'}]},
+    options:{ plugins:{legend:{display:false}}, scales:{ r:{ beginAtZero:true, grid:{color:'rgba(255,255,255,.1)'}, angleLines:{color:'rgba(255,255,255,.1)'} } } }
+  });
+}
+function drawCohort(){
+  cohortChart?.destroy();
+  cohortChart = new Chart(document.getElementById('cohortChart'), {
+    type:'line',
+    data:{ labels:['W1','W2','W3','W4','W5','W6','W7','W8','W9','W10','W11','W12'],
+      datasets:[{ label:'Retention %', data:[100,62,49,42,36,33,30,28,26,25,24,23], borderColor:'#06b6d4', backgroundColor:'rgba(6,182,212,.18)', fill:true, tension:.35, pointRadius:0 }]},
+    options:{ plugins:{legend:{display:false}}, scales:{ x:{grid:{display:false}}, y:{beginAtZero:true, suggestedMax:100, grid:{color:'rgba(255,255,255,.06)'}}}}
+  });
+}
+
+/* ----------------- Controls ----------------- */
+document.getElementById('range').addEventListener('change', e=>{
+  state.range = Number(e.target.value);
+  route(); // redraw current page
+});
+document.querySelectorAll('.chip[data-status]').forEach(c=>{
+  c.addEventListener('click', ()=>{
+    document.querySelectorAll('.chip[data-status]').forEach(x=>x.classList.remove('active'));
+    c.classList.add('active');
+    state.status = c.dataset.status;
+    seedOrders();
+  });
+});
+document.querySelectorAll('.chip[data-margin]').forEach(c=>{
+  c.addEventListener('click', ()=>{
+    document.querySelectorAll('.chip[data-margin]').forEach(x=>x.classList.remove('active'));
+    c.classList.add('active');
+    state.targetMargin = Number(c.dataset.margin);
+    document.getElementById('targetMarginLabel').textContent = state.targetMargin + '%';
+    renderPrices();
+  });
+});
+
+/* editable pricing cells -> keep numbers clean */
+document.addEventListener('blur', (e)=>{
+  const cell = e.target;
+  if(cell && cell.dataset && cell.dataset.edit){
+    const sku = cell.dataset.sku;
+    const row = priceRows.find(r=>r.sku===sku);
+    const val = parseFloat(String(cell.textContent).replace(/[^0-9.]/g,''));
+    if(!isNaN(val)){
+      if(cell.dataset.edit==='cost') row.cost = clamp(val, 0.01, 9999);
+      if(cell.dataset.edit==='competitor') row.competitor = clamp(val, 0.01, 9999);
+      renderPrices();
+    }
+  }
+}, true);
+
+/* ----------------- Init ----------------- */
+window.addEventListener('load', ()=>{
+  seedOrders();
+  seedProducts();
+  renderPrices();
+  drawHome();
+});
 </script>
 </body>
 </html>
-
