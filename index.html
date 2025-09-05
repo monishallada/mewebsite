@@ -2,10 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Magenta • Microknots — Chat UI Packetizer</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Magenta — Microknots Packetizer</title>
 
-<!-- libs -->
+<!-- tiny libs -->
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -19,304 +19,281 @@
     --ink:#0b0b0c;
     --muted:#6b6f76;
     --line:#e5e7eb;
-    --hl:#10a37f;         /* subtle green accent */
+    --accent:#10a37f;     /* subtle green */
     --radius:14px;
   }
   *{box-sizing:border-box}
-  html,body{height:100%}
-  body{
-    margin:0;
-    font-family: ui-sans-serif, -apple-system, Segoe UI, Roboto, Inter, "Helvetica Neue", Arial;
-    color:var(--ink);
-    background:var(--bg);
-  }
-  .app{
-    display:grid;
-    grid-template-columns: 260px 1fr;
-    min-height:100vh;
-  }
-  /* Sidebar (ChatGPT-ish) */
-  aside{
-    background:#fafafa;
-    border-right:1px solid var(--line);
-    display:flex; flex-direction:column; gap:14px; padding:14px;
-  }
-  .brand{
-    display:flex; align-items:center; gap:10px; padding:10px; border-radius:12px;
-    background:#fff; border:1px solid var(--line);
-  }
-  .brand img{height:32px; width:auto; border-radius:8px}
-  .brand h1{font-size:15px; margin:0}
-  .nav-btn{
-    appearance:none; border:1px dashed #d7d9df; background:#fff; color:#111;
-    border-radius:12px; padding:10px 12px; text-align:left; cursor:pointer;
-  }
-  .credits{
-    margin-top:auto; font-size:12px; color:var(--muted); padding:0 4px 6px 4px;
-  }
-
-  /* Main pane */
-  main{display:flex; flex-direction:column; height:100vh}
-  header.top{
+  body{margin:0; background:var(--bg); color:var(--ink);
+       font-family: ui-sans-serif,-apple-system,Segoe UI,Roboto,Inter,Arial}
+  header{
+    position:sticky; top:0; z-index:10; background:var(--pane);
     border-bottom:1px solid var(--line);
-    background:#fff;
-    padding:14px 18px;
-    display:flex; align-items:center; gap:12px;
-    position:sticky; top:0; z-index:10;
   }
-  .upload{
-    flex:1; display:flex; align-items:center; gap:10px;
-    border:1.5px dashed #cfd3da; background:#fff; padding:10px 12px; border-radius:14px;
-  }
-  .upload input{display:none}
-  .upload .hint{color:var(--muted); font-size:13px}
-  .btn{
-    appearance:none; border:none; background:var(--hl); color:#fff; padding:10px 14px;
-    border-radius:12px; font-weight:700; cursor:pointer;
-  }
-  .btn.ghost{background:#fff; color:#111; border:1px solid var(--line)}
-  .select{
-    border:1px solid var(--line); background:#fff; border-radius:12px; padding:8px 10px; font-weight:600;
-  }
-
-  /* Chat feed */
-  .feed{
-    flex:1; overflow:auto; padding:24px; display:flex; flex-direction:column; gap:16px;
-  }
-  .msg{
-    display:flex; gap:12px; align-items:flex-start;
-  }
-  .msg .avatar{
-    width:28px; height:28px; border-radius:8px; background:#111; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:800; font-size:12px;
-  }
-  .msg.user .avatar{background:#e5e7eb; color:#111}
-  .bubble{
-    background:#fff; border:1px solid var(--line); border-radius:14px; padding:12px 14px; max-width:900px;
-    box-shadow: 0 2px 0 rgba(0,0,0,0.02);
-  }
-  .bubble h4{margin:0 0 8px; font-size:14px}
-  .bubble .tiny{color:var(--muted); font-size:12px}
-  .code{
-    background:#0f172a; color:#e6eaf5; border-radius:12px; padding:10px 12px; overflow:auto; font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:12px;
-  }
-  .row{display:flex; gap:10px; flex-wrap:wrap}
-  table{width:100%; border-collapse:collapse; font-size:13px}
-  th,td{border-bottom:1px solid var(--line); padding:7px 6px; text-align:left}
-
-  footer.input{
-    border-top:1px solid var(--line); background:#fff; padding:14px 18px;
+  .bar{
+    max-width:980px; margin:0 auto; padding:14px;
     display:flex; gap:10px; align-items:center;
   }
-  .pill{font-size:12px; color:var(--muted)}
-
-  .drop-active{outline:2px solid var(--hl); outline-offset:2px}
+  .logo{display:flex; align-items:center; gap:10px; margin-right:8px}
+  .logo img{height:34px; width:auto; border-radius:8px}
+  .logo .name{font-weight:800; font-size:14px}
+  .upload{
+    flex:1; display:flex; align-items:center; gap:10px;
+    background:var(--pane); border:1.5px solid var(--line);
+    border-radius:999px; padding:8px 12px;
+  }
+  .upload input{display:none}
+  .upload label{flex:0 0 auto; cursor:pointer; font-weight:700;
+    padding:8px 12px; border-radius:999px; background:#f3f4f6; border:1px solid var(--line)}
+  .upload .hint{flex:1; color:var(--muted); font-size:14px}
+  .select{
+    border:1px solid var(--line); background:var(--pane);
+    padding:8px 10px; border-radius:12px; font-weight:600;
+  }
+  main{max-width:980px; margin:18px auto; padding:0 14px}
+  .card{
+    background:var(--pane); border:1px solid var(--line); border-radius:var(--radius);
+    padding:16px;
+  }
+  .grid{display:grid; grid-template-columns: 1fr; gap:14px}
+  .kpis{display:grid; grid-template-columns: repeat(4,1fr); gap:10px}
+  .kpi{background:#fafafa; border:1px solid var(--line); border-radius:12px; padding:10px}
+  .kpi h4{margin:0; font-size:12px; color:#777}
+  .kpi p{margin:4px 0 0; font-weight:800}
+  .btn{
+    appearance:none; border:none; cursor:pointer; padding:10px 14px; border-radius:12px;
+    background:var(--accent); color:#fff; font-weight:800;
+  }
+  .btn.ghost{background:#fff; color:#111; border:1px solid var(--line)}
+  .row{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
+  .muted{color:var(--muted)}
+  table{width:100%; border-collapse:collapse; font-size:13px}
+  th,td{border-bottom:1px solid var(--line); padding:7px 6px; text-align:left}
+  .tiny{font-size:12px; color:var(--muted)}
+  footer{max-width:980px; margin:20px auto 40px; padding:0 14px; color:var(--muted); font-size:12px}
+  .drop{outline:2px dashed var(--accent); outline-offset:4px}
 </style>
 </head>
 <body>
-<div class="app">
-  <!-- Sidebar -->
-  <aside>
-    <div class="brand">
+<header>
+  <div class="bar">
+    <div class="logo">
       <img src="microknots-logo.png" alt="microknots" onerror="this.style.display='none'">
-      <div>
-        <h1>Magenta Packetizer</h1>
-        <div style="font-size:12px;color:var(--muted)">Microknots</div>
-      </div>
+      <div class="name">Magenta • Microknots</div>
     </div>
 
-    <button class="nav-btn" id="newSession">➕ New Session</button>
-    <button class="nav-btn" id="downloadJsonl" disabled>⬇️ Download JSONL</button>
-    <button class="nav-btn" id="downloadZip" disabled>⬇️ Download ZIP (JSONL+manifest)</button>
+    <!-- Single “ChatGPT-like” bar -->
+    <div id="drop" class="upload" tabindex="0" title="Drop file here">
+      <label for="file">Upload</label>
+      <input id="file" type="file" accept=".csv,.xlsx,.xls,.json"/>
+      <div class="hint">Drop CSV/XLSX/JSON to convert to LLM-ready packets…</div>
+    </div>
 
-    <div class="credits">Made in a ChatGPT-style UI. <br>© Microknots • <strong>by Monish Allada</strong></div>
-  </aside>
+    <!-- Minimal mode switch -->
+    <select id="packetType" class="select" title="Packet type">
+      <option value="auto" selected>Auto</option>
+      <option value="classification">Classification</option>
+      <option value="chat">Chat/Instruction</option>
+      <option value="rag">RAG Chunk</option>
+    </select>
+  </div>
+</header>
 
-  <!-- Main -->
-  <main>
-    <header class="top">
-      <div id="drop" class="upload" tabindex="0">
-        <label for="file" class="btn ghost">Choose file</label>
-        <input id="file" type="file" accept=".csv,.xlsx,.xls,.json" />
-        <div class="hint">or drag & drop CSV / XLSX / JSON here. We process locally.</div>
+<main class="grid">
+  <section class="card">
+    <div class="kpis">
+      <div class="kpi"><h4>Rows</h4><p id="kRows">—</p></div>
+      <div class="kpi"><h4>Columns</h4><p id="kCols">—</p></div>
+      <div class="kpi"><h4>Packet Type</h4><p id="kType">—</p></div>
+      <div class="kpi"><h4>Download</h4><p id="kReady" class="muted">—</p></div>
+    </div>
+  </section>
+
+  <section class="card" id="resultCard" style="display:none">
+    <div class="row" style="justify-content:space-between">
+      <div class="row">
+        <button id="btnJsonl" class="btn" disabled>Download JSONL</button>
+        <button id="btnZip" class="btn ghost" disabled>Download ZIP</button>
       </div>
-      <select id="packetType" class="select" title="packet type">
-        <option value="classification">Classification (text + label)</option>
-        <option value="chat">Chat/Instruction (input → expected_output)</option>
-        <option value="rag">RAG Chunk (content + source)</option>
-      </select>
-    </header>
+      <div class="tiny">Outputs include <b>data.jsonl</b>, <b>schema.json</b>, <b>manifest.json</b>, <b>README.md</b></div>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <div class="tiny">Preview (first 5 rows)</div>
+    </div>
+    <div id="preview" style="margin-top:8px;max-height:320px;overflow:auto;border:1px solid var(--line);border-radius:12px"></div>
+  </section>
 
-    <section id="feed" class="feed">
-      <div class="msg">
-        <div class="avatar">M</div>
-        <div class="bubble">
-          <h4>Welcome to Magenta</h4>
-          Drop a file above and I’ll turn it into LLM-ready <b>JSONL</b>. You’ll get a preview and download buttons.
-          <div class="tiny" style="margin-top:8px">Supports: CSV, XLSX, JSON • All processing is in your browser.</div>
-        </div>
-      </div>
-    </section>
+  <section class="card">
+    <div class="tiny">
+      Data is processed locally in your browser. We auto-map columns, clean text (strip HTML, collapse whitespace, mask emails/SSNs/cards), dedupe, and auto-label (keyword/regex heuristics) if no label column exists.
+    </div>
+  </section>
+</main>
 
-    <footer class="input">
-      <span class="pill">Tip: name your logo file <code style="background:#f1f5f9;padding:2px 4px;border-radius:6px">microknots-logo.png</code> to show it in the sidebar.</span>
-    </footer>
-  </main>
-</div>
+<footer>© Microknots — Magenta Packetizer • <b>by Monish Allada</b></footer>
 
 <script>
-/* ====== Simple Chat helpers ====== */
-const feed = document.getElementById('feed');
-function addMsg(role, html){
-  const msg = document.createElement('div'); msg.className = 'msg ' + (role==='user'?'user':'assistant');
-  msg.innerHTML = `
-    <div class="avatar">${role==='user'?'U':'M'}</div>
-    <div class="bubble">${html}</div>
-  `;
-  feed.appendChild(msg);
-  feed.scrollTop = feed.scrollHeight;
-  return msg.querySelector('.bubble');
-}
-function addCodeBlock(parent, text){
-  const pre = document.createElement('pre'); pre.className = 'code'; pre.textContent = text; parent.appendChild(pre);
-}
-function addTable(parent, rows, cols){
-  const t = document.createElement('table');
-  t.innerHTML = `<thead><tr>${cols.map(c=>`<th>${escapeHtml(c)}</th>`).join('')}</tr></thead>
-                 <tbody>${rows.map(r=>`<tr>${cols.map(c=>`<td>${escapeHtml(String(r[c] ?? '')).slice(0,140)}</td>`).join('')}</tr>`).join('')}</tbody>`;
-  parent.appendChild(t);
-}
-const escapeHtml = (s)=> s.replace(/[&<>"]/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[m]));
+/* ===== Basics ===== */
+const el = (id)=>document.getElementById(id);
+const kRows = el('kRows'), kCols = el('kCols'), kType = el('kType'), kReady = el('kReady');
+const preview = el('preview');
+let rawRows=[], columns=[], builtRows=[], lastMap={};
+let selectedType='auto';
 
-/* ====== Parsing / Transform ====== */
-let rawRows=[], columns=[], packetType='classification', builtRows=[];
-const pktSel = document.getElementById('packetType');
-pktSel.addEventListener('change', ()=>{ packetType = pktSel.value; if(rawRows.length){ processAndShow(); }});
+el('packetType').addEventListener('change', e=>{selectedType=e.target.value; if(rawRows.length) buildAndShow();});
 
+/* ===== Drag/drop like a single “search” bar ===== */
+const drop = el('drop'), fileInput = el('file');
+['dragenter','dragover'].forEach(evt=> drop.addEventListener(evt, e=>{e.preventDefault(); drop.classList.add('drop');}));
+['dragleave','drop'].forEach(evt=> drop.addEventListener(evt, e=>{e.preventDefault(); drop.classList.remove('drop');}));
+drop.addEventListener('drop', e=>{ const f=e.dataTransfer.files?.[0]; if(f) handleFile(f); });
+fileInput.addEventListener('change', ()=>{ const f=fileInput.files?.[0]; if(f) handleFile(f); });
+
+/* ===== File parsing ===== */
 async function parseFile(file){
   const name = file.name.toLowerCase();
   if(name.endsWith('.csv')){
-    return new Promise((res)=>{
-      Papa.parse(file, {header:true, dynamicTyping:false, skipEmptyLines:true,
-        complete: (r)=> res(r.data)
-      });
+    return new Promise((resolve)=>{
+      Papa.parse(file,{header:true, skipEmptyLines:true, complete:r=>resolve(r.data)});
     });
   }
-  if(name.endsWith('.xlsx') || name.endsWith('.xls')){
+  if(name.endsWith('.xlsx')||name.endsWith('.xls')){
     const buf = await file.arrayBuffer();
-    const wb = XLSX.read(buf, {type:'array'});
+    const wb = XLSX.read(buf,{type:'array'});
     const ws = wb.Sheets[wb.SheetNames[0]];
-    return XLSX.utils.sheet_to_json(ws, {defval:''});
+    return XLSX.utils.sheet_to_json(ws,{defval:''});
   }
   if(name.endsWith('.json')){
     const txt = await file.text();
     const data = JSON.parse(txt);
-    return Array.isArray(data)? data : data.data || [];
+    return Array.isArray(data) ? data : (data.data || []);
   }
   throw new Error('Unsupported file type.');
 }
 
-function guessMapping(cols, type){
+async function handleFile(file){
+  kReady.textContent = 'Parsing…'; el('resultCard').style.display = 'none';
+  rawRows = await parseFile(file);
+  columns = Object.keys(rawRows[0]||{});
+  kRows.textContent = rawRows.length.toLocaleString();
+  kCols.textContent = columns.length || '—';
+  await buildAndShow(true); // auto-download on first run
+}
+
+/* ===== Heuristics ===== */
+const isRegexLiteral = (s)=> /^\/.*\/[a-z]*$/.test((s||'').trim());
+const toRegex = (s)=>{ const m=s.trim().match(/^\/(.*)\/([a-z]*)$/); return new RegExp(m[1],m[2]||''); };
+
+function guessType(cols){
+  const lc = cols.map(c=>c.toLowerCase());
+  const has = (w)=> lc.some(x=>x.includes(w));
+  if(has('expected')||has('answer')||has('response')) return 'chat';
+  if(has('label')||has('class')||has('category')||has('intent')) return 'classification';
+  return 'rag'; // fallback: chunk documents
+}
+
+function guessMap(cols, type){
   const lc = cols.map(c=>[c,c.toLowerCase()]);
   const find = (keys)=> lc.find(([c,l])=> keys.some(k=> l.includes(k)))?.[0];
   if(type==='classification') return {
     text:  find(['text','content','message','review','body','comment','description']) || cols[0],
-    label: find(['label','class','category','intent','tag']),
+    label: find(['label','class','category','intent','tag']) || null,
     id:    find(['id','uuid','guid','key']) || null
   };
   if(type==='chat') return {
     input:  find(['input','question','prompt','query','source']) || cols[0],
-    output: find(['output','answer','response','completion','target']),
+    output: find(['output','answer','response','completion','target']) || null,
     id:     find(['id','uuid','guid','key']) || null
   };
   if(type==='rag') return {
-    text:   find(['text','content','body','article','document','chunk']) || cols[0],
+    text:   find(['text','content','body','article','document']) || cols[0],
     source: find(['source','url','path','doc','file']) || null,
     id:     find(['id','uuid','guid','key']) || null
   };
   return {};
 }
 
-function applyQuality(s){
+function cleanText(s){
   if(typeof s!=='string') s = String(s ?? '');
-  s = s.replace(/<[^>]+>/g,' ');         // strip HTML
-  s = s.replace(/\s+/g,' ').trim();      // collapse WS
-  // basic PII mask
-  s = s.replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi,'<EMAIL>')
-       .replace(/\b\d{3}-?\d{2}-?\d{4}\b/g,'<SSN>')
-       .replace(/\b(?:\d[ -]*?){13,19}\b/g,'<CARD>');
-  return s;
+  return s.replace(/<[^>]+>/g,' ')
+          .replace(/\s+/g,' ').trim()
+          .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi,'<EMAIL>')
+          .replace(/\b\d{3}-?\d{2}-?\d{4}\b/g,'<SSN>')
+          .replace(/\b(?:\d[ -]*?){13,19}\b/g,'<CARD>');
 }
 
 function chunkText(str, size=900, overlap=120){
-  const out=[]; let i=0, idx=1; while(i<str.length){ const end=Math.min(str.length, i+size); out.push({idx, text:str.slice(i,end)}); idx++; i = end - overlap; if(i<=0) i=end; }
+  const out=[]; let i=0, idx=1;
+  while(i<str.length){ const end=Math.min(str.length,i+size); out.push({idx,text:str.slice(i,end)}); idx++; i = end-overlap; if(i<=0) i=end; }
   return out;
 }
 
+/* Simple auto-labeler: topic & sentiment keywords (extend as needed) */
+const AUTO_RULES = [
+  {label:'billing',  type:'regex',    query:/refund|chargeback|invoice|billing|payment|price|receipt/i},
+  {label:'shipping', type:'regex',    query:/ship|delivery|tracking|arriv(e|al)|carrier|delayed/i},
+  {label:'product',  type:'regex',    query:/defect|broken|quality|size|color|feature|warranty/i},
+  {label:'support',  type:'regex',    query:/help|support|assist|issue|trouble|cannot|can\'t|error/i},
+  {label:'sales',    type:'regex',    query:/quote|pricing|order|availability|stock|discount|offer/i},
+  {label:'pos',      type:'regex',    query:/great|love|excellent|awesome|perfect|thank you|happy/i},
+  {label:'neg',      type:'regex',    query:/bad|terrible|angry|hate|poor|frustrat|awful|not working/i}
+];
+function autoLabel(text){
+  for(const r of AUTO_RULES){ if(r.query.test(text)) return r.label; }
+  return 'other';
+}
+
+/* ===== Build -> JSONL ===== */
 function assemble(rows, map, type){
   if(type==='classification'){
-    let arr = rows.map((r,i)=>({
-      id: r[map.id] ?? (i+1),
-      text: applyQuality(r[map.text] ?? ''),
-      label: r[map.label] ?? null,
-      _meta: Object.fromEntries(Object.keys(r).filter(k=> !Object.values(map).includes(k)).map(k=>[k,r[k]]))
-    }));
+    let arr = rows.map((r,i)=>{
+      const txt = cleanText(r[map.text] ?? '');
+      const lbl = map.label ? (r[map.label] ?? null) : autoLabel(txt);
+      const idv = r[map.id] ?? (i+1);
+      return {id:idv, text:txt, label:lbl,
+              _meta:Object.fromEntries(Object.keys(r).filter(k=> !Object.values(map).includes(k)).map(k=>[k,r[k]]))};
+    });
     // dedupe by text
-    const seen=new Set(); arr = arr.filter(x=>{ const k=x.text; if(seen.has(k)) return false; seen.add(k); return true;});
+    const seen = new Set(); arr = arr.filter(x=>{if(seen.has(x.text)) return false; seen.add(x.text); return true;});
     return arr;
   }
   if(type==='chat'){
     let arr = rows.map((r,i)=>({
       id: r[map.id] ?? (i+1),
-      input: applyQuality(r[map.input] ?? ''),
-      expected_output: applyQuality(r[map.output] ?? ''),
+      input: cleanText(r[map.input] ?? ''),
+      expected_output: cleanText(r[map.output] ?? ''),
       _meta: Object.fromEntries(Object.keys(r).filter(k=> !Object.values(map).includes(k)).map(k=>[k,r[k]]))
     }));
-    const seen=new Set(); arr = arr.filter(x=>{ const k=x.input+'→'+x.expected_output; if(seen.has(k)) return false; seen.add(k); return true;});
+    // dedupe
+    const seen = new Set(); arr = arr.filter(x=>{const k=x.input+'→'+x.expected_output; if(seen.has(k)) return false; seen.add(k); return true;});
     return arr;
   }
   if(type==='rag'){
     const out=[];
     rows.forEach((r,i)=>{
       const baseId = r[map.id] ?? (i+1);
-      const text = applyQuality(r[map.text] ?? '');
+      const text = cleanText(r[map.text] ?? '');
       const src  = r[map.source] ?? ('row:'+ (i+1));
-      for(const piece of chunkText(text)){
-        out.push({
-          id: baseId+':'+piece.idx,
-          content: piece.text,
-          source: src,
-          _meta: Object.fromEntries(Object.keys(r).filter(k=> !Object.values(map).includes(k)).map(k=>[k,r[k]]))
-        });
+      for(const chunk of chunkText(text)){
+        out.push({id: baseId+':'+chunk.idx, content: chunk.text, source: src,
+                  _meta: Object.fromEntries(Object.keys(r).filter(k=> !Object.values(map).includes(k)).map(k=>[k,r[k]]))});
       }
     });
-    const seen=new Set(); return out.filter(x=>{ if(seen.has(x.content)) return false; seen.add(x.content); return true;});
+    const seen = new Set(); return out.filter(x=>{if(seen.has(x.content)) return false; seen.add(x.content); return true;});
   }
   return [];
 }
+const toJSONL = (arr)=> arr.map(o=>JSON.stringify(o)).join('\n');
 
-function toJSONL(arr){ return arr.map(o=>JSON.stringify(o)).join('\n'); }
-
-/* ====== ZIP bundle ====== */
 function schemaFor(type){
-  if(type==='classification'){
-    return {type:'jsonl', item:{required:['id','text'], optional:['label','_meta']}};
-  } else if(type==='chat'){
-    return {type:'jsonl', item:{required:['id','input','expected_output'], optional:['_meta']}};
-  } else {
-    return {type:'jsonl', item:{required:['id','content','source'], optional:['_meta']}};
-  }
+  if(type==='classification') return {type:'jsonl', item:{required:['id','text'], optional:['label','_meta']}};
+  if(type==='chat') return {type:'jsonl', item:{required:['id','input','expected_output'], optional:['_meta']}};
+  return {type:'jsonl', item:{required:['id','content','source'], optional:['_meta']}};
 }
 async function makeZip(jsonl, type, map, rowsCount){
   const zip = new JSZip();
   zip.file('data.jsonl', jsonl);
   zip.file('schema.json', JSON.stringify(schemaFor(type), null, 2));
-  zip.file('manifest.json', JSON.stringify({
-    name:'magenta-packet',
-    packet_type:type,
-    created_at:new Date().toISOString(),
-    rows:rowsCount,
-    roles:map
-  }, null, 2));
+  zip.file('manifest.json', JSON.stringify({name:'magenta-packet', packet_type:type, created_at:new Date().toISOString(), rows:rowsCount, roles:map}, null, 2));
   zip.file('README.md', `# Magenta Data Packet
 
 Type: **${type}**
@@ -325,74 +302,46 @@ Rows: **${rowsCount}**
 ## Roles
 ${Object.entries(map).map(([k,v])=>`- ${k}: \`${v}\``).join('\n')}
 `);
-  return await zip.generateAsync({type:'blob'});
+  return zip.generateAsync({type:'blob'});
 }
 
-/* ====== Upload handling (ChatGPT-like top bar) ====== */
-const fileInput = document.getElementById('file');
-const dropArea = document.getElementById('drop');
-['dragenter','dragover'].forEach(evt=> dropArea.addEventListener(evt, e=>{ e.preventDefault(); e.stopPropagation(); dropArea.classList.add('drop-active'); }));
-['dragleave','drop'].forEach(evt=> dropArea.addEventListener(evt, e=>{ e.preventDefault(); e.stopPropagation(); dropArea.classList.remove('drop-active'); }));
-dropArea.addEventListener('drop', e=>{ const f = e.dataTransfer.files[0]; if(f) handleFile(f); });
-fileInput.addEventListener('change', ()=>{ const f=fileInput.files[0]; if(f) handleFile(f); });
+/* ===== Build + Show + (optionally) auto-download ===== */
+async function buildAndShow(autoDownload=false){
+  // decide type
+  let type = selectedType==='auto' ? guessType(columns) : selectedType;
+  const map = guessMap(columns, type);
+  // Allow graceful fallback: if chat is missing output -> classification
+  if(type==='chat' && !map.output){ type='classification'; Object.assign(map, guessMap(columns, 'classification')); }
+  kType.textContent = type.toUpperCase();
 
-document.getElementById('newSession').addEventListener('click', ()=>{
-  rawRows=[]; columns=[]; builtRows=[]; feed.innerHTML=''; addMsg('assistant', `<h4>New session</h4>Drop a file above to begin.`); 
-  document.getElementById('downloadJsonl').disabled = true;
-  document.getElementById('downloadZip').disabled = true;
-});
+  builtRows = assemble(rawRows, map, type);
+  const jsonl = toJSONL(builtRows);
 
-async function handleFile(file){
-  addMsg('user', `<strong>Uploaded:</strong> ${file.name}`);
-  const thinking = addMsg('assistant', `Parsing <b>${file.name}</b>…`);
-  try{
-    rawRows = await parseFile(file);
-    columns = Object.keys(rawRows[0] || {});
-    thinking.innerHTML = `Parsed <b>${rawRows.length.toLocaleString()}</b> rows, <b>${columns.length}</b> columns. Inferring roles for <b>${packetType}</b>…`;
-    await processAndShow();
-  }catch(err){
-    thinking.innerHTML = `<span style="color:#b91c1c">Error:</span> ${err.message}`;
+  // KPIs & readiness
+  kReady.textContent = builtRows.length ? 'Ready' : '—';
+  el('resultCard').style.display = builtRows.length ? 'block' : 'none';
+
+  // Preview table (first 5)
+  const sample = builtRows.slice(0,5);
+  const cols = Object.keys(sample[0]||{});
+  preview.innerHTML = sample.length
+    ? `<table><thead><tr>${cols.map(c=>`<th>${esc(c)}</th>`).join('')}</tr></thead>
+       <tbody>${sample.map(r=>`<tr>${cols.map(c=>`<td>${esc(String(r[c]??'')).slice(0,140)}</td>`).join('')}</tr>`).join('')}</tbody></table>`
+    : `<div class="tiny">No rows produced.</div>`;
+
+  // Enable buttons
+  const btnJsonl = el('btnJsonl'), btnZip = el('btnZip');
+  btnJsonl.disabled = btnZip.disabled = !builtRows.length;
+  btnJsonl.onclick = ()=> saveAs(new Blob([jsonl],{type:'application/jsonl'}), `magenta_${type}_${Date.now()}.jsonl`);
+  btnZip.onclick   = async ()=> saveAs(await makeZip(jsonl, type, map, builtRows.length), `magenta_packet_${type}_${Date.now()}.zip`);
+
+  if(autoDownload && builtRows.length){
+    // immediately give the ZIP; user can redownload via buttons
+    const blob = await makeZip(jsonl, type, map, builtRows.length);
+    saveAs(blob, `magenta_packet_${type}_${Date.now()}.zip`);
   }
 }
-
-async function processAndShow(){
-  const bubble = addMsg('assistant', `Mapping columns & building packet…`);
-  const map = guessMapping(columns, packetType);
-  bubble.innerHTML = `
-    <div><strong>Role mapping</strong></div>
-    <div class="row" style="margin:8px 0">
-      ${Object.entries(map).map(([k,v])=>`<span style="background:#eef2f7;border:1px solid #e3e6eb;border-radius:999px;padding:4px 10px;font-size:12px">${k}: <b>${escapeHtml(String(v||'—'))}</b></span>`).join(' ')}
-    </div>
-    Assembling rows…`;
-  builtRows = assemble(rawRows, map, packetType);
-
-  // Preview
-  const prev = addMsg('assistant', `<strong>Preview (${Math.min(5, builtRows.length)} of ${builtRows.length.toLocaleString()})</strong>`);
-  const sample = builtRows.slice(0,5);
-  addCodeBlock(prev, toJSONL(sample));
-
-  // Original head preview
-  const srcPrev = addMsg('assistant', `<strong>Source sample</strong>`);
-  addTable(srcPrev, rawRows.slice(0,8), columns);
-
-  // Enable downloads
-  const jsonl = toJSONL(builtRows);
-  const dlJsonlBtn = document.getElementById('downloadJsonl');
-  const dlZipBtn   = document.getElementById('downloadZip');
-  dlJsonlBtn.disabled = false;
-  dlZipBtn.disabled   = false;
-
-  dlJsonlBtn.onclick = ()=> {
-    const blob = new Blob([jsonl], {type:'application/jsonl'});
-    saveAs(blob, `magenta_${packetType}_${Date.now()}.jsonl`);
-  };
-  dlZipBtn.onclick = async ()=> {
-    const zipBlob = await makeZip(jsonl, packetType, map, builtRows.length);
-    saveAs(zipBlob, `magenta_packet_${packetType}_${Date.now()}.zip`);
-  };
-
-  addMsg('assistant', `✅ Packet ready. Use the buttons in the left sidebar to download <b>JSONL</b> or a full <b>ZIP</b> bundle.`);
-}
+const esc = (s)=> s.replace(/[&<>"]/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[m]));
 </script>
 </body>
 </html>
